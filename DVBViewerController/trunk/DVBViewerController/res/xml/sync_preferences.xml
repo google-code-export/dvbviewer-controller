@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/pref_seperator_syncsettings" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="KEY_SYNC_EPG"
+            android:summary="@string/pref_item_epg_settings_sync_summary"
+            android:title="@string/pref_item_epg_settings_sync" />
+
+        <EditTextPreference
+            android:defaultValue="2"
+            android:inputType="number"
+            android:key="KEY_DAYS_TO_SYNC"
+            android:summary="@string/pref_item_epg_settings_days_summary"
+            android:title="@string/pref_item_epg_settings_days" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="KEY_SYNC_ONLY_FAVS"
+            android:summary="@string/pref_item_epg_settings_fav_only_summary"
+            android:title="@string/pref_item_epg_settings_fav_only" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

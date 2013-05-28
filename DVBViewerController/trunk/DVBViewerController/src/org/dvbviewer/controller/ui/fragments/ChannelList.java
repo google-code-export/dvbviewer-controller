@@ -671,6 +671,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				url.append("/");
 				url.append(logoUrl);
 				imageChacher.getImage(holder.icon, url.toString(), null, true);
+			}else{
+				holder.icon.setImageResource(R.drawable.dummy);
 			}
 		}
 

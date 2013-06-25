@@ -32,6 +32,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.Config;
+import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
 import org.json.JSONObject;
@@ -81,7 +82,7 @@ public class App extends Application {
 		
 
 		/**
-		 * Read preferences
+		 * Read DVBViewer preferences
 		 */
 		DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 		Config.IS_FIRST_START = prefs.getBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, true);
@@ -93,14 +94,17 @@ public class App extends Application {
 		ServerConsts.DVBVIEWER_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_DVBV_USERNAME, "");
 		ServerConsts.DVBVIEWER_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_DVBV_PASSWORD, "");
 		
+		/**
+		 * Read Recordingservice Preferences
+		 */
 		String prefUrl = prefs.getString(DVBViewerPreferences.KEY_RS_URL, "http://");
 		String prefPort = prefs.getString(DVBViewerPreferences.KEY_RS_PORT, "8089");
 		URLUtil.setRecordingServicesAddress(prefUrl, prefPort);
-		ServerConsts.REC_SERVICE_USER_NAME = prefs.getAppSharedPrefs().getString(DVBViewerPreferences.KEY_RS_USERNAME, "");
-		ServerConsts.REC_SERVICE_PASSWORD = prefs.getAppSharedPrefs().getString(DVBViewerPreferences.KEY_RS_PASSWORD, "");
-		ServerConsts.REC_SERVICE_LIVE_STREAM_PORT = prefs.getAppSharedPrefs().getString(DVBViewerPreferences.KEY_RS_LIVE_STREAM_PORT, ServerConsts.REC_SERVICE_LIVE_STREAM_PORT);
-		ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT = prefs.getAppSharedPrefs().getString(DVBViewerPreferences.KEY_RS_MEDIA_STREAM_PORT, ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT);
-
+		ServerConsts.REC_SERVICE_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_RS_USERNAME, "");
+		ServerConsts.REC_SERVICE_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_RS_PASSWORD, "");
+		ServerConsts.REC_SERVICE_LIVE_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_LIVE_STREAM_PORT, ServerConsts.REC_SERVICE_LIVE_STREAM_PORT);
+		ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_MEDIA_STREAM_PORT, ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT);
+		ServerConsts.REC_SERVICE_MAC_ADDRESS = prefs.getString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS);
 		super.onCreate();
 		
 		/**
@@ -109,6 +113,22 @@ public class App extends Application {
 		Thread t = new Thread(new ExpirationChecker(prefs.getAppSharedPrefs()));
 		t.start();
 		
+		/**
+		 * Thread to send a wake on lan request
+		 */
+		Runnable wakeOnLanRunnabel = new Runnable() {
+			
+			@Override
+			public void run() {
+				NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
+			}
+		};
+		
+		boolean sendWakeOnLan = prefs.getBoolean(DVBViewerPreferences.KEY_RS_WOL_ON_START, true);
+		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
+			Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
+			wakeOnLanThread.start();
+		}
 	}
 
 	

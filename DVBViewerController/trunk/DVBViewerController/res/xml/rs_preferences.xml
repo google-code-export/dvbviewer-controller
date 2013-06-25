@@ -22,6 +22,11 @@
             android:password="true"
             android:summary="@string/pref_item_password_summary"
             android:title="@string/pref_item_password" />
+        <CheckBoxPreference
+            android:key="KEY_RS_WOL_ON_START"
+            android:defaultValue="true"
+            android:summary="@string/pref_item_rs_wol_on_start_summary"
+            android:title="@string/pref_item_rs_wol_on_start" />
         <EditTextPreference
             android:key="KEY_RS_LIVE_STREAM_PORT"
             android:defaultValue="7522"

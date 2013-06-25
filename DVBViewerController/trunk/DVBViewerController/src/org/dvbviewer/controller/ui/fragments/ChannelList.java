@@ -54,6 +54,7 @@ import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.ui.widget.CheckableLinearLayout;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.DateUtils;
+import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
@@ -282,7 +283,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						String statusXml = ServerRequest.getRSString(ServerConsts.URL_STATUS);
 						StatusHandler statusHandler = new StatusHandler();
 						Status s = statusHandler.parse(statusXml);
-
+						
+						/**
+						 * Get the Mac Address for WOL
+						 */
+						String macAddress = NetUtils.getMacFromArpCache(ServerConsts.REC_SERVICE_HOST);
 						/**
 						 * Save the data in sharedpreferences
 						 */
@@ -292,6 +297,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, s.getEpgAfter());
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, s.getDefAfterRecord());
 						}
+						prefEditor.putString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS, macAddress);
 						prefEditor.putBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, true);
 						prefEditor.commit();
 						Config.CHANNELS_SYNCED = true;

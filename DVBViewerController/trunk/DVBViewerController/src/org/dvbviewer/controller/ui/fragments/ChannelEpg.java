@@ -113,13 +113,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onResume()
-	 */
-	@Override
-	public void onResume() {
-		super.onResume();
-	}
 
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
@@ -134,15 +127,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		}
 	}
 
-	
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseListFragment#onViewCreated(android.view.View, android.os.Bundle)
-	 */
-	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-	}
-	
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
 	 */
@@ -202,12 +186,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 				}
 				
 				@Override
-				protected void onStartLoading() {
-					super.onStartLoading();
-					
-				}
-				
-				@Override
 				public Cursor loadInBackground() {
 					MatrixCursor cursor = null;
 					Date now = mDateInfo.getEpgDate();
@@ -220,10 +198,12 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 						EpgEntryHandler handler = new EpgEntryHandler();
 						String xml = ServerRequest.getRSString(url);
 						result = handler.parse(xml);
-						String[] columnNames = new String[] { EpgTbl._ID, EpgTbl.EPG_ID, EpgTbl.TITLE, EpgTbl.SUBTITLE, EpgTbl.DESC, EpgTbl.START, EpgTbl.END };
-						cursor = new MatrixCursor(columnNames);
-						for (EpgEntry entry : result) {
-							cursor.addRow(new Object[] { entry.getId(), entry.getEpgID(), entry.getTitle(), entry.getSubTitle(), entry.getDescription(), entry.getStart().getTime(), entry.getEnd().getTime() });
+						if (result != null && !result.isEmpty()) {
+							String[] columnNames = new String[] { EpgTbl._ID, EpgTbl.EPG_ID, EpgTbl.TITLE, EpgTbl.SUBTITLE, EpgTbl.DESC, EpgTbl.START, EpgTbl.END };
+							cursor = new MatrixCursor(columnNames);
+							for (EpgEntry entry : result) {
+								cursor.addRow(new Object[] { entry.getId(), entry.getEpgID(), entry.getTitle(), entry.getSubTitle(), entry.getDescription(), entry.getStart().getTime(), entry.getEnd().getTime() });
+							}
 						}
 
 					} catch (AuthenticationException e) {

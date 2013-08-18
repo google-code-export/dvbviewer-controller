@@ -145,9 +145,6 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		case android.R.id.home:
 			onBackPressed();
 			return true;
-		case R.id.menuValidate:
-			onBackPressed();
-			return true;
 		default:
 			break;
 		}

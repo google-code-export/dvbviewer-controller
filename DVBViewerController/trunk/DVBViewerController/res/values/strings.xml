@@ -103,6 +103,7 @@
     <string name="Hibernate">Hibernate</string>
     <string name="Standby">Standby</string>
     <string name="Shutdown">Shutdown</string>
+    <string name="WOL">Wake Recording Service</string>
 
     <!-- Status -->
     <string name="status">Status</string>

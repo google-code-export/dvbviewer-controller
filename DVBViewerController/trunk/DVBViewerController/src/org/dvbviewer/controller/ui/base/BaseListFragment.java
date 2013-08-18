@@ -49,9 +49,11 @@ import com.actionbarsherlock.app.SherlockFragment;
  * @date 07.04.2013
  */
 public class BaseListFragment extends SherlockFragment {
-    static final int INTERNAL_EMPTY_ID = android.R.id.empty;
-    static final int INTERNAL_PROGRESS_CONTAINER_ID = android.R.id.progress;
-    static final int INTERNAL_LIST_CONTAINER_ID = android.R.id.content;
+	static final int								INTERNAL_EMPTY_ID				= android.R.id.empty;
+	static final int								INTERNAL_PROGRESS_CONTAINER_ID	= android.R.id.progress;
+	static final int								INTERNAL_LIST_CONTAINER_ID		= android.R.id.content;
+	protected LoadingResult							loadingResult;
+    
     
     private int layoutRessource = -1;
     
@@ -297,17 +299,16 @@ public class BaseListFragment extends SherlockFragment {
      * @author RayBa
      * @date 07.04.2013
      */
-    public void setEmptyText(CharSequence text) {
-        ensureList();
-        if (mStandardEmptyView == null) {
-            throw new IllegalStateException("Can't be used with a custom content view");
-        }
-        mStandardEmptyView.setText(text);
-        if (mEmptyText == null) {
-            mList.setEmptyView(mStandardEmptyView);
-        }
-        mEmptyText = text;
-    }
+	public void setEmptyText(CharSequence text) {
+		ensureList();
+		if (mStandardEmptyView != null) {
+			mStandardEmptyView.setText(text);
+			if (mEmptyText == null) {
+				mList.setEmptyView(mStandardEmptyView);
+			}
+		}
+		mEmptyText = text;
+	}
     
     /**
      * Control whether the list is being displayed.  You can make it not
@@ -509,4 +510,10 @@ public class BaseListFragment extends SherlockFragment {
 			getSherlockActivity().runOnUiThread(errorRunnable);
 		}
 	}
+	
+	
+	public static enum LoadingResult {
+		OK, ERROR, NETWORK_ERROR, INVALID_URL, INVALID_CREDENTIALS
+	}
+	
 }

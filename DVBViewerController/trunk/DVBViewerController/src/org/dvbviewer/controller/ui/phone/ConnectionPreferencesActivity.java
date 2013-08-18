@@ -18,6 +18,7 @@ package org.dvbviewer.controller.ui.phone;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.ServerConsts;
@@ -29,6 +30,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
 /**
@@ -39,6 +41,8 @@ import com.actionbarsherlock.view.MenuItem;
  */
 @SuppressWarnings("deprecation")
 public class ConnectionPreferencesActivity extends SherlockPreferenceActivity implements OnSharedPreferenceChangeListener {
+	
+	boolean prefsChanged = false;
 
 	/*
 	 * (non-Javadoc)
@@ -87,6 +91,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		prefsChanged = true;
 		if (key.equals(DVBViewerPreferences.KEY_RS_URL)) {
 			ServerConsts.REC_SERVICE_URL = sharedPreferences.getString(key, "http://");
 			try {
@@ -124,6 +129,12 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		}
 		ServerRequest.resetHttpCLient();
 	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+//		getSupportMenuInflater().inflate(R.menu.activity_connection_preference, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockPreferenceActivity#onOptionsItemSelected(android.view.MenuItem)
@@ -132,6 +143,9 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
+			onBackPressed();
+			return true;
+		case R.id.menuValidate:
 			onBackPressed();
 			return true;
 		default:

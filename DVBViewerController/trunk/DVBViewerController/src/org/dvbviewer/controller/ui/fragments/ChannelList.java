@@ -38,8 +38,10 @@ import org.dvbviewer.controller.entities.EpgEntry;
 import org.dvbviewer.controller.entities.Status;
 import org.dvbviewer.controller.entities.Timer;
 import org.dvbviewer.controller.io.ChannelHandler;
+import org.dvbviewer.controller.io.ChannelListParser;
 import org.dvbviewer.controller.io.EpgEntryHandler;
 import org.dvbviewer.controller.io.FavouriteHandler;
+import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.io.ResultReceiver.Receiver;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
@@ -217,6 +219,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						DbHelper helper = new DbHelper(getContext());
 						helper.saveNowPlaying(result);
 					} catch (AuthenticationException e) {
+						loadingResult = LoadingResult.INVALID_CREDENTIALS;
 						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
@@ -258,14 +261,28 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 
 					try {
 						/**
+						 * Request the Status.xml to get some default Recordingservice Configs
+						 */
+						String statusXml = ServerRequest.getRSString(ServerConsts.URL_STATUS);
+						StatusHandler statusHandler = new StatusHandler();
+						Status s = statusHandler.parse(statusXml);
+						String version = getVersionString();
+					
+						DbHelper mDbHelper = new DbHelper(mContext);
+						/**
 						 * Request the Channels
 						 */
-						String chanXml = ServerRequest.getRSString(ServerConsts.URL_CHANNELS);
-						ChannelHandler channelHandler = new ChannelHandler();
-						List<Channel> chans = channelHandler.parse(chanXml);
-						DbHelper mDbHelper = new DbHelper(mContext);
-						mDbHelper.saveChannels(chans);
-
+						if (Config.isOldRsVersion(version)) {
+							byte[] rawData = ServerRequest.getRSBytes(ServerConsts.URL_CHANNELS_OLD);
+							List<Channel> chans = ChannelListParser.parseChannelList(getContext(), rawData);
+							mDbHelper.saveChannels(chans);
+						}else {
+							String chanXml = ServerRequest.getRSString(ServerConsts.URL_CHANNELS);
+							ChannelHandler channelHandler = new ChannelHandler();
+							List<Channel> chans = channelHandler.parse(chanXml);
+							mDbHelper.saveChannels(chans);
+						}
+						
 						/**
 						 * Request the Favourites
 						 */
@@ -274,15 +291,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 							FavouriteHandler handler = new FavouriteHandler();
 							List<Fav> favs = handler.parse(getActivity(), favXml);
 							mDbHelper.saveFavs(favs);
-							mDbHelper.close();
 						}
 
-						/**
-						 * Request the Status.xml to get some default Recordingservice Configs
-						 */
-						String statusXml = ServerRequest.getRSString(ServerConsts.URL_STATUS);
-						StatusHandler statusHandler = new StatusHandler();
-						Status s = statusHandler.parse(statusXml);
+						mDbHelper.close();
 						
 						/**
 						 * Get the Mac Address for WOL
@@ -330,6 +341,23 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						e.printStackTrace();
 					}
 					return null;
+				}
+
+				private String getVersionString() throws Exception {
+					String version = null;
+					try {
+						String versionXml = ServerRequest.getRSString(ServerConsts.URL_VERSION);
+						VersionHandler versionHandler = new VersionHandler();
+						version = versionHandler.parse(versionXml);
+//						here is a regex required! 
+						version = version.replace("DVBViewer Recording Service ", "");
+						String[] arr = version.split(" ");
+						version = arr[0];
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					return version;
 				}
 			};
 			break;
@@ -678,7 +706,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				url.append(logoUrl);
 				imageChacher.getImage(holder.icon, url.toString(), null, true);
 			}else{
-				holder.icon.setImageResource(R.drawable.dummy);
+				holder.icon.setImageBitmap(null);
 			}
 		}
 

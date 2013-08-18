@@ -38,7 +38,6 @@ import android.util.Log;
  * @author RayBa
  * @date 05.07.2012
  */
-@SuppressWarnings("unused")
 public class ChannelListParser {
 
 	private static Charset	ASCII	= Charset.forName("ASCII");

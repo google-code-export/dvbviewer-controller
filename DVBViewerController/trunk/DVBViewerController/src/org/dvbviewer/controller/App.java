@@ -29,6 +29,7 @@ import org.acra.sender.HttpPostSender;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
+import org.dvbviewer.controller.data.DbHelper;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.Config;
@@ -58,6 +59,7 @@ public class App extends Application {
 	 */
 	@Override
 	public void onCreate() {
+		
 		/**
 		 * Acra initialisation
 		 */

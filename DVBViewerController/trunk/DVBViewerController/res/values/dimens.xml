@@ -12,7 +12,8 @@
     <dimen name="alert_dialog_button_bar_height">48dip</dimen>
 
     <!-- Default Padding Sizes -->
-    <dimen name="default_padding_small">5dp</dimen>
-    <dimen name="default_padding_medium">10dp</dimen>
+    <dimen name="default_padding_small">10dp</dimen>
+    <dimen name="default_padding_medium">15dp</dimen>
+    <dimen name="default_padding_large">30dp</dimen>
 
 </resources>

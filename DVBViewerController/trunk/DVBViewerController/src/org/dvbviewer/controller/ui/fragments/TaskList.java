@@ -28,6 +28,7 @@ import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.utils.ArrayListAdapter;
 import org.dvbviewer.controller.utils.CategoryAdapter;
+import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.app.AlertDialog;
@@ -52,6 +53,7 @@ import android.widget.TextView;
  */
 public class TaskList extends BaseListFragment implements OnClickListener {
 
+	private static final String WOL_COMMAND = "WOL";
 	// TaskAdapter mAdapter;
 	CategoryAdapter	sAdapter;
 	ProgressDialog			progressDialog;
@@ -69,6 +71,7 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 		sAdapter = new CategoryAdapter(getSherlockActivity());
 
 		TaskAdapter system = new TaskAdapter(getSherlockActivity());
+		system.addItem(new Task(r.getString(R.string.WOL), WOL_COMMAND));
 		system.addItem(new Task(r.getString(R.string.Standby), "Standby"));
 		system.addItem(new Task(r.getString(R.string.Hibernate), "Hibernate"));
 		system.addItem(new Task(r.getString(R.string.Shutdown), "Shutdown"));
@@ -127,9 +130,25 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 	@Override
 	public void onListItemClick(ListView parent, View view, int position, long id) {
 		selectedTask = (Task) sAdapter.getItem(position);
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		String question = MessageFormat.format(getResources().getString(R.string.task_execute_security_question), selectedTask.getTitle());
-		builder.setMessage(question).setPositiveButton("Yes", this).setTitle(R.string.dialog_confirmation_title).setNegativeButton("No", this).show();
+		if (selectedTask.getCommand().equals(WOL_COMMAND)) {
+			/**
+			 * Try to wake Recording Service
+			 */
+			Runnable wakeOnLanRunnabel = new Runnable() {
+				
+				@Override
+				public void run() {
+					NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
+				}
+			};
+			
+				Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
+				wakeOnLanThread.start();
+		}else {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			String question = MessageFormat.format(getResources().getString(R.string.task_execute_security_question), selectedTask.getTitle());
+			builder.setMessage(question).setPositiveButton("Yes", this).setTitle(R.string.dialog_confirmation_title).setNegativeButton("No", this).show();
+		}
 		
 	}
 

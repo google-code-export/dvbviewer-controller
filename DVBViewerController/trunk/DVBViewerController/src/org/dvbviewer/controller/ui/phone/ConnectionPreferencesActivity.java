@@ -51,7 +51,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		int id = getIntent().getExtras().getInt("id");
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		PreferenceManager prefMgr = getPreferenceManager();
-		prefMgr.setSharedPreferencesName(DVBViewerPreferences.APP_SHARED_PREFS);
+		prefMgr.setSharedPreferencesName(DVBViewerPreferences.PREFS);
 		prefMgr.setSharedPreferencesMode(MODE_WORLD_READABLE);
 		addPreferencesFromResource(id);
 	}

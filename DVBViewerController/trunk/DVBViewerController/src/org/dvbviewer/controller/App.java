@@ -110,7 +110,7 @@ public class App extends Application {
 		/**
 		 * Thread to check for Expiration
 		 */
-		Thread t = new Thread(new ExpirationChecker(prefs.getAppSharedPrefs()));
+		Thread t = new Thread(new ExpirationChecker(prefs.getPrefs()));
 		t.start();
 		
 		/**

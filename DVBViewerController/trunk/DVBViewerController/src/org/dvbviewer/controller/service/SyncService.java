@@ -98,7 +98,7 @@ public class SyncService extends Service {
 		Log.i(SyncService.class.getSimpleName(), "onCreate");
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		DVBViewerPreferences dvbPrefs = new DVBViewerPreferences(getApplication());
-		prefs = dvbPrefs.getAppSharedPrefs();
+		prefs = dvbPrefs.getPrefs();
 		HandlerThread thread = new HandlerThread(SyncService.class.getName(), Process.THREAD_PRIORITY_BACKGROUND);
 		thread.start();
 		mServiceLooper = thread.getLooper();

@@ -643,8 +643,8 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd = c.getLong(c.getColumnIndex(EpgTbl.END));
 		DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
-		int epgBefore = prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
-		int epgAfter = prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
+		int epgBefore = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
+		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();
 		Date end = epgEnd > 0 ? new Date(epgEnd) : new Date();
 		Log.i(ChannelList.class.getSimpleName(), start.toString());
@@ -658,7 +658,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		timer.setChannelName(name);
 		timer.setStart(start);
 		timer.setEnd(end);
-		timer.setTimerAction(prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
+		timer.setTimerAction(prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
 		return timer;
 	}
 

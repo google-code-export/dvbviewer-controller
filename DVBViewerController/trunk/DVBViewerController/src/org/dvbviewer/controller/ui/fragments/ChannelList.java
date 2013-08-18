@@ -126,9 +126,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
 		prefs = new DVBViewerPreferences(getActivity());
-		showFavs = prefs.getAppSharedPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		showNowPlaying = prefs.getAppSharedPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING, true);
-		showNowPlayingWifi = prefs.getAppSharedPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY, true);
+		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
+		showNowPlaying = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING, true);
+		showNowPlayingWifi = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY, true);
 		mAdapter = new ChannelAdapter(getActivity());
 		if (getArguments() != null) {
 			if (getArguments().containsKey(ChannelList.KEY_HAS_OPTIONMENU)) {
@@ -291,7 +291,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						/**
 						 * Save the data in sharedpreferences
 						 */
-						Editor prefEditor = prefs.getAppSharedPrefs().edit();
+						Editor prefEditor = prefs.getPrefs().edit();
 						if (s != null) {
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, s.getEpgBefore());
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, s.getEpgAfter());
@@ -574,7 +574,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * @date 05.07.2012
 	 */
 	public void persistChannelConfigConfig() {
-		Editor editor = prefs.getAppSharedPrefs().edit();
+		Editor editor = prefs.getPrefs().edit();
 		editor.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
 		editor.commit();
 		super.onPause();
@@ -876,8 +876,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd =  c.getLong(c.getColumnIndex(EpgTbl.END));
 		DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
-		int epgBefore = prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
-		int epgAfter = prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
+		int epgBefore = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
+		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();
 		Date end = epgEnd > 0 ? new Date(epgEnd) : new Date(start.getTime()+(1000*60*120));
 		Log.i(ChannelList.class.getSimpleName(), "start: "+start.toString());
@@ -890,7 +890,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		timer.setChannelName(name);
 		timer.setStart(start);
 		timer.setEnd(end);
-		timer.setTimerAction(prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
+		timer.setTimerAction(prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
 		return timer;
 	}
 

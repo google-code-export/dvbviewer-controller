@@ -45,6 +45,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -57,7 +59,7 @@ import com.actionbarsherlock.app.SherlockDialogFragment;
  * @author RayBa
  * @date 07.04.2013
  */
-public class StreamConfig extends SherlockDialogFragment implements OnClickListener, DialogInterface.OnClickListener {
+public class StreamConfig extends SherlockDialogFragment implements OnClickListener, DialogInterface.OnClickListener, OnItemSelectedListener {
 
 	public static final String	TAG_URI					= "_uri";
 	public static final String	EXTRA_FILE_ID			= "_fileID";
@@ -88,6 +90,8 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 	private int					mStreamType				= 0;
 	private int					mFileId					= -1;
 	private Context				mContext;
+	
+	private SharedPreferences	prefs;
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.DialogFragment#onCreate(android.os.Bundle)
@@ -96,6 +100,8 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mContext = getActivity().getApplicationContext();
+		DVBViewerPreferences dvbvPrefs = new DVBViewerPreferences(mContext);
+		prefs = dvbvPrefs.getStreamPrefs();
 		if (savedInstanceState != null) {
 			title = savedInstanceState.getInt("titleRes");
 		}
@@ -105,7 +111,7 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 		seekable = mFileType != FILE_TYPE_LIVE && mStreamType != STREAM_TYPE_DIRECT;
 		if (seekable) {
 			DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
-			preTime = String.valueOf(prefs.getAppSharedPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 0));
+			preTime = String.valueOf(prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 0));
 		}
 	}
 
@@ -149,12 +155,31 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_stream_config, container, false);
 		qualitySpinner = (Spinner) v.findViewById(R.id.qualitySpinner);
-		qualitySpinner.setSelection(7);
+		int qualityIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_QUALITY, 7);
+		qualitySpinner.setOnItemSelectedListener(this);
+		qualitySpinner.setSelection(qualityIndex);
+		
 		aspectSpinner = (Spinner) v.findViewById(R.id.aspectSpinner);
+		int aspectIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_ASPECT_RATIO, 0);
+		aspectSpinner.setSelection(aspectIndex);
+		aspectSpinner.setOnItemSelectedListener(this);
+		
 		ffmpegSpinner = (Spinner) v.findViewById(R.id.ffmpegSpinner);
-		ffmpegSpinner.setSelection(5);
+		int ffmpegIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_FFMPEG_PRESET, 5);
+		ffmpegSpinner.setSelection(ffmpegIndex);
+		ffmpegSpinner.setOnItemSelectedListener(this);
+		
 		widthSpinner = (Spinner) v.findViewById(R.id.widthSpinner);
+		int widthIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_MAX_WIDTH, 0);
+		widthSpinner.setSelection(widthIndex);
+		widthSpinner.setOnItemSelectedListener(this);
+		
 		heightSpinner = (Spinner) v.findViewById(R.id.heightSpinner);
+		int heightIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_MAX_HEIGHT, 0);
+		heightSpinner.setSelection(heightIndex);
+		heightSpinner.setOnItemSelectedListener(this);
+		
+		
 		startButton = (Button) v.findViewById(R.id.startTranscodedButton);
 		startButton.setOnClickListener(this);
 		startDirectStreamButton = (Button) v.findViewById(R.id.startDirectButton);
@@ -317,7 +342,7 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 		Log.i(StreamConfig.class.getSimpleName(), "url: " + videoUrl);
 
 		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
-		boolean external = prefs.getAppSharedPrefs().getBoolean(DVBViewerPreferences.KEY_STREAM_EXTERNAL_PLAYER, true);
+		boolean external = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_STREAM_EXTERNAL_PLAYER, true);
 		Intent videoIntent;
 		if (external) {
 			videoType = "video/mpeg";
@@ -353,6 +378,38 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 			break;
 		}
 
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+		Editor editor = prefs.edit();
+		switch (parent.getId()) {
+		case R.id.qualitySpinner:
+			editor.putInt(DVBViewerPreferences.KEY_STREAM_QUALITY, position);
+			break;
+		case R.id.aspectSpinner:
+			editor.putInt(DVBViewerPreferences.KEY_STREAM_ASPECT_RATIO, position);
+			break;
+		case R.id.ffmpegSpinner:
+			editor.putInt(DVBViewerPreferences.KEY_STREAM_FFMPEG_PRESET, position);
+			break;
+		case R.id.widthSpinner:
+			editor.putInt(DVBViewerPreferences.KEY_STREAM_MAX_WIDTH, position);
+			break;
+		case R.id.heightSpinner:
+			editor.putInt(DVBViewerPreferences.KEY_STREAM_MAX_HEIGHT, position);
+			break;
+
+		default:
+			break;
+		}
+		editor.commit();
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

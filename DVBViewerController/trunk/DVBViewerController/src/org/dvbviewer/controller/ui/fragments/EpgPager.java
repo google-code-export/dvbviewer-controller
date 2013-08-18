@@ -92,7 +92,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		prefs = new DVBViewerPreferences(getActivity());
-		showFavs = prefs.getAppSharedPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
+		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		mChannels = getArguments().getParcelableArrayList(Channel.class.getName());
 		mPosition = getArguments().containsKey("position") ? getArguments().getInt("position", mPosition) : mPosition;
 		mPager.setAdapter(mAdapter);

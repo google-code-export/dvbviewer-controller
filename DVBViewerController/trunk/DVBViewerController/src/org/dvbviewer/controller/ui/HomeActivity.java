@@ -111,7 +111,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				builder.setMessage(getResources().getString(R.string.firstStartMessage)).setPositiveButton(R.string.yes, this).setTitle(getResources().getString(R.string.firstStartMessageTitle))
 				.setNegativeButton(R.string.no, this).show();
 				DVBViewerPreferences prefs = new DVBViewerPreferences(this);
-				prefs.getAppSharedPrefs().edit().putBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, false).commit();
+				prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, false).commit();
 			}
 		}
 		

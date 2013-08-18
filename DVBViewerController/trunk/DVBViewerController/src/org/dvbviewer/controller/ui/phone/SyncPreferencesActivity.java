@@ -47,7 +47,7 @@ public class SyncPreferencesActivity extends SherlockPreferenceActivity implemen
 		super.onCreate(savedInstanceState);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		PreferenceManager prefMgr = getPreferenceManager();
-		prefMgr.setSharedPreferencesName(DVBViewerPreferences.APP_SHARED_PREFS);
+		prefMgr.setSharedPreferencesName(DVBViewerPreferences.PREFS);
 		prefMgr.setSharedPreferencesMode(MODE_WORLD_READABLE);
 		addPreferencesFromResource(R.xml.sync_preferences);
 	}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <bool name="init_acra">true</bool>
+    <bool name="check_expire_date">true</bool>
+
+    <string name="url_expire_date">http://rayba.de/dvb/service/expiration.php?</string>
+    <string name="url_acra_error">http://www.rayba.de/dvb/php/log_client_error.php</string>
+
+</resources>

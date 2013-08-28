@@ -28,6 +28,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.URLUtil;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.actionbarsherlock.view.Menu;
@@ -94,6 +95,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		prefsChanged = true;
 		if (key.equals(DVBViewerPreferences.KEY_RS_URL)) {
 			ServerConsts.REC_SERVICE_URL = sharedPreferences.getString(key, "http://");
+			ServerConsts.REC_SERVICE_URL = URLUtil.guessUrl(ServerConsts.REC_SERVICE_URL);
 			try {
 				URL url = new URL(ServerConsts.REC_SERVICE_URL);
 				ServerConsts.REC_SERVICE_HOST = url.getHost();

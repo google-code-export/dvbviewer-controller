@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -57,6 +56,7 @@ import org.apache.http.util.EntityUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.util.Log;
+import android.webkit.URLUtil;
 
 /**
  * The Class ServerRequest.
@@ -71,7 +71,6 @@ public class ServerRequest {
 	private static Credentials			rsCredentials;
 	private static AuthScope			clientAuthScope;
 	private static AuthScope			rsAuthScope;
-	private static UrlValidator			urlValidator	= new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES);
 
 	/**
 	 * Sends an command to the DVBViewer Client. Every ActionID will be
@@ -398,7 +397,7 @@ public class ServerRequest {
 	 */
 	private static AuthScope getClientAuthScope() {
 		if (clientAuthScope == null) {
-			if (urlValidator.isValid(ServerConsts.DVBVIEWER_URL)) {
+			if (URLUtil.isValidUrl(ServerConsts.DVBVIEWER_URL)) {
 				URI uri;
 				try {
 					uri = new URI(ServerConsts.DVBVIEWER_URL);
@@ -420,7 +419,7 @@ public class ServerRequest {
 	 */
 	private static AuthScope getRsAuthScope() {
 		if (rsAuthScope == null) {
-			if (urlValidator.isValid(ServerConsts.REC_SERVICE_URL)) {
+			if (URLUtil.isValidUrl(ServerConsts.REC_SERVICE_URL)) {
 				URI uri;
 				try {
 					uri = new URI(ServerConsts.REC_SERVICE_URL);

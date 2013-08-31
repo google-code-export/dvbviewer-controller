@@ -18,10 +18,10 @@ package org.dvbviewer.controller.ui.phone;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.ServerConsts;
+import org.dvbviewer.controller.utils.URLUtil;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -43,7 +43,6 @@ import com.actionbarsherlock.view.MenuItem;
 public class ConnectionPreferencesActivity extends SherlockPreferenceActivity implements OnSharedPreferenceChangeListener {
 	
 	boolean prefsChanged = false;
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -81,7 +80,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		super.onPause();
 		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -94,18 +93,8 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		prefsChanged = true;
 		if (key.equals(DVBViewerPreferences.KEY_RS_URL)) {
 			ServerConsts.REC_SERVICE_URL = sharedPreferences.getString(key, "http://");
-			try {
-				URL url = new URL(ServerConsts.REC_SERVICE_URL);
-				ServerConsts.REC_SERVICE_HOST = url.getHost();
-				ServerConsts.REC_SERVICE_PORT = sharedPreferences.getString(DVBViewerPreferences.KEY_RS_PORT, "8089");
-				ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_URL+":"+ServerConsts.REC_SERVICE_PORT;
-			} catch (MalformedURLException e) {
-				Log.e(ConnectionPreferencesActivity.class.getSimpleName(), "MALFORMED RECORDING SERVICE URL");
-			}
 		} else if (key.equals(DVBViewerPreferences.KEY_RS_PORT)) {
 			ServerConsts.REC_SERVICE_PORT = sharedPreferences.getString(key, "");
-			ServerConsts.REC_SERVICE_URL = sharedPreferences.getString(DVBViewerPreferences.KEY_RS_URL, "http://");
-			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_URL+":"+ServerConsts.REC_SERVICE_PORT;
 		} else if (key.equals(DVBViewerPreferences.KEY_RS_USERNAME)) {
 			ServerConsts.REC_SERVICE_USER_NAME = sharedPreferences.getString(key, "");
 		} else if (key.equals(DVBViewerPreferences.KEY_RS_PASSWORD)) {
@@ -127,6 +116,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		} else if (key.equals(DVBViewerPreferences.KEY_DVBV_PASSWORD)) {
 			ServerConsts.DVBVIEWER_PASSWORD = sharedPreferences.getString(key, "");
 		}
+		URLUtil.setRecordingServicesAddress(ServerConsts.REC_SERVICE_URL, ServerConsts.REC_SERVICE_PORT);
 		ServerRequest.resetHttpCLient();
 	}
 	

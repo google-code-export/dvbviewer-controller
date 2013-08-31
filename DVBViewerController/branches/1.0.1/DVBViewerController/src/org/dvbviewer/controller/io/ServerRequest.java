@@ -16,15 +16,20 @@
 package org.dvbviewer.controller.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ParseException;
@@ -43,6 +48,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -176,6 +182,9 @@ public class ServerRequest {
 			if (getRsAuthScope() != null) {
 				httpClient.getCredentialsProvider().setCredentials(getRsAuthScope(), getRsCredentials());
 			}
+			
+			httpClient.addRequestInterceptor(new GZipRequestInterceptor());
+			httpClient.addResponseInterceptor(new GZipResponseInterceptor());
 		}
 		return httpClient;
 	}
@@ -187,6 +196,9 @@ public class ServerRequest {
 	 * @date 13.04.2012
 	 */
 	public static void resetHttpCLient() {
+		if (httpClient != null && httpClient.getConnectionManager() != null) {
+			httpClient.getConnectionManager().shutdown();
+		}
 		httpClient = null;
 		rsAuthScope = null;
 		clientAuthScope = null;
@@ -257,6 +269,11 @@ public class ServerRequest {
 	 * @date 13.04.2012
 	 */
 	public static String getRSString(String request) throws Exception {
+//		URL url = new URL(ServerConsts.REC_SERVICE_URL + request);
+//		URLConnection conn = url.openConnection();
+//		String basicAuth = "Basic " + new String(Base64.encode((ServerConsts.REC_SERVICE_USER_NAME+":"+ServerConsts.REC_SERVICE_PASSWORD).getBytes(), Base64.NO_WRAP ));
+//		conn.setRequestProperty ("Authorization", basicAuth);
+//		conn.getContent();
 		String result = null;
 		result = EntityUtils.toString(getRSEntity(request));
 		return result;
@@ -493,5 +510,61 @@ public class ServerRequest {
 		}
 		
 	}
+	
+	static class GZipResponseInterceptor implements HttpResponseInterceptor{
+
+		@Override
+		public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
+			 HttpEntity entity = response.getEntity();
+             Header ceheader = entity.getContentEncoding();
+             if (ceheader != null) {
+                 HeaderElement[] codecs = ceheader.getElements();
+                 for (int i = 0; i < codecs.length; i++) {
+                     if (codecs[i].getName().equalsIgnoreCase("gzip")) {
+                         response.setEntity(
+                                 new GzipDecompressingEntity(response.getEntity())); 
+                         return;
+                     }
+                 }
+             }
+		}
+
+		
+	}
+	static class GZipRequestInterceptor implements HttpRequestInterceptor{
+		
+		public void process(
+                final HttpRequest request, 
+                final HttpContext context) throws HttpException, IOException {
+            if (!request.containsHeader("Accept-Encoding")) {
+                request.addHeader("Accept-Encoding", "gzip");
+            }
+        }
+		
+	}
+	
+	static class GzipDecompressingEntity extends HttpEntityWrapper {
+
+        public GzipDecompressingEntity(final HttpEntity entity) {
+            super(entity);
+        }
+    
+        @Override
+        public InputStream getContent()
+            throws IOException, IllegalStateException {
+
+            // the wrapped entity's getContent() decides about repeatability
+            InputStream wrappedin = wrappedEntity.getContent();
+
+            return new GZIPInputStream(wrappedin);
+        }
+
+        @Override
+        public long getContentLength() {
+            // length of ungzipped content is not known
+            return -1;
+        }
+
+    } 
 
 }

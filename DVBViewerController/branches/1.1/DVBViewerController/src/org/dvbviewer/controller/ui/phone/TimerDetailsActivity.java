@@ -47,7 +47,9 @@ public class TimerDetailsActivity extends BaseSinglePaneActivity implements OnTi
 	 */
 	@Override
 	protected Fragment onCreatePane() {
-		return  new TimerDetails();
+		TimerDetails fragment = new TimerDetails();
+		fragment.setArguments(intentToFragmentArguments(getIntent()));
+		return  fragment;
 	}
 
 

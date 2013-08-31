@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.acra.ACRA;
 import org.acra.ErrorReporter;
@@ -29,11 +31,7 @@ import org.acra.sender.HttpPostSender;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
-import org.dvbviewer.controller.data.DbHelper;
-import org.dvbviewer.controller.entities.ChannelGroup;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.entities.Channel.Fav;
-import org.dvbviewer.controller.io.FavouriteHandler;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
@@ -46,7 +44,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.text.TextUtils;
-import android.util.Log;
 
 /**
  * The Class App.
@@ -86,7 +83,6 @@ public class App extends Application {
 			ErrorReporter.getInstance().addReportSender(new HttpPostSender(acraUrl, mapping));
 		}
 		
-
 		/**
 		 * Read DVBViewer preferences
 		 */
@@ -113,91 +109,13 @@ public class App extends Application {
 		ServerConsts.REC_SERVICE_MAC_ADDRESS = prefs.getString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS);
 		super.onCreate();
 		
-		/**
-		 * Thread to check for Expiration
-		 */
-		Thread t = new Thread(new ExpirationChecker(prefs.getPrefs()));
-		t.start();
-		
-		/**
-		 * Thread to send a wake on lan request
-		 */
-		Runnable wakeOnLanRunnabel = new Runnable() {
-			
-			@Override
-			public void run() {
-				NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
-				String favXml;
-				try {
-					favXml = ServerRequest.getRSString(ServerConsts.URL_FAVS);
-					if (!TextUtils.isEmpty(favXml)) {
-						FavouriteHandler handler = new FavouriteHandler();
-						List<ChannelGroup> favGroups = handler.parse(getApplicationContext(), favXml);
-//						List<Fav> favs = handler.parse(getApplicationContext(), favXml);
-						Log.i(App.class.getSimpleName(),"run");
-					}
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		};
 		
 		boolean sendWakeOnLan = prefs.getBoolean(DVBViewerPreferences.KEY_RS_WOL_ON_START, true);
 		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
-			Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
-			wakeOnLanThread.start();
+			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
 		}
 	}
 
 	
-	/**
-	 * The Class ExpirationChecker.
-	 *
-	 * @author RayBa
-	 * @date 11.08.2012
-	 */
-	class ExpirationChecker implements Runnable {
-		
-		SharedPreferences prefs;
-		
-		/**
-		 * Instantiates a new expiration checker.
-		 *
-		 * @param prefs the prefs
-		 * @author RayBa
-		 * @date 11.08.2012
-		 */
-		public ExpirationChecker(SharedPreferences prefs) {
-			this.prefs = prefs;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Runnable#run()
-		 */
-		@Override
-		public void run() {
-			String urlExpireDate = getString(R.string.url_expire_date);
-			if (!TextUtils.isEmpty(urlExpireDate)) {
-				try {
-					PackageInfo pinfo = App.this.getPackageManager().getPackageInfo(getPackageName(), 0);
-					List<NameValuePair> params = new ArrayList<NameValuePair>();
-					String url = getString(R.string.url_expire_date);
-					params.add(new BasicNameValuePair("ver", pinfo.versionName));
-					String query = URLEncodedUtils.format(params, "utf-8");
-					String jsonString = ServerRequest.getString(url + query);
-					JSONObject jsonObject = new JSONObject(jsonString);
-					String expireDate = jsonObject.getString("date");
-					String expireMessage = jsonObject.getString("message");
-					Editor editor = prefs.edit();
-					editor.putString(DVBViewerPreferences.KEY_EXPIRE_DATE, expireDate);
-					editor.putString(DVBViewerPreferences.KEY_EXPIRE_Message, expireMessage);
-					editor.commit();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
 	
 }

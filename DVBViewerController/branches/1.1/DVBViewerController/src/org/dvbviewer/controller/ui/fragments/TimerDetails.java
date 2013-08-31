@@ -108,7 +108,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			if (timer.getId() <= 0l) {
 				timer.setTimerAction(prefs.getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
 			}else{
-				timer.setTimerAction(getArguments().getInt("action", 0));
+				timer.setTimerAction(getArguments().getInt(EXTRA_ACTION, 0));
 			}
 		}else if (savedInstanceState != null) {
 			timer = new Timer();

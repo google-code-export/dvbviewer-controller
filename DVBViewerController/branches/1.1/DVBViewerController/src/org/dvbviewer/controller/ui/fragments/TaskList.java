@@ -134,16 +134,7 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 			/**
 			 * Try to wake Recording Service
 			 */
-			Runnable wakeOnLanRunnabel = new Runnable() {
-				
-				@Override
-				public void run() {
-					NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
-				}
-			};
-			
-				Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
-				wakeOnLanThread.start();
+			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
 		}else {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			String question = MessageFormat.format(getResources().getString(R.string.task_execute_security_question), selectedTask.getTitle());

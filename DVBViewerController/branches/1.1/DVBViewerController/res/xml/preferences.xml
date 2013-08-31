@@ -22,6 +22,16 @@
     <PreferenceCategory android:title="@string/pref_seperator_channel" >
         <CheckBoxPreference
             android:defaultValue="true"
+            android:key="KEY_CHANNELS_SHOW_GROUPS"
+            android:title="@string/pref_item_channel_show_groups" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="KEY_CHANNELS_SHOW_GROUPS"
+            android:key="KEY_CHANNELS_SHOW_ALL_AS_GROUP"
+            android:summary="@string/pref_item_channel_show_all_in_groups_summary"
+            android:title="@string/pref_item_channel_show_all_in_groups" />
+        <CheckBoxPreference
+            android:defaultValue="true"
             android:key="KEY_CHANNELS_SHOW_NOW_PLAYING"
             android:summary="@string/pref_item_channel_show_current_program_summary"
             android:title="@string/pref_item_channel_show_current_program" />

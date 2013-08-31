@@ -22,6 +22,7 @@
     <string name="gmt">GMT</string>
     <string name="details">Details</string>
     <string name="common_colon">:&#160;</string>
+    <string name="common_all">All</string>
     <string name="common_hyphen">&#160;-&#160;</string>
 
     <!-- Channels -->
@@ -154,6 +155,9 @@
     <string name="pref_item_rs_live_stream_port_summary">Port for live TV streaming</string>
     <string name="pref_item_rs_media_stream_port">Media Streaming Port</string>
     <string name="pref_item_rs_media_stream_port_summary">Port for Media streaming</string>
+    <string name="pref_item_channel_show_groups">Show channel groups</string>
+    <string name="pref_item_channel_show_all_in_groups">Show "All" as extra group</string>
+    <string name="pref_item_channel_show_all_in_groups_summary">Shows an extra group containing all channels</string>
     <string name="pref_item_channel_show_current_program">Show current program</string>
     <string name="pref_item_channel_show_current_program_summary">Shows the current program in the channel list</string>
     <string name="pref_item_channel_show_current_program_wifi">Only on WIFI</string>

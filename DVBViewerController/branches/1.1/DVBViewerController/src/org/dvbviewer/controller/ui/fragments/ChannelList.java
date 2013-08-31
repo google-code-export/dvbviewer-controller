@@ -15,58 +15,38 @@
  */
 package org.dvbviewer.controller.ui.fragments;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.data.DbConsts.EpgTbl;
-import org.dvbviewer.controller.data.DbHelper;
+import org.dvbviewer.controller.data.DbConsts.FavTbl;
 import org.dvbviewer.controller.entities.Channel;
-import org.dvbviewer.controller.entities.ChannelGroup;
-import org.dvbviewer.controller.entities.ChannelRoot;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.entities.EpgEntry;
-import org.dvbviewer.controller.entities.Status;
 import org.dvbviewer.controller.entities.Timer;
-import org.dvbviewer.controller.io.ChannelHandler;
-import org.dvbviewer.controller.io.ChannelListParser;
-import org.dvbviewer.controller.io.EpgEntryHandler;
-import org.dvbviewer.controller.io.FavouriteHandler;
 import org.dvbviewer.controller.io.ResultReceiver.Receiver;
-import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
-import org.dvbviewer.controller.io.StatusHandler;
-import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.service.SyncService;
-import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
 import org.dvbviewer.controller.ui.phone.TimerDetailsActivity;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.ui.widget.CheckableLinearLayout;
-import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.DateUtils;
-import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -100,21 +80,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public static final String	KEY_SELECTED_POSITION		= "SELECTED_POSITION";
 	public static final String	KEY_HAS_OPTIONMENU			= "HAS_OPTIONMENU";
 	public static final String	KEY_GROUP_ID				= "GROUP_ID";
-	DVBViewerPreferences		prefs;
 	ChannelAdapter				mAdapter;
 	int							selectedPosition			= -1;
 	boolean						hasOptionsMenu				= true;
 	boolean						showFavs;
-	boolean						showNowPlaying;
-	boolean						showNowPlayingWifi;
-	public static final int		LOADER_REFRESH_CHANNELLIST	= 100;
 	public static final int		LOADER_CHANNELLIST			= 101;
-	public static final int		LOADER_EPG					= 103;
 	OnChannelSelectedListener	mCHannelSelectedListener;
 	View						selectView;
 	Context						mContext;
-	private NetworkInfo			mNetworkInfo;
-	private long				mOldGroupId						= -1;
 	private long				mGroupId						= -1;
 
 	/*
@@ -124,17 +97,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.i(ChannelList.class.getSimpleName(), "onCreate");
 		super.onCreate(savedInstanceState);
 		mContext = getActivity().getApplicationContext();
 
-		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-		prefs = new DVBViewerPreferences(getActivity());
-		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		showNowPlaying = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING, true);
-		showNowPlayingWifi = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY, true);
+		showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		mAdapter = new ChannelAdapter(getActivity());
 		if (savedInstanceState == null) {
 			if (getArguments() != null) {
@@ -142,15 +108,15 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 					hasOptionsMenu = getArguments().getBoolean(KEY_HAS_OPTIONMENU);
 				}
 				selectedPosition = getActivity().getIntent().getIntExtra(KEY_SELECTED_POSITION, selectedPosition);
+				if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
+					mGroupId = getArguments().getLong(KEY_GROUP_ID);
+				}
 			}
 		}else {
 			if (savedInstanceState.containsKey(KEY_SELECTED_POSITION)) {
 				selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION);
 				mGroupId = getArguments().getLong(KEY_GROUP_ID);
 			}
-		}
-		if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
-			mGroupId = getArguments().getLong(KEY_GROUP_ID);
 		}
 		
 		setHasOptionsMenu(hasOptionsMenu);
@@ -184,14 +150,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		registerForContextMenu(getListView());
 		int loaderId = LOADER_CHANNELLIST;
-		/**
-		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
-		 */
-		if (!Config.CHANNELS_SYNCED) {
-			loaderId = LOADER_REFRESH_CHANNELLIST;
-		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
-			loaderId = LOADER_EPG;
-		}
+//		/**
+//		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
+//		 */
+//		if (!Config.CHANNELS_SYNCED) {
+//			loaderId = LOADER_REFRESH_CHANNELLIST;
+//		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
+//			loaderId = LOADER_EPG;
+//		}
 		setEmptyText(showFavs ? getResources().getString(R.string.no_favourites) : getResources().getString(R.string.no_channels));
 		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
 		setListShown(!(!isResumed() || loader.isStarted()));
@@ -212,176 +178,17 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		switch (loaderId) {
 		case LOADER_CHANNELLIST:
 			StringBuffer selection = new StringBuffer(showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : new StringBuffer());
-			selection.append(showFavs && mGroupId > 0 ? " and " : "");
-			selection.append(mGroupId > 0 ? (showFavs ? ChannelTbl.FAV_GROUP_ID : ChannelTbl.GROUP_ID )+ " = "+mGroupId : "");
-			String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
+			String orderBy = null;
+			if (mGroupId > 0) {
+				if (showFavs) {
+					selection.append(" and ");
+					selection.append(FavTbl.FAV_GROUP_ID + " = "+mGroupId);
+				}else {
+					selection.append(ChannelTbl.GROUP_ID + " = "+mGroupId);
+				}
+			}
+			orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
 			loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
-			break;
-		case LOADER_EPG:
-			loader = new AsyncLoader<Cursor>(getActivity()) {
-
-				@Override
-				public Cursor loadInBackground() {
-					List<EpgEntry> result = null;
-					String nowFloat = org.dvbviewer.controller.utils.DateUtils.getFloatDate(new Date());
-					String url = ServerConsts.URL_EPG + "&start=" + nowFloat + "&end=" + nowFloat;
-					try {
-						EpgEntryHandler handler = new EpgEntryHandler();
-						String xml = ServerRequest.getRSString(url);
-						result = handler.parse(xml);
-						DbHelper helper = new DbHelper(getContext());
-						helper.saveNowPlaying(result);
-					} catch (AuthenticationException e) {
-						loadingResult = LoadingResult.INVALID_CREDENTIALS;
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_credentials));
-					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
-						e.printStackTrace();
-					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
-						e.printStackTrace();
-					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
-						e.printStackTrace();
-					}
-					return null;
-				}
-
-
-			};
-			break;
-		case LOADER_REFRESH_CHANNELLIST:
-			loader = new AsyncLoader<Cursor>(getActivity()) {
-
-				@Override
-				public Cursor loadInBackground() {
-
-					try {
-						/**
-						 * Request the Status.xml to get some default Recordingservice Configs
-						 */
-						String statusXml = ServerRequest.getRSString(ServerConsts.URL_STATUS);
-						StatusHandler statusHandler = new StatusHandler();
-						Status s = statusHandler.parse(statusXml);
-						String version = getVersionString();
-					
-						DbHelper mDbHelper = new DbHelper(mContext);
-						/**
-						 * Request the Channels
-						 */
-						if (Config.isOldRsVersion(version)) {
-							byte[] rawData = ServerRequest.getRSBytes(ServerConsts.URL_CHANNELS_OLD);
-							List<Channel> chans = ChannelListParser.parseChannelList(getContext(), rawData);
-							mDbHelper.saveChannels(chans);
-						}else {
-							String chanXml = ServerRequest.getRSString(ServerConsts.URL_CHANNELS);
-							ChannelHandler channelHandler = new ChannelHandler();
-							List<ChannelRoot> rootElements = channelHandler.parse(chanXml);
-							mDbHelper.saveChannelRoots(rootElements);
-//							List<Channel> chans = new ArrayList<Channel>();
-//							for (ChannelRoot channelRoot : rootElements) {
-//								for (ChannelGroup group : channelRoot.getGroups()) {
-//									chans.addAll(group.getChannels());
-//								}
-//							}
-//							mDbHelper.saveChannels(chans);
-						}
-						
-						/**
-						 * Request the Favourites
-						 */
-						String favXml = ServerRequest.getRSString(ServerConsts.URL_FAVS);
-						if (!TextUtils.isEmpty(favXml)) {
-							FavouriteHandler handler = new FavouriteHandler();
-							List<ChannelGroup> favGroups = handler.parse(getActivity(), favXml);
-							mDbHelper.saveFavGroups(favGroups);
-//							List<Fav> favs = handler.parse(getActivity(), favXml);
-//							mDbHelper.saveFavs(favs);
-						}
-
-						mDbHelper.close();
-						
-						/**
-						 * Get the Mac Address for WOL
-						 */
-						String macAddress = NetUtils.getMacFromArpCache(ServerConsts.REC_SERVICE_HOST);
-						/**
-						 * Save the data in sharedpreferences
-						 */
-						Editor prefEditor = prefs.getPrefs().edit();
-						if (s != null) {
-							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, s.getEpgBefore());
-							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, s.getEpgAfter());
-							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, s.getDefAfterRecord());
-						}
-						prefEditor.putString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS, macAddress);
-						prefEditor.putBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, true);
-						prefEditor.commit();
-						Config.CHANNELS_SYNCED = true;
-					} catch (AuthenticationException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_credentials));
-					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
-						e.printStackTrace();
-					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
-						e.printStackTrace();
-					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
-						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
-						e.printStackTrace();
-					}
-					return null;
-				}
-
-				private String getVersionString() throws Exception {
-					String version = null;
-					try {
-						String versionXml = ServerRequest.getRSString(ServerConsts.URL_VERSION);
-						VersionHandler versionHandler = new VersionHandler();
-						version = versionHandler.parse(versionXml);
-//						here is a regex required! 
-						version = version.replace("DVBViewer Recording Service ", "");
-						String[] arr = version.split(" ");
-						version = arr[0];
-						
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					return version;
-				}
-			};
 			break;
 		default:
 			break;
@@ -399,28 +206,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		switch (loader.getId()) {
-		case LOADER_EPG:
-			refresh(LOADER_CHANNELLIST);
-			break;
-		case LOADER_REFRESH_CHANNELLIST:
-			/**
-			 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
-			 */
-			if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
-				refresh(LOADER_EPG);
-			}else {
-				refresh(LOADER_CHANNELLIST);
-			}
-			break;
-		default:
-			mAdapter.swapCursor(cursor);
-			if (selectedPosition != ListView.INVALID_POSITION) {
-				getListView().setItemChecked(selectedPosition, true);
-			}
-			setListShown(true);
-			break;
+		mAdapter.swapCursor(cursor);
+		if (selectedPosition != ListView.INVALID_POSITION) {
+			getListView().setItemChecked(selectedPosition, true);
 		}
+		setListShown(true);
 		getSherlockActivity().invalidateOptionsMenu();
 	}
 
@@ -503,17 +293,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
 		int itemId = item.getItemId();
 		switch (itemId) {
-		case R.id.menu_refresh_now_playing:
-			refresh(LOADER_EPG);
-			return true;
-		case R.id.menuRefreshChannels:
-			refresh(LOADER_REFRESH_CHANNELLIST);
-			return true;
 		case R.id.menuChannelList:
 		case R.id.menuFavourties:
 			showFavs = !showFavs;
 			refresh(LOADER_CHANNELLIST);
-			persistChannelConfigConfig();
 			return true;
 
 		default:
@@ -548,6 +331,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
 				timerdetails.setArguments(args);
 				timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 			} else {
@@ -557,6 +341,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
 				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
 				startActivity(timerIntent);
 			}
 			return true;
@@ -615,19 +400,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			break;
 		}
 		return false;
-	}
-
-	/**
-	 * Persist channel config config.
-	 *
-	 * @author RayBa
-	 * @date 05.07.2012
-	 */
-	public void persistChannelConfigConfig() {
-		Editor editor = prefs.getPrefs().edit();
-		editor.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
-		editor.commit();
-		super.onPause();
 	}
 
 	/**

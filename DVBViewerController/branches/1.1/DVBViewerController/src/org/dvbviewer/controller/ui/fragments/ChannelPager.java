@@ -45,16 +45,17 @@ import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
-import org.dvbviewer.controller.utils.UIUtils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -97,6 +98,8 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	/** The m pager. */
 	private ViewPager				mPager;
 	
+	private View					mProgress;
+	
 	/** The m adapter. */
 	PagerAdapter					mAdapter;
 	
@@ -104,7 +107,9 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	private OnPageChangeListener	mOnPageChangeListener;
 	
 	/** The show favs. */
-	private Boolean					showFavs;
+	private boolean					showFavs;
+	private boolean					showGroups;
+	private boolean					showExtraGroup;
 
 	/** The prefs. */
 	private DVBViewerPreferences	prefs;
@@ -113,12 +118,23 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	private static final int		SYNCHRONIZE_CHANNELS	= 0;
 
 	/** The load groups. */
-	private static final int		LOAD_GROUPS				= 1;
+	private static final int		LOAD_CHANNELS				= 1;
 
-	private TitlePageIndicator	titleIndicator;
-	
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
+	private static final int		LOAD_CURRENT_PROGRAM				= 2;
+
+	private TitlePageIndicator		titleIndicator;
+
+	private NetworkInfo				mNetworkInfo;
+
+	private boolean					showNowPlaying;
+
+	private boolean					showNowPlayingWifi;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
 	 */
 	@Override
 	public void onAttach(Activity activity) {
@@ -136,6 +152,15 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
+		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+		prefs = new DVBViewerPreferences(getActivity());
+		showGroups = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_GROUPS, false);
+		showExtraGroup = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_ALL_AS_GROUP, false);
+		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
+		showNowPlaying = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING, true);
+		showNowPlayingWifi = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY, true);
 	}
 
 	/* (non-Javadoc)
@@ -144,9 +169,6 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		prefs = new DVBViewerPreferences(getActivity());
-		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		
 		mPager.setAdapter(mAdapter);
 		titleIndicator.setViewPager(mPager);
 		titleIndicator.setOnPageChangeListener(mOnPageChangeListener);
@@ -159,7 +181,18 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 				Log.i(ChannelPager.class.getSimpleName(), "mPosition: "+mPosition);
 			}
 		}
-		getLoaderManager().initLoader(LOAD_GROUPS, savedInstanceState, this);
+		
+		int loaderId = LOAD_CHANNELS;
+		/**
+		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
+		 */
+		if (!Config.CHANNELS_SYNCED) {
+			loaderId = SYNCHRONIZE_CHANNELS;
+		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
+			loaderId = LOAD_CURRENT_PROGRAM;
+		}
+		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
+		showProgress(!isResumed() || loader.isStarted());
 	}
 	
 	
@@ -170,10 +203,10 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.pager, null);
+		mProgress = view.findViewById(android.R.id.progress);
 		mPager = (ViewPager) view.findViewById(R.id.pager);
 		titleIndicator = (TitlePageIndicator)view.findViewById(R.id.titles);
-		titleIndicator.setVisibility(View.VISIBLE);
-//		mPager.setPageMargin((int) UIUtils.dipToPixel(getActivity(), 25));
+		titleIndicator.setVisibility(showGroups ? View.VISIBLE : View.GONE);
 		return view;
 	}
 
@@ -219,7 +252,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		int itemId = item.getItemId();
 		switch (itemId) {
 		case R.id.menu_refresh_now_playing:
-			refresh(LOAD_GROUPS);
+			refresh(LOAD_CHANNELS);
 			return true;
 		case R.id.menuRefreshChannels:
 			refresh(SYNCHRONIZE_CHANNELS);
@@ -228,7 +261,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		case R.id.menuFavourties:
 			showFavs = !showFavs;
 			persistChannelConfigConfig();
-			refresh(LOAD_GROUPS);
+			refresh(LOAD_CHANNELS);
 			getSherlockActivity().invalidateOptionsMenu();
 			return true;
 
@@ -278,12 +311,21 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		 */
 		@Override
 		public Fragment getItem(int position) {
+			long groupId = -1;
+			if (showGroups) {
+				if (showExtraGroup) {
+					mCursor.moveToPosition(position-1);
+					groupId = position > 0 ? mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID)) : -1;
+				}else {
+					mCursor.moveToPosition(position);
+					groupId = mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID));
+				}
+			}
 			Log.i(ChannelPager.PagerAdapter.class.getSimpleName(), "getItem");
 			ChannelList channelList = (ChannelList) Fragment.instantiate(getActivity(), ChannelList.class.getName());
 			Bundle args = new Bundle();
-			mCursor.moveToPosition(position);
-			long groupId = mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID));
 			args.putLong(ChannelList.KEY_GROUP_ID, groupId);
+			args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
 			args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, false);
 			channelList.setArguments(args);
 			return channelList;
@@ -291,20 +333,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		
 		@Override
 		public int getItemPosition(Object object) {
-			// TODO Auto-generated method stub
 			return POSITION_NONE;
-		}
-		
-		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
-//			Log.i(ChannelPager.PagerAdapter.class.getSimpleName(), "instantiateItem");
-//			Object item = super.instantiateItem(container, position);
-//			ChannelList list = (ChannelList) item;
-//			mCursor.moveToPosition(position);
-//			long groupId = mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID));
-//			list.getArguments().putLong(ChannelList.KEY_GROUP_ID, groupId);
-//			return item;
-			return super.instantiateItem(container, position);
 		}
 
 		/* (non-Javadoc)
@@ -313,15 +342,33 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		@Override
 		public int getCount() {
 			if (mCursor != null) {
-				return mCursor.getCount();
+				if (showGroups) {
+					if (showExtraGroup) {
+						return mCursor.getCount()+1;
+					}else {
+						return mCursor.getCount();
+					}
+				}else {
+					return 1;
+				}
 			}
 			return 0;
 		}
 		
 		@Override
 		public CharSequence getPageTitle(int position) {
-			mCursor.moveToPosition(position);
-			String title = mCursor.getString(mCursor.getColumnIndex(GroupTbl.NAME));
+			String title = getString(R.string.common_all);
+			if (showExtraGroup) {
+				mCursor.moveToPosition(position - 1);
+				if (position > 0) {
+					title = mCursor.getString(mCursor.getColumnIndex(GroupTbl.NAME));
+					return title;
+				}
+			}else {
+				mCursor.moveToPosition(position);
+				title = mCursor.getString(mCursor.getColumnIndex(GroupTbl.NAME));
+				
+			}
 			return title;
 		}
 
@@ -356,7 +403,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		switch (id) {
 		case SYNCHRONIZE_CHANNELS:
 			loader = new AsyncLoader<Cursor>(getActivity()) {
-
+				
 				@Override
 				public Cursor loadInBackground() {
 
@@ -463,6 +510,10 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 						version = version.replace("DVBViewer Recording Service ", "");
 						String[] arr = version.split(" ");
 						version = arr[0];
+//						Pattern pattern = Pattern.compile("(\\d([\\d.]*))\\s+\\(");
+//						Matcher matcher = pattern.matcher(version);
+//						matcher.find();
+//						version = matcher.group();
 						
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -473,12 +524,63 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 
 			};
 			break;
-		case LOAD_GROUPS:
-			String selection = showFavs ? GroupTbl.TYPE + " = " + 1 : GroupTbl.TYPE + " = " + 0;
+		case LOAD_CHANNELS:
+//			if (showGroups) {
+					String selection = showFavs  ? GroupTbl.TYPE + " = " + 1 : GroupTbl.TYPE + " = " + 0;
+//			}else {
+//				
+//			}
 			String orderBy = GroupTbl._ID;
 			loader = new CursorLoader(getActivity(), GroupTbl.CONTENT_URI, null, selection, null, orderBy);
 			break;
+		case LOAD_CURRENT_PROGRAM:
+			loader = new AsyncLoader<Cursor>(getActivity()) {
 
+				@Override
+				public Cursor loadInBackground() {
+					List<EpgEntry> result = null;
+					String nowFloat = org.dvbviewer.controller.utils.DateUtils.getFloatDate(new Date());
+					String url = ServerConsts.URL_EPG + "&start=" + nowFloat + "&end=" + nowFloat;
+					try {
+						EpgEntryHandler handler = new EpgEntryHandler();
+						String xml = ServerRequest.getRSString(url);
+						result = handler.parse(xml);
+						DbHelper helper = new DbHelper(getContext());
+						helper.saveNowPlaying(result);
+					} catch (AuthenticationException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
+						e.printStackTrace();
+						showToast(getString(R.string.error_invalid_credentials));
+					} catch (ParseException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
+						e.printStackTrace();
+					} catch (ClientProtocolException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
+						e.printStackTrace();
+					} catch (IOException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
+						e.printStackTrace();
+					} catch (URISyntaxException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
+						e.printStackTrace();
+						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (IllegalStateException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
+						e.printStackTrace();
+						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (IllegalArgumentException e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
+						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (Exception e) {
+						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
+						e.printStackTrace();
+					}
+					return null;
+				}
+
+
+			};
+			break;
 		default:
 			break;
 		}
@@ -491,17 +593,29 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		switch (loader.getId()) {
-		case SYNCHRONIZE_CHANNELS:
-			refresh(LOAD_GROUPS);
+		case LOAD_CURRENT_PROGRAM:
+			refresh(LOAD_CHANNELS);
 			break;
-		case LOAD_GROUPS:
+		case SYNCHRONIZE_CHANNELS:
+			/**
+			 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
+			 */
+			if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
+				refresh(LOAD_CURRENT_PROGRAM);
+			}else {
+				refresh(LOAD_CHANNELS);
+			}
+			break;
+		case LOAD_CHANNELS:
 			mGroupCursor = cursor;
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
 			mPager.setCurrentItem(mPosition);
+			showProgress(false);
 			break;
 
 		default:
+			showProgress(false);
 			break;
 		}
 	}
@@ -544,6 +658,15 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	 */
 	public void refresh(int id) {
 		getLoaderManager().restartLoader(id, getArguments(), this);
+	}
+	
+	private void showProgress(boolean show) {
+		mProgress.setVisibility(show ? View.VISIBLE : View.GONE);
+		mPager.setVisibility(show ? View.GONE : View.VISIBLE);
+		if (showGroups) {
+			titleIndicator.setVisibility(show ? View.GONE : View.VISIBLE);
+		}
+
 	}
 
 }

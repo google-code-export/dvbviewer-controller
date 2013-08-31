@@ -20,6 +20,7 @@
     <string name="minutes">Minuten</string>
     <string name="gmt">GMT</string>
     <string name="details">Details</string>
+    <string name="common_all">Alle</string>
     <string name="common_colon">:&#160;</string>
     <string name="common_hyphen">&#160;-&#160;</string>
 
@@ -153,6 +154,9 @@
     <string name="pref_item_rs_live_stream_port_summary">Port zum streamen von Live TV</string>
     <string name="pref_item_rs_media_stream_port">Media Streaming Port</string>
     <string name="pref_item_rs_media_stream_port_summary">Port zum streamen von Medien</string>
+    <string name="pref_item_channel_show_groups">Zeige Sendergruppen</string>
+    <string name="pref_item_channel_show_all_in_groups">Zeige "Alle" als extra Gruppe</string>
+    <string name="pref_item_channel_show_all_in_groups_summary">Zeigt eine extra Gruppe mit allen Sendern</string>
     <string name="pref_item_channel_show_current_program">Zeige laufendes Programm</string>
     <string name="pref_item_channel_show_current_program_summary">Das laufende Programm wird in der Senderliste angezeigt</string>
     <string name="pref_item_channel_show_current_program_wifi">Nur bei Wlan</string>

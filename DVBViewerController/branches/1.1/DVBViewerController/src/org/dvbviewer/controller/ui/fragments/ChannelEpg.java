@@ -248,12 +248,10 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
 		mAdapter.changeCursor(cursor);
-		setSelection(0);
 		if (DateUtils.isToday(mDateInfo.getEpgDate().getTime())) {
 			dayIndicator.setText(R.string.today);
 		} else if (DateUtils.isTomorrow(mDateInfo.getEpgDate().getTime())) {
-			dayIndicator.setText(R.string.tomorrow);
-		} else {
+			dayIndicator.setText(R.string.tomorrow);		} else {
 			dayIndicator.setText(DateUtils.formatDateTime(getActivity(), mDateInfo.getEpgDate().getTime(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_WEEKDAY));
 		}
 		lastRefresh = mDateInfo.getEpgDate();
@@ -481,6 +479,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 							args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 							args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 							args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+							args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
 							timerdetails.setArguments(args);
 							timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 							return true;

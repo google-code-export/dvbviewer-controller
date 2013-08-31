@@ -1,32 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:id="@+id/content"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
-    
-    <com.viewpagerindicator.TitlePageIndicator
-    android:id="@+id/titles"
-    android:visibility="gone"
-    android:layout_height="wrap_content"
-    android:layout_width="fill_parent" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/pager"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
-        
-        <android.support.v4.view.PagerTabStrip
-           android:id="@+id/indicator"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_gravity="top"
-           android:background="#33B5E5"
-           android:paddingBottom="2dp"
-           android:visibility="gone"
-           android:paddingTop="1dp"
-           android:textColor="#FFFFFF" />
-        
-        </android.support.v4.view.ViewPager>
+    <LinearLayout
+        android:id="@android:id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone" >
 
-</LinearLayout>
+        <ProgressBar
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@android:id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <com.viewpagerindicator.TitlePageIndicator
+                android:id="@+id/titles"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" >
+            </android.support.v4.view.ViewPager>
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@android:id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </FrameLayout>
+
+</FrameLayout>

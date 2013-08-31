@@ -81,33 +81,46 @@ public class NetUtils {
 	}
 	
 	/**
-	 * Send wake on lan.
+	 * Sends a WOL command and runs in its own thread.
 	 *
 	 * @param ipAddress the ip address
 	 * @param macAddress the mac address
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public static void sendWakeOnLan(String ipAddress, String macAddress) {
-	    try {
-	        byte[] macBytes = getMacBytes(macAddress);
-	        byte[] bytes = new byte[6 + 16 * macBytes.length];
-	        for (int i = 0; i < 6; i++) {
-	            bytes[i] = (byte) 0xff;
-	        }
-	        for (int i = 6; i < bytes.length; i += macBytes.length) {
-	            System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
-	        }
-	        InetAddress address = InetAddress.getByName(ipAddress);
-	        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, PORT);
-	        DatagramSocket socket = new DatagramSocket();
-	        socket.send(packet);
-	        socket.close();
-	        Log.i(NetUtils.class.getSimpleName(), "sendWakeOnLan to " + ipAddress);
-	    }
-	    catch (Exception e) {
-	    	e.printStackTrace();
-	    }
+	public static void sendWakeOnLan(final String ipAddress, final String macAddress) {
+		
+		/**
+		 * Thread to send a wake on lan request
+		 */
+		Runnable wakeOnLanRunnabel = new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					byte[] macBytes = getMacBytes(macAddress);
+					byte[] bytes = new byte[6 + 16 * macBytes.length];
+					for (int i = 0; i < 6; i++) {
+						bytes[i] = (byte) 0xff;
+					}
+					for (int i = 6; i < bytes.length; i += macBytes.length) {
+						System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
+					}
+					InetAddress address = InetAddress.getByName(ipAddress);
+					DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, PORT);
+					DatagramSocket socket = new DatagramSocket();
+					socket.send(packet);
+					socket.close();
+					Log.i(NetUtils.class.getSimpleName(), "sendWakeOnLan to " + ipAddress);
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		
+		Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
+		wakeOnLanThread.start();
 	}
 	
 	/**

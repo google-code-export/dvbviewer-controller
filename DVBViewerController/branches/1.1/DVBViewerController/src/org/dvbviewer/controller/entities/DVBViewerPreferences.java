@@ -29,12 +29,12 @@ public class DVBViewerPreferences {
 
 	private SharedPreferences	prefs;
 	private SharedPreferences	streamPrefs;
-	
+
 	/** Name of preferences xml-file */
 	public static final String	PREFS									= "dvbviewer_preferences";
 	/** Name of stream preferences xml-file */
 	public static final String	STREAM_PREFS							= "dvbviewer_stream_preferences";
-	
+
 	/**
 	 * Preferences Keys
 	 */
@@ -53,6 +53,8 @@ public class DVBViewerPreferences {
 	public static final String	KEY_DVBV_PORT							= "KEY_DVBV_PORT";
 	public static final String	KEY_DVBV_USERNAME						= "KEY_DVBV_USERNAME";
 	public static final String	KEY_DVBV_PASSWORD						= "KEY_DVBV_PASSWORD";
+	public static final String	KEY_CHANNELS_SHOW_GROUPS				= "KEY_CHANNELS_SHOW_GROUPS";
+	public static final String	KEY_CHANNELS_SHOW_ALL_AS_GROUP			= "KEY_CHANNELS_SHOW_ALL_AS_GROUP";
 	public static final String	KEY_CHANNELS_SHOW_NOW_PLAYING			= "KEY_CHANNELS_SHOW_NOW_PLAYING";
 	public static final String	KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY	= "KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY";
 	public static final String	KEY_CHANNELS_USE_FAVS					= "KEY_CHANNELS_USE_FAVS";
@@ -69,7 +71,7 @@ public class DVBViewerPreferences {
 	public static final String	KEY_EXPIRE_Message						= "KEY_EXPIRE_Message";
 	public static final String	KEY_PROFILE_ACTIVE						= "KEY_PROFILE_ACTIVE";
 	public static final String	KEY_PROFILE_NAMES						= "KEY_PROFILE_NAMES";
-	
+
 	/**
 	 * Streaming Preferences Keys
 	 */
@@ -78,8 +80,7 @@ public class DVBViewerPreferences {
 	public static final String	KEY_STREAM_FFMPEG_PRESET				= "KEY_STREAM_FFMPEG_PRESET";
 	public static final String	KEY_STREAM_MAX_WIDTH					= "KEY_STREAM_MAX_WIDTH";
 	public static final String	KEY_STREAM_MAX_HEIGHT					= "KEY_STREAM_MAX_HEIGHT";
-	
-	
+
 	/**
 	 * Instantiates a new dVB viewer preferences.
 	 *
@@ -102,7 +103,7 @@ public class DVBViewerPreferences {
 	public SharedPreferences getPrefs() {
 		return prefs;
 	}
-	
+
 	/**
 	 * Gets the string.
 	 *
@@ -111,10 +112,10 @@ public class DVBViewerPreferences {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public String getString (String key){
+	public String getString(String key) {
 		return prefs.getString(key, "");
 	}
-	
+
 	/**
 	 * Gets the string.
 	 *
@@ -124,10 +125,10 @@ public class DVBViewerPreferences {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public String getString (String key, String defaultValue){
+	public String getString(String key, String defaultValue) {
 		return prefs.getString(key, defaultValue);
 	}
-	
+
 	/**
 	 * Gets the int.
 	 *
@@ -137,10 +138,10 @@ public class DVBViewerPreferences {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public int getInt (String key, int defaultValue){
+	public int getInt(String key, int defaultValue) {
 		return prefs.getInt(key, defaultValue);
 	}
-	
+
 	/**
 	 * Gets the boolean.
 	 *
@@ -150,7 +151,7 @@ public class DVBViewerPreferences {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public boolean getBoolean (String key, boolean defValue){
+	public boolean getBoolean(String key, boolean defValue) {
 		return prefs.getBoolean(key, defValue);
 	}
 

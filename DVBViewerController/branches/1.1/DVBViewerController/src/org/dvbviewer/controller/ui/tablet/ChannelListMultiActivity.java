@@ -17,7 +17,6 @@ package org.dvbviewer.controller.ui.tablet;
 
 import java.util.Date;
 import java.util.List;
-
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.ui.base.BaseActivity;
@@ -27,10 +26,9 @@ import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
-
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-
 import com.actionbarsherlock.view.MenuItem;
 
 /**
@@ -89,9 +87,10 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	
 	
 	/* (non-Javadoc)
- * @see org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)
- */
-@Override
+	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)
+	 */
+	@SuppressLint("NewApi")
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
 		int itemId = item.getItemId();
@@ -103,7 +102,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 			return true;
 		case R.id.menuRefresh:
 			mEpgPager.onOptionsItemSelected(item);
-			mChannelList.refresh(ChannelList.LOADER_EPG);
+			mChannelList.refresh(ChannelList.LOADER_CHANNELLIST);
 			break;
 		case R.id.menuPrev:
 			mEpgPager.onOptionsItemSelected(item);

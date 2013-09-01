@@ -54,6 +54,7 @@
     <string name="createTimer">Timer anlegen</string>
     <string name="editTimer">Timer bearbeiten</string>
     <string name="date">Datum</string>
+	<string name="active">Aktiv</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="channel">Sender</string>

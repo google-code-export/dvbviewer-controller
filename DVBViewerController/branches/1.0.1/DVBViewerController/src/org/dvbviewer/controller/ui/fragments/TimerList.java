@@ -284,6 +284,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 			args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 			args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
 			args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+			args.putBoolean(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
 			timerdetails.setArguments(args);
 			timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 			onDestroyActionMode(mode);
@@ -298,6 +299,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 			i.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
 			i.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
 			i.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+			i.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
 			startActivityForResult(i, TimerDetails.TIMER_CHANGED);
 		}
 	}

@@ -60,6 +60,7 @@ import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -374,6 +375,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android
 	 * .support.v4.content.Loader, java.lang.Object)
 	 */
+	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		switch (loader.getId()) {
@@ -526,6 +528,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+				args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
 				timerdetails.setArguments(args);
 				timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 			} else {
@@ -535,6 +539,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
 				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+				timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
 				startActivity(timerIntent);
 			}
 			return true;
@@ -658,7 +664,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		public ChannelAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = new ImageCacher(mContext);
+			imageChacher = ImageCacher.getInstance(mContext);
 		}
 
 		/*

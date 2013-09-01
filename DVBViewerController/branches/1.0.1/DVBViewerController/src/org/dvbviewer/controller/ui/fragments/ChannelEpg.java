@@ -107,7 +107,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setLayoutRessource(R.layout.fragment_channel_epg);
-		mImageCacher = new ImageCacher(getActivity());
+		mImageCacher = ImageCacher.getInstance(getActivity());
 		if (savedInstanceState != null && savedInstanceState.containsKey(Channel.class.getName())) {
 			mCHannel = savedInstanceState.getParcelable(Channel.class.getName());
 		}
@@ -340,7 +340,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public class ChannelEPGAdapter extends CursorAdapter {
 
 		Context		mContext;
-		ImageCacher	imageChacher;
 
 		/**
 		 * Instantiates a new channel epg adapter.
@@ -352,7 +351,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		public ChannelEPGAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = new ImageCacher(mContext);
 		}
 
 		/* (non-Javadoc)
@@ -481,6 +479,9 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 							args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 							args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 							args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+							args.putLong(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+							args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
+							
 							timerdetails.setArguments(args);
 							timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 							return true;
@@ -543,6 +544,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 					timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
 					timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+					timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, true);
 					startActivity(timerIntent);
 				}
 				return true;

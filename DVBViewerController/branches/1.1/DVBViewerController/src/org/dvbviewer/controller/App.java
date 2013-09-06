@@ -15,6 +15,10 @@
  */
 package org.dvbviewer.controller;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +43,14 @@ import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
 import org.json.JSONObject;
 
+import com.github.kevinsawicki.http.HttpRequest;
+
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * The Class App.
@@ -114,6 +121,15 @@ public class App extends Application {
 		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
 			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
 		}
+//		Thread t = new Thread(new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//					String response = HttpRequest.get(ServerConsts.REC_SERVICE_URL+ServerConsts.URL_CHANNELS).body();
+//					Log.i(App.class.getSimpleName(), response);
+//			}
+//		});
+//		t.start();
 	}
 
 	

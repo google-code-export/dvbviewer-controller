@@ -15,6 +15,9 @@
  */
 package org.dvbviewer.controller.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 
 import android.content.ContentValues;

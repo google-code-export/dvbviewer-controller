@@ -197,7 +197,7 @@ public class SyncService extends Service {
 							}
 						});
 					}
-					byte[] bytes = ServerRequest.getRSBytes(ServerConsts.URL_CHANNELS);
+					byte[] bytes = ServerRequest.getRsBytes(ServerConsts.URL_CHANNELS);
 					List<Channel> chans = ChannelListParser.parseChannelList(getApplicationContext(), bytes);
 					DbHelper dbHelper = new DbHelper(getApplicationContext());
 					dbHelper.saveChannels(chans);
@@ -407,7 +407,7 @@ public class SyncService extends Service {
 				if (receiver != null) {
 					receiver.send(STATUS_RUNNING, null);
 				}
-				byte[] bytes = ServerRequest.getRSBytes(ServerConsts.URL_CHANNELS);
+				byte[] bytes = ServerRequest.getRsBytes(ServerConsts.URL_CHANNELS);
 				List<Channel> chans = ChannelListParser.parseChannelList(getApplicationContext(), bytes);
 				DbHelper dbHelper = new DbHelper(getApplicationContext());
 				dbHelper.saveChannels(chans);

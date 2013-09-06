@@ -269,38 +269,40 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
-	 */
-	@Override
-	public void onListItemClick(ListView parent, View view, int position, long id) {
-		if (UIUtils.isTablet(getActivity())) {
-			Timer timer = mAdapter.getItem(position);
-			TimerDetails timerdetails = TimerDetails.newInstance();
-			Bundle args = new Bundle();
-			args.putLong(TimerDetails.EXTRA_ID, timer.getId());
-			args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-			args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-			args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-			args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-			args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-			args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-			timerdetails.setArguments(args);
-			timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-			onDestroyActionMode(mode);
-		}else {
-			getListView().setItemChecked(position, !getListView().isItemChecked(position));
-			Timer timer = mAdapter.getItem(position);
-			Intent i = new Intent(getActivity(), TimerDetailsActivity.class);
-			i.putExtra(TimerDetails.EXTRA_ID, timer.getId());
-			i.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-			i.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-			i.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-			i.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-			i.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-			i.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-			startActivityForResult(i, TimerDetails.TIMER_CHANGED);
-		}
-	}
+     * @see org.dvbviewer.controller.ui.base.BaseListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
+     */
+    @Override
+    public void onListItemClick(ListView parent, View view, int position, long id) {
+            if (UIUtils.isTablet(getActivity())) {
+                    Timer timer = mAdapter.getItem(position);
+                    TimerDetails timerdetails = TimerDetails.newInstance();
+                    Bundle args = new Bundle();
+                    args.putLong(TimerDetails.EXTRA_ID, timer.getId());
+                    args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    args.putBoolean(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+                    timerdetails.setArguments(args);
+                    timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+                    onDestroyActionMode(mode);
+            }else {
+                    getListView().setItemChecked(position, !getListView().isItemChecked(position));
+                    Timer timer = mAdapter.getItem(position);
+                    Intent i = new Intent(getActivity(), TimerDetailsActivity.class);
+                    i.putExtra(TimerDetails.EXTRA_ID, timer.getId());
+                    i.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    i.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    i.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    i.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    i.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    i.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    i.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+                    startActivityForResult(i, TimerDetails.TIMER_CHANGED);
+            }
+    }
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onActivityResult(int, int, android.content.Intent)
@@ -438,7 +440,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 					e1.printStackTrace();
 				}
 				try {
-					ServerRequest.executeRSGet(ServerConsts.URL_TIMER_DELETE + params[i].getId());
+					ServerRequest.getRSString(ServerConsts.URL_TIMER_DELETE + params[i].getId());
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (URISyntaxException e) {

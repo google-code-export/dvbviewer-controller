@@ -43,6 +43,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -69,10 +70,12 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 	public static final String		EXTRA_START			= "_start";
 	public static final String		EXTRA_END			= "_end";
 	public static final String		EXTRA_ACTION		= "_action";
+	public static final String		EXTRA_ACTIVE		= "_active";
 
 	Timer							timer;
 	private TextView				channelField;
 	private TextView				titleField;
+	private CheckBox				activeBox;
 	private DateField				dateField;
 	private DateField				startField;
 	private DateField				stopField;
@@ -105,6 +108,9 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			Date end = new Date(getArguments().getLong(EXTRA_END, now.getTime()));
 			timer.setStart(start);
 			timer.setEnd(end);
+			if (!getArguments().getBoolean(EXTRA_ACTIVE)) {
+				timer.setFlag(Timer.FLAG_DISABLED);
+			}
 			if (timer.getId() <= 0l) {
 				timer.setTimerAction(prefs.getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
 			}else{
@@ -119,6 +125,9 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			timer.setStart(new Date(savedInstanceState.getLong(EXTRA_START, now.getTime())));
 			timer.setEnd(new Date(savedInstanceState.getLong(EXTRA_END, now.getTime())));
 			timer.setTimerAction(savedInstanceState.getInt(EXTRA_ACTION, 0));
+			if (!savedInstanceState.getBoolean(EXTRA_ACTIVE)) {
+				timer.setFlag(Timer.FLAG_DISABLED);
+			}
 		}
 
 	}
@@ -156,6 +165,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		if (timer != null) {
 			titleField.setText(timer.getTitle());
 			dateField.setDate(timer.getStart());
+			activeBox.setChecked(!timer.isFlagSet(Timer.FLAG_DISABLED));
 			startField.setTime(timer.getStart());
 			stopField.setTime(timer.getEnd());
 			postRecordSpinner.setSelection(timer.getTimerAction());
@@ -182,6 +192,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		arg0.putLong(EXTRA_START, timer.getStart().getTime());
 		arg0.putLong(EXTRA_END, timer.getEnd().getTime());
 		arg0.putInt(EXTRA_ACTION, timer.getTimerAction());
+		arg0.putBoolean(EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
 	}
 
 	/* (non-Javadoc)
@@ -192,6 +203,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timer_details, null);
 		titleField = (TextView) v.findViewById(R.id.titleField);
 		dateField = (DateField) v.findViewById(R.id.dateField);
+		activeBox = (CheckBox) v.findViewById(R.id.activeBox);
 		startField = (DateField) v.findViewById(R.id.startField);
 		postRecordSpinner = (Spinner) v.findViewById(R.id.postRecordingSpinner);
 
@@ -304,11 +316,11 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
 			params.add(new BasicNameValuePair("dor", days));
 			params.add(new BasicNameValuePair("encoding", "255"));
-			params.add(new BasicNameValuePair("enable", "1"));
 			params.add(new BasicNameValuePair("start", start));
 			params.add(new BasicNameValuePair("stop", stop));
 			params.add(new BasicNameValuePair("title", title));
 			params.add(new BasicNameValuePair("endact", endAction));
+			params.add(new BasicNameValuePair("enable", activeBox.isChecked() ? "1" : "0"));
 			if (timer.getId() > 0) {
 				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
 			}

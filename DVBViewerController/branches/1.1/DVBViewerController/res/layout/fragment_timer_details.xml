@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:descendantFocusability="beforeDescendants"
@@ -26,22 +27,52 @@
                 android:id="@+id/titleField"
                 style="@style/EditTextHoloDark"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:maxLines="1" />
 
-            <TextView
-                android:id="@+id/dateCaption"
+            <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:clickable="false"
-                android:text="@string/date"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:baselineAligned="false"
+                android:orientation="horizontal" >
 
-            <org.dvbviewer.controller.ui.widget.DateField
-                android:id="@+id/dateField"
-                style="@style/EditTextHoloDark"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:focusable="false" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:id="@+id/dateCaption"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:text="@string/date"
+                        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                    <org.dvbviewer.controller.ui.widget.DateField
+                        android:id="@+id/dateField"
+                        style="@style/EditTextHoloDark"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:gravity="center|right"
+                    android:orientation="vertical" >
+
+                    <CheckBox
+                        android:id="@+id/activeBox"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enabled" />
+                </LinearLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -92,21 +123,19 @@
                 </LinearLayout>
             </LinearLayout>
 
-
             <TextView
                 android:id="@+id/channelCaption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/channel" />
 
-
-                <TextView
-                    android:padding="5dp"
-                    android:id="@+id/channelField"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|center_horizontal" >
-                </TextView>
+            <TextView
+                android:id="@+id/channelField"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:padding="5dp" >
+            </TextView>
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -138,7 +167,8 @@
         android:dividerPadding="0dip"
         android:minHeight="@dimen/alert_dialog_button_bar_height"
         android:orientation="vertical"
-        android:showDividers="beginning" >
+        android:showDividers="beginning"
+        tools:ignore="NewApi" >
 
         <LinearLayout
             style="?android:attr/buttonBarStyle"

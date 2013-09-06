@@ -59,6 +59,7 @@ public class ChannelHandler extends DefaultHandler {
 		Element rootElement = channels.getChild("root");
 		Element groupElement = rootElement.getChild("group");
 		Element channelElement = groupElement.getChild("channel");
+		Element subChanElement = groupElement.getChild("subchannel");
 		Element logoElement = channelElement.getChild("logo");
 
 		channels.setStartElementListener(new StartElementListener() {
@@ -95,8 +96,18 @@ public class ChannelHandler extends DefaultHandler {
 				currentGroup.getChannels().add(currentChannel);
 			}
 		});
-
-
+		
+		channelElement.setStartElementListener(new StartElementListener() {
+			public void start(Attributes attributes) {
+				currentChannel = new Channel();
+				currentChannel.setId(Long.valueOf(attributes.getValue("ID")));
+				currentChannel.setPosition(Integer.valueOf(attributes.getValue("nr")));
+				currentChannel.setName(attributes.getValue("name"));
+				currentChannel.setEpgID(Long.valueOf(attributes.getValue("EPGID")));
+				currentGroup.getChannels().add(currentChannel);
+			}
+		});
+		
 		logoElement.setEndTextElementListener(new EndTextElementListener() {
 
 			@Override
@@ -104,6 +115,19 @@ public class ChannelHandler extends DefaultHandler {
 				currentChannel.setLogoUrl(body);
 			}
 
+		});
+		
+		subChanElement.setStartElementListener(new StartElementListener() {
+			public void start(Attributes attributes) {
+				Channel c = new Channel();
+				c.setId(Long.valueOf(attributes.getValue("ID")));
+				c.setPosition(currentChannel.getPosition());
+				c.setName(attributes.getValue("name"));
+				c.setEpgID(currentChannel.getEpgID());
+				c.setLogoUrl(currentChannel.getLogoUrl());
+				c.setFlag(Channel.FLAG_ADDITIONAL_AUDIO);
+				currentGroup.getChannels().add(c);
+			}
 		});
 
 		try {

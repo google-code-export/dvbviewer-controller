@@ -210,7 +210,7 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 		@Override
 		public void run() {
 			try {
-				ServerRequest.executeRSGet(ServerConsts.URL_EXECUTE_TASK + task);
+				ServerRequest.getRSString(ServerConsts.URL_EXECUTE_TASK + task);
 			} catch (AuthenticationException e) {
 				Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 				e.printStackTrace();

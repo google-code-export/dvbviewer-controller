@@ -42,6 +42,8 @@ import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import com.actionbarsherlock.view.Menu;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -89,6 +91,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	View						selectView;
 	Context						mContext;
 	private long				mGroupId						= -1;
+	private boolean	showContextMenu	= false;
 
 	/*
 	 * (non-Javadoc)
@@ -206,9 +209,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		mAdapter.swapCursor(cursor);
-		if (selectedPosition != ListView.INVALID_POSITION) {
-			getListView().setItemChecked(selectedPosition, true);
+		if (cursor != null && cursor.getCount() > 0) {
+			mAdapter.swapCursor(cursor);
+			if (selectedPosition != ListView.INVALID_POSITION) {
+				getListView().setItemChecked(selectedPosition, true);
+			}
 		}
 		setListShown(true);
 		getSherlockActivity().invalidateOptionsMenu();
@@ -281,6 +286,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		getActivity().getMenuInflater().inflate(R.menu.context_menu_channellist, menu);
 		menu.findItem(R.id.menuSwitch).setVisible(URLUtil.isValidUrl(ServerConsts.DVBVIEWER_URL));
 	}
+	
+	@Override
+	public void onPrepareOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		super.onPrepareOptionsMenu(menu);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -316,6 +327,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 			selectedPosition = info.position;
 		}
+		if (selectedPosition < 0 || !showContextMenu) {
+			return false;
+		}
 		Cursor c = mAdapter.getCursor();
 		c.moveToPosition(selectedPosition);
 		Channel chan = cursorToChannel(c);
@@ -323,27 +337,29 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		switch (item.getItemId()) {
 		case R.id.menuTimer:
 			timer = cursorToTimer(c);
-			if (UIUtils.isTablet(getActivity())) {
-				TimerDetails timerdetails = TimerDetails.newInstance();
-				Bundle args = new Bundle();
-				args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				timerdetails.setArguments(args);
-				timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-			} else {
-				Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
-				timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				startActivity(timerIntent);
-			}
+            if (UIUtils.isTablet(getActivity())) {
+                    TimerDetails timerdetails = TimerDetails.newInstance();
+                    Bundle args = new Bundle();
+                    args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
+                    timerdetails.setArguments(args);
+                    timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+            } else {
+                    Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
+                    timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+                    startActivity(timerIntent);
+            }
 			return true;
 		case R.id.menuStream:
 			if (UIUtils.isTablet(getActivity())) {
@@ -494,7 +510,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				holder.epgTitle.setText(epgTitle);
 			}
 			holder.position.setText(!showFavs ? position.toString() : favPosition.toString());
-			holder.contextMenu.setTag(!showFavs ? position : favPosition - 1);
+			holder.contextMenu.setTag(c.getPosition());
 			holder.v.setChecked(getListView().isItemChecked(c.getPosition()));
 			
 			if (!TextUtils.isEmpty(logoUrl)) {
@@ -635,8 +651,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.contextMenu:
-			selectedPosition = (Integer) v.getTag();
-			getListView().showContextMenu();
+			if (getUserVisibleHint()) {
+				selectedPosition = (Integer) v.getTag();
+				getListView().showContextMenu();
+			}
 			break;
 
 		default:
@@ -780,6 +798,19 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	public boolean isShowFavs() {
 		return showFavs;
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.Fragment#setUserVisibleHint(boolean)
+	 */
+	@Override
+	public void setUserVisibleHint(boolean isVisibleToUser) {
+		super.setUserVisibleHint(isVisibleToUser);
+		if (isVisibleToUser) {
+			showContextMenu = true;
+		}else {
+			showContextMenu = false;
+		}
 	}
 
 }

@@ -331,10 +331,10 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			return channelList;
 		}
 		
-		@Override
-		public int getItemPosition(Object object) {
-			return POSITION_NONE;
-		}
+//		@Override
+//		public int getItemPosition(Object object) {
+//			return POSITION_NONE;
+//		}
 
 		/* (non-Javadoc)
 		 * @see android.support.v4.view.PagerAdapter#getCount()
@@ -421,7 +421,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 						 * Request the Channels
 						 */
 						if (Config.isOldRsVersion(version)) {
-							byte[] rawData = ServerRequest.getRSBytes(ServerConsts.URL_CHANNELS_OLD);
+							byte[] rawData = ServerRequest.getRsBytes(ServerConsts.URL_CHANNELS_OLD);
 							List<Channel> chans = ChannelListParser.parseChannelList(getContext(), rawData);
 							mDbHelper.saveChannels(chans);
 						}else {
@@ -610,6 +610,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			mGroupCursor = cursor;
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
+			mPager.setAdapter(mAdapter);
 			mPager.setCurrentItem(mPosition);
 			showProgress(false);
 			break;

@@ -498,7 +498,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 			}
 			for (int i = 0; i < count; i++) {
 				try {
-					ServerRequest.executeRSGet(ServerConsts.URL_DELETE_RECORDING + params[i].getId());
+					ServerRequest.getRSString(ServerConsts.URL_DELETE_RECORDING + params[i].getId());
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (URISyntaxException e) {

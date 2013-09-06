@@ -399,8 +399,8 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	 * @date 07.04.2013
 	 */
 	public void refresh(boolean force) {
-		setListShown(false);
 		getLoaderManager().restartLoader(mCHannel.getPosition(), getArguments(), this);
+		setListShown(false);
 	}
 
 	/**
@@ -480,6 +480,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 							args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
 							args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
 							args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+							args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
 							timerdetails.setArguments(args);
 							timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 							return true;
@@ -542,6 +543,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
 					timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
 					timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+					timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, true);
 					startActivity(timerIntent);
 				}
 				return true;

@@ -28,6 +28,7 @@ import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.base.BaseActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
+import org.dvbviewer.controller.ui.fragments.ChannelPager;
 import org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickListener;
 import org.dvbviewer.controller.ui.fragments.RecordingList;
 import org.dvbviewer.controller.ui.fragments.Remote;
@@ -46,9 +47,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
@@ -68,6 +67,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	boolean expired = false;
 	private AlertDialog	expirationDialog;
 	String expirationMessage;
+	private DVBViewerPreferences	prefs;
 
 	/* (non-Javadoc)
 	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onCreate(android.os.Bundle)
@@ -75,6 +75,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		prefs = new DVBViewerPreferences(this);
 		if (savedInstanceState == null) {
 			DVBViewerPreferences dvbprefs = new DVBViewerPreferences(this);
 			String expirationString = dvbprefs.getString(DVBViewerPreferences.KEY_EXPIRE_DATE);
@@ -97,11 +98,21 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);
 		
 		if (savedInstanceState == null) {
+			
 			if (multiContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
-				ChannelList chans = new ChannelList();
-				chans.setHasOptionsMenu(true);
-				tran.add(multiContainer.getId(), chans);
+				ChannelPager chanPager = new ChannelPager();
+				Bundle args = new Bundle();
+				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
+				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
+				chanPager.setArguments(args);
+				tran.add(multiContainer.getId(), chanPager);
+//				ChannelList chans = new ChannelList();
+//				Bundle args = new Bundle();
+//				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
+//				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
+//				chans.setArguments(args);
+//				tran.add(multiContainer.getId(), chans);
 				tran.commit();
 				multiContainerIndicator.setText(R.string.channelList);
 			}
@@ -110,7 +121,6 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setMessage(getResources().getString(R.string.firstStartMessage)).setPositiveButton(R.string.yes, this).setTitle(getResources().getString(R.string.firstStartMessageTitle))
 				.setNegativeButton(R.string.no, this).show();
-				DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 				prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, false).commit();
 			}
 		}
@@ -187,9 +197,15 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		case R.id.home_btn_channels:
 			if (multiContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
-				ChannelList chans = new ChannelList();
-				chans.setHasOptionsMenu(true);
-				tran.replace(multiContainer.getId(), chans);
+				ChannelPager chanPager = new ChannelPager();
+				Bundle args = new Bundle();
+				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
+				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
+				chanPager.setArguments(args);
+				tran.replace(multiContainer.getId(), chanPager);
+//				ChannelList chans = new ChannelList();
+//				chans.setHasOptionsMenu(true);
+//				tran.replace(multiContainer.getId(), chans);
 				tran.commit();
 				multiContainerIndicator.setText(R.string.channelList);
 			} else {

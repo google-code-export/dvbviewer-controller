@@ -257,7 +257,7 @@ public class SyncService extends Service {
 			DbHelper dbHelper = new DbHelper(getApplicationContext());
 			List<Channel> chans = null;
 			if (!redeliverd) {
-				chans = prefs.getBoolean(DVBViewerPreferences.KEY_SYNC_ONLY_FAVS, false) ? dbHelper.loadFavourites() : dbHelper.loadChannellist();
+//				chans = prefs.getBoolean(DVBViewerPreferences.KEY_SYNC_ONLY_FAVS, false) ? dbHelper.loadFavourites() : dbHelper.loadChannellist();
 				dbHelper.markChannelsForUpdate();
 			} else {
 				chans = dbHelper.loadPendingUpdateChannellist();

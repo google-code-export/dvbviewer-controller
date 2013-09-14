@@ -40,6 +40,8 @@ public class DbConsts {
 
 		public static String	TABLE_NAME				= "channel";
 
+		public static String	CHANNEL_ID				= "channel_id";
+		
 		public static String	NAME					= "name";
 		
 		public static String	POSITION				= "position";

@@ -22,6 +22,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class Channel.
  * 
@@ -30,28 +31,40 @@ import android.text.TextUtils;
  */
 public class Channel implements Comparable<Channel>, Parcelable {
 
+	/** The Constant FLAG_FAV. */
 	public static final int	FLAG_FAV				= 1 << 0;	// 0x01
 
+	/** The Constant FLAG_ADDITIONAL_AUDIO. */
 	public static final int	FLAG_ADDITIONAL_AUDIO	= 1 << 1;	// 0x02
 
+	/** The Constant FLAG_PENDING_UPDATE. */
 	public static final int	FLAG_PENDING_UPDATE		= 1 << 2;	// 0x03
 
+	/** The id. */
 	private Long			id;
 	
-	private Long			channelID;
+	/** The channel id. */
+	private long			channelID;
 
+	/** The name. */
 	private String			name;
 
+	/** The position. */
 	private Integer			position;
 
+	/** The epg id. */
 	private long			epgID;
 
+	/** The fav id. */
 	private long			favID;
 
+	/** The fav position. */
 	private int				favPosition				= -1;
 
+	/** The flags. */
 	private int				flags					= 0;
 
+	/** The logo url. */
 	private String			logoUrl;
 
 	/**
@@ -86,6 +99,28 @@ public class Channel implements Comparable<Channel>, Parcelable {
 	 */
 	public long getEpgID() {
 		return epgID;
+	}
+	
+	/**
+	 * Gets the channel id.
+	 *
+	 * @return the channel id
+	 * @author RayBa
+	 * @date 07.09.2013
+	 */
+	public Long getChannelID() {
+		return channelID;
+	}
+	
+	/**
+	 * Sets the channel id.
+	 *
+	 * @param channelID the new channel id
+	 * @author RayBa
+	 * @date 07.09.2013
+	 */
+	public void setChannelID(Long channelID) {
+		this.channelID = channelID;
 	}
 
 	/**
@@ -189,6 +224,9 @@ public class Channel implements Comparable<Channel>, Parcelable {
 		if (this.id != null && !this.id.equals(0l)) {
 			result.put(ChannelTbl._ID, id);
 		}
+		if (this.channelID != 0l) {
+			result.put(ChannelTbl.CHANNEL_ID, channelID);
+		}
 		if (this.epgID != 0l) {
 			result.put(ChannelTbl.EPG_ID, this.epgID);
 		}
@@ -229,12 +267,11 @@ public class Channel implements Comparable<Channel>, Parcelable {
 	 */
 	private void readFromParcel(Parcel src) {
 		long id = src.readLong();
-		this.id = id == -1 ? null : id;
+		this.channelID = id == -1 ? null : id;
 		this.name = src.readString();
 		this.position = src.readInt();
-		this.epgID = src.readLong();
 		this.favPosition = src.readInt();
-		this.flags = src.readInt();
+		this.epgID = src.readLong();
 		this.logoUrl = src.readString();
 	}
 
@@ -245,12 +282,11 @@ public class Channel implements Comparable<Channel>, Parcelable {
 	 */
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(this.id == null ? -1 : this.id);
+		dest.writeLong(this.channelID);
 		dest.writeString(this.name);
 		dest.writeInt(this.position);
-		dest.writeLong(this.epgID);
 		dest.writeInt(this.favPosition);
-		dest.writeInt(this.flags);
+		dest.writeLong(this.epgID);
 		dest.writeString(this.logoUrl);
 	}
 

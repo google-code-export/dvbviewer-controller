@@ -17,6 +17,7 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +60,8 @@ import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
+
+import com.github.kevinsawicki.http.HttpRequest.HttpRequestException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -201,7 +204,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		Loader<Cursor> loader = null;
 		switch (loaderId) {
 		case LOADER_CHANNELLIST:
-			String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : null;
+			String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : ChannelTbl.FLAGS + " & " + Channel.FLAG_ADDITIONAL_AUDIO + "== 0";
 			String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
 			loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
 			break;
@@ -219,6 +222,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						result = handler.parse(xml);
 						DbHelper helper = new DbHelper(getContext());
 						helper.saveNowPlaying(result);
+					} catch (HttpRequestException e) {
+						Log.e(e.getCause().getClass().getSimpleName(), "HttpRequestException");
+						e.printStackTrace();
+						if (e.getCause() instanceof UnknownHostException) {
+							setEmptyText(getString(R.string.error_unknown_host)+getString(R.string.common_colon)+" "+ServerConsts.REC_SERVICE_HOST);
+						}else{
+							showToast(e.getCause().getClass().getSimpleName());
+						}
 					} catch (AuthenticationException e) {
 						loadingResult = LoadingResult.INVALID_CREDENTIALS;
 						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
@@ -756,14 +767,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			Cursor c = mAdapter.getCursor();
 			c.moveToPosition(position);
 			Channel chan = cursorToChannel(c);
-			ArrayList<Channel> chans = cursorToChannellist(position);
+			ArrayList<Channel> chans = cursorToChannellist();
 			mCHannelSelectedListener.channelSelected(chans, chan, position);
 			getListView().setItemChecked(position, true);
 		} else {
 			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
 			// long[] feedIds = new long[data.getCount()];
 
-			ArrayList<Channel> chans = cursorToChannellist(position);
+			ArrayList<Channel> chans = cursorToChannellist();
 
 			epgPagerIntent.putParcelableArrayListExtra(Channel.class.getName(), chans);
 			epgPagerIntent.putExtra("position", position);
@@ -791,18 +802,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	private ArrayList<Channel> cursorToChannellist(int position) {
-		Cursor c = (Cursor) mAdapter.getItem(position);
+	private ArrayList<Channel> cursorToChannellist() {
+		Cursor c = (Cursor) mAdapter.getCursor();
 		ArrayList<Channel> chans = new ArrayList<Channel>();
 		c.moveToPosition(-1);
 		while (c.moveToNext()) {
-			Channel channel = new Channel();
-			channel.setId(c.getLong(c.getColumnIndex(ChannelTbl._ID)));
-			channel.setEpgID(c.getLong(c.getColumnIndex(ChannelTbl.EPG_ID)));
-			channel.setLogoUrl(c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL)));
-			String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
-			channel.setName(name);
-			channel.setPosition(c.getInt(c.getColumnIndex(ChannelTbl.POSITION)));
+			Channel channel = cursorToChannel(c);
 			chans.add(channel);
 		}
 		return chans;
@@ -888,7 +893,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	private Channel cursorToChannel(Cursor c) {
 		Channel channel = new Channel();
 		channel.setId(c.getLong(c.getColumnIndex(ChannelTbl._ID)));
+		channel.setChannelID(c.getLong(c.getColumnIndex(ChannelTbl.CHANNEL_ID)));
 		channel.setEpgID(c.getLong(c.getColumnIndex(ChannelTbl.EPG_ID)));
+		channel.setLogoUrl(c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL)));
 		String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 		channel.setName(name);
 		channel.setPosition(c.getInt(c.getColumnIndex(ChannelTbl.POSITION)));
@@ -905,7 +912,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	private Timer cursorToTimer(Cursor c) {
 		String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
-		long channelID = c.getLong(c.getColumnIndex(ChannelTbl._ID));
+		long channelID = c.getLong(c.getColumnIndex(ChannelTbl.CHANNEL_ID));
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd =  c.getLong(c.getColumnIndex(EpgTbl.END));

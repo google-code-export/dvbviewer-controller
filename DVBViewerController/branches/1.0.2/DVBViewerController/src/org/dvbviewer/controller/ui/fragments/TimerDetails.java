@@ -306,7 +306,8 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			dismiss();
 			break;
 		case R.id.buttonOk:
-			String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+			StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
+			url.append(timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
 			String title = titleField.getText().toString();
 			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(dateField.getDate()));
 			String start = String.valueOf(DateUtils.getMinutesOfDay(startField.getDate()));
@@ -325,8 +326,8 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
 			}
 			String query = URLEncodedUtils.format(params, "utf-8");
-			String request = url + query;
-			RecordingServiceGet rsGet = new RecordingServiceGet(request);
+			url.append(query);
+			RecordingServiceGet rsGet = new RecordingServiceGet(url.toString());
 			Thread executionThread = new Thread(rsGet);
 			executionThread.start();
 			if (mOntimeredEditedListener != null) {

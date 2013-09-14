@@ -103,7 +103,6 @@ public class NetUtils {
 	        DatagramSocket socket = new DatagramSocket();
 	        socket.send(packet);
 	        socket.close();
-	        Log.i(NetUtils.class.getSimpleName(), "sendWakeOnLan to " + ipAddress);
 	    }
 	    catch (Exception e) {
 	    	e.printStackTrace();

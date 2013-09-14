@@ -21,8 +21,10 @@ import java.net.URISyntaxException;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.ClientProtocolException;
+import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.utils.ServerConsts;
 
+import android.text.GetChars;
 import android.util.Log;
 
 import com.github.kevinsawicki.http.HttpRequest;
@@ -50,9 +52,8 @@ public class ServerRequest {
 	 * @date 06.04.2012
 	 */
 	public static void sendCommand(String command) throws Exception {
-		command = ServerConsts.DVBVIEWER_URL + command;
 		Log.d(ServerRequest.class.getSimpleName(), "executing DVBViewer command: " + command);
-		HttpRequest request = getViewerRequest(ServerConsts.DVBVIEWER_URL + command);
+		HttpRequest request = getViewerRequest(command);
 
 		switch (request.code()) {
 
@@ -65,10 +66,6 @@ public class ServerRequest {
 		}
 
 	}
-
-
-
-
 
 
 	/**
@@ -89,16 +86,17 @@ public class ServerRequest {
 	
 	private static HttpRequest getServiceRequest(String url) {
 		//Set Service Credentials
-		return getRequest(url).basic(ServerConsts.REC_SERVICE_USER_NAME, ServerConsts.REC_SERVICE_PASSWORD);
+		return getRequest(ServerConsts.REC_SERVICE_URL+url).basic(ServerConsts.REC_SERVICE_USER_NAME, ServerConsts.REC_SERVICE_PASSWORD);
 	}
 	
 	private static HttpRequest getViewerRequest(String url) {
 		//Set Viewer Credentials
-		return getRequest(url).basic(ServerConsts.DVBVIEWER_USER_NAME, ServerConsts.DVBVIEWER_PASSWORD);
+		return getRequest(ServerConsts.DVBVIEWER_URL + url).basic(ServerConsts.DVBVIEWER_USER_NAME, ServerConsts.DVBVIEWER_PASSWORD);
 	}
 	
 	private static HttpRequest getRequest(String url) {
-		HttpRequest request = HttpRequest.get(ServerConsts.REC_SERVICE_URL+url);
+		Log.d(ServerRequest.class.getSimpleName(), url);
+		HttpRequest request = HttpRequest.get(url);
 		//Tell server to gzip response and automatically uncompress
 		request.acceptGzipEncoding().uncompress(true);
 		//Accept all certificates
@@ -182,6 +180,7 @@ public class ServerRequest {
 	public static String getString(String string) {
 		return getRequest(string).body();
 	}
+	
 	
 
 }

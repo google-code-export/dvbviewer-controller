@@ -13,9 +13,6 @@
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
         android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-        android:duplicateParentState="false"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
         android:gravity="center_vertical|center_horizontal"
         android:padding="5dp" />
 

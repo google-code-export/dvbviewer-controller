@@ -17,7 +17,6 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.util.Date;
 import java.util.List;
-
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.entities.Channel;
@@ -25,7 +24,7 @@ import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.UIUtils;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -37,12 +36,10 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -131,6 +128,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
+	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
 		super.onOptionsItemSelected(item);
@@ -191,7 +189,6 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 		public Fragment getItem(int position) {
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
 			channelEpg.setChannel(mChannels.get(position));
-			Log.i(PagerAdapter.class.getSimpleName(), "channelEpg id" + channelEpg.getId());
 			return channelEpg;
 		}
 
@@ -227,7 +224,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : null;
 		String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-		CursorLoader loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
+		CursorLoader loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI, null, selection, null, orderBy);
 		return loader;
 	}
 

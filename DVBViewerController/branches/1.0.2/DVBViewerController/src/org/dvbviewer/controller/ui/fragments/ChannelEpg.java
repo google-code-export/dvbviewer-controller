@@ -510,7 +510,8 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 			switch (item.getItemId()) {
 			case R.id.menuRecord:
 				timer = cursorToTimer(c);
-				String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
+				url.append(timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
 				String title = timer.getTitle();
 				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
 				String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
@@ -640,7 +641,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	 */
 	private Timer cursorToTimer(Cursor c) {
 		String name = mCHannel.getName();
-		long channelID = mCHannel.getId();
+		long channelID = mCHannel.getChannelID();
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd = c.getLong(c.getColumnIndex(EpgTbl.END));

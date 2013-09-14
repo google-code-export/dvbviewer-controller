@@ -19,6 +19,7 @@ package org.dvbviewer.controller.ui.base;
 import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,6 +36,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
@@ -241,7 +243,8 @@ public class BaseListFragment extends SherlockFragment {
      * @author RayBa
      * @date 07.04.2013
      */
-    public void setSelection(int position) {
+    @SuppressLint("NewApi")
+	public void setSelection(int position) {
     	try {
     		ensureList();
 		} catch (Exception e) {
@@ -504,13 +507,18 @@ public class BaseListFragment extends SherlockFragment {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	protected void showToast(String message) {
-		if (getSherlockActivity() != null) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getSherlockActivity(), message);
+	protected void showToast(final String message) {
+		if (getSherlockActivity() != null && !isDetached()) {
+			Runnable errorRunnable = new Runnable() {
+
+				@Override
+				public void run() {
+					Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_LONG).show();
+				}
+			};
 			getSherlockActivity().runOnUiThread(errorRunnable);
 		}
 	}
-	
 	
 	public static enum LoadingResult {
 		OK, ERROR, NETWORK_ERROR, INVALID_URL, INVALID_CREDENTIALS

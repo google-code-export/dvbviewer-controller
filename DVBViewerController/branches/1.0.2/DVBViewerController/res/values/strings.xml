@@ -181,5 +181,6 @@
     <string name="error_sending_report">Error report is sent</string>
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_invalid_credentials">Authentication failed</string>
+    <string name="error_unknown_host">Unknown Host</string>
 
 </resources>

@@ -17,12 +17,15 @@ public class ServerConsts {
 	public static String	REC_SERVICE_USER_NAME			= "";
 	public static String	REC_SERVICE_MAC_ADDRESS			= "";
 	public static String	REC_SERVICE_PASSWORD			= "";
-	public static String	DVBVIEWER_URL					= "http://";
+	public static String	DVBVIEWER_PROTOCOL				= "http://";
+	public static String	DVBVIEWER_HOST					= "";
 	public static String	DVBVIEWER_PORT					= "80";
+	public static String	DVBVIEWER_URL					= DVBVIEWER_PROTOCOL;
 	public static String	DVBVIEWER_USER_NAME				= "";
 	public static String	DVBVIEWER_PASSWORD				= "";
+	public static String	DVBVIEWER_MAC_ADDRESS			= "";
 	public static String	HTTP							= "http";
-	public static String	URL_CHANNELS					= "/api/getchannelsxml.html?logo=1";
+	public static String	URL_CHANNELS					= "/api/getchannelsxml.html?logo=1&subchannels=1";
 	public static String	URL_CHANNELS_OLD				= "/api/getchannelsdat.html";
 	public static String	URL_FAVS						= "/api/getfavourites.html";
 	public static String	URL_VERSION						= "/api/version.html";

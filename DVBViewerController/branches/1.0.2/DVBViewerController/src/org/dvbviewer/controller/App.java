@@ -82,26 +82,26 @@ public class App extends Application {
 			ErrorReporter.getInstance().addReportSender(new HttpPostSender(acraUrl, mapping));
 		}
 		
-
-		/**
-		 * Read DVBViewer preferences
-		 */
 		DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 		Config.IS_FIRST_START = prefs.getBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, true);
 		Config.CHANNELS_SYNCED = prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, false);
 		Config.SYNC_EPG = prefs.getBoolean(DVBViewerPreferences.KEY_SYNC_EPG, false);
+
+		/**
+		 * Read DVBViewer preferences
+		 */
 		ServerConsts.DVBVIEWER_URL = prefs.getString(DVBViewerPreferences.KEY_DVBV_URL, "http://");
 		ServerConsts.DVBVIEWER_PORT = prefs.getString(DVBViewerPreferences.KEY_DVBV_PORT, "80");
-		ServerConsts.DVBVIEWER_URL = ServerConsts.DVBVIEWER_URL+":"+ServerConsts.DVBVIEWER_PORT;
+		URLUtil.setViewerAddress(ServerConsts.DVBVIEWER_URL, ServerConsts.DVBVIEWER_PORT);
 		ServerConsts.DVBVIEWER_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_DVBV_USERNAME, "");
 		ServerConsts.DVBVIEWER_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_DVBV_PASSWORD, "");
 		
 		/**
 		 * Read Recordingservice Preferences
 		 */
-		String prefUrl = prefs.getString(DVBViewerPreferences.KEY_RS_URL, "http://");
+		String serviceUrl = prefs.getString(DVBViewerPreferences.KEY_RS_URL, "http://");
 		String prefPort = prefs.getString(DVBViewerPreferences.KEY_RS_PORT, "8089");
-		URLUtil.setRecordingServicesAddress(prefUrl, prefPort);
+		URLUtil.setRecordingServicesAddress(serviceUrl, prefPort);
 		ServerConsts.REC_SERVICE_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_RS_USERNAME, "");
 		ServerConsts.REC_SERVICE_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_RS_PASSWORD, "");
 		ServerConsts.REC_SERVICE_LIVE_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_LIVE_STREAM_PORT, ServerConsts.REC_SERVICE_LIVE_STREAM_PORT);

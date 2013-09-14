@@ -62,7 +62,6 @@ public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateI
 	 */
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		Log.i(EpgPagerActivity.class.getSimpleName(), "onSaveInstanceState");
 		outState.putLong(ChannelEpg.KEY_EPG_DAY, epgDate.getTime());
 		super.onSaveInstanceState(outState);
 	}

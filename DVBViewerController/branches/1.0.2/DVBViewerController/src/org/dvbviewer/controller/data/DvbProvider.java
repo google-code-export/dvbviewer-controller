@@ -103,6 +103,7 @@ public class DvbProvider extends ContentProvider {
 			qb.setTables(ChannelTbl.AS_ALIAS + " LEFT JOIN " + NowTbl.AS_ALIAS + " on (" + ChannelTbl.ALIAS + "." + ChannelTbl.EPG_ID + " = " + NowTbl.ALIAS + "." + NowTbl.EPG_ID + " AND " + NowTbl.ALIAS + "." + NowTbl.START + " < " + new Date().getTime() + " AND " + NowTbl.ALIAS + "." + NowTbl.END + " > " + new Date().getTime() + ")");
 			projectionMap = new HashMap<String, String>();
 			projectionMap.put(ChannelTbl._ID, ChannelTbl.ALIAS + "." + ChannelTbl._ID + " as " + ChannelTbl._ID);
+			projectionMap.put(ChannelTbl.CHANNEL_ID, ChannelTbl.ALIAS + "." + ChannelTbl.CHANNEL_ID + " as " + ChannelTbl.CHANNEL_ID);
 			projectionMap.put(ChannelTbl.POSITION, ChannelTbl.ALIAS + "." + ChannelTbl.POSITION + " as " + ChannelTbl.POSITION);
 			projectionMap.put(ChannelTbl.LOGO_URL, ChannelTbl.ALIAS + "." + ChannelTbl.LOGO_URL + " as " + ChannelTbl.LOGO_URL);
 			projectionMap.put(ChannelTbl.FAV_POSITION, ChannelTbl.ALIAS + "." + ChannelTbl.FAV_POSITION + " as " + ChannelTbl.FAV_POSITION);

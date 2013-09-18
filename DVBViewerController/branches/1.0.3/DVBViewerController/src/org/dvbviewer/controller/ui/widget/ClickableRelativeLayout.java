@@ -36,6 +36,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 
 	CheckBox					checkIndicator;
 	ImageView					contextMenuButton;
+	private int					touchPadding;
 	private int					checkboxTouchPadding;
 	private boolean				mChecked;
 	private boolean				error;
@@ -95,7 +96,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 	@Override
 	protected void onFinishInflate() {
 		super.onFinishInflate();
-		checkboxTouchPadding = (int) (10 * getResources().getDisplayMetrics().density);
+		touchPadding = (int) (15 * getResources().getDisplayMetrics().density);
 		checkIndicator = (CheckBox) findViewById(R.id.checkIndicator);
 		contextMenuButton = (ImageView) findViewById(R.id.contextMenu);
 	}
@@ -129,8 +130,6 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		return drawableState;
 	}
 
-	
-
 	/* (non-Javadoc)
 	 * @see android.view.View#onTouchEvent(android.view.MotionEvent)
 	 */
@@ -148,6 +147,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 			return super.onTouchEvent(event);
 		}
 	}
+	
 
 	/**
 	 * Determines if given points are inside view.
@@ -165,8 +165,8 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		int viewY = location[1];
 
 		// point is inside view bounds
-		if ((event.getRawX() > (viewX - checkboxTouchPadding) && event.getRawX() < (viewX + view.getWidth() + checkboxTouchPadding))) {
-//			event.setLocation(viewX, viewY);
+		if ((event.getRawX() > (viewX - touchPadding) && event.getRawX() < (viewX + view.getWidth() + touchPadding))) {
+			event.setLocation(viewX, viewY);
 			return true;
 		} else {
 			return false;

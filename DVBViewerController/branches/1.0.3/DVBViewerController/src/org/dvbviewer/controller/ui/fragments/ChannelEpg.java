@@ -510,7 +510,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 			switch (item.getItemId()) {
 			case R.id.menuRecord:
 				timer = cursorToTimer(c);
-				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
+				StringBuffer url = new StringBuffer();
 				url.append(timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
 				String title = timer.getTitle();
 				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));

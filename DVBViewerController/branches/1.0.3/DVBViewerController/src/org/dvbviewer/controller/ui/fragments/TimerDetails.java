@@ -306,7 +306,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 			dismiss();
 			break;
 		case R.id.buttonOk:
-			StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
+			StringBuffer url = new StringBuffer();
 			url.append(timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
 			String title = titleField.getText().toString();
 			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(dateField.getDate()));

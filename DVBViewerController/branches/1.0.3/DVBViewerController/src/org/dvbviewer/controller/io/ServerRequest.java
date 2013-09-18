@@ -21,10 +21,8 @@ import java.net.URISyntaxException;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.ClientProtocolException;
-import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.utils.ServerConsts;
 
-import android.text.GetChars;
 import android.util.Log;
 
 import com.github.kevinsawicki.http.HttpRequest;
@@ -84,31 +82,48 @@ public class ServerRequest {
 		return getServiceRequest(url).bytes();
 	}
 	
-	private static HttpRequest getServiceRequest(String url) {
+	private static HttpRequest getServiceRequest(String url) throws Exception {
 		//Set Service Credentials
-		return getRequest(ServerConsts.REC_SERVICE_URL+url).basic(ServerConsts.REC_SERVICE_USER_NAME, ServerConsts.REC_SERVICE_PASSWORD);
+		return getRequest(ServerConsts.REC_SERVICE_URL+url, Type.RECORDING_SERVICE);
 	}
 	
-	private static HttpRequest getViewerRequest(String url) {
+	private static HttpRequest getViewerRequest(String url) throws Exception {
 		//Set Viewer Credentials
-		return getRequest(ServerConsts.DVBVIEWER_URL + url).basic(ServerConsts.DVBVIEWER_USER_NAME, ServerConsts.DVBVIEWER_PASSWORD);
+		return getRequest(ServerConsts.DVBVIEWER_URL + url, Type.DVBVIEWER);
 	}
 	
-	private static HttpRequest getRequest(String url) {
+	private static HttpRequest getRequest(String url, Type type) throws Exception {
 		Log.d(ServerRequest.class.getSimpleName(), url);
 		HttpRequest request = HttpRequest.get(url);
 		//Tell server to gzip response and automatically uncompress
 		request.acceptGzipEncoding().uncompress(true);
 		//Accept all certificates
 		request.trustAllCerts();
-		//Accept all hostnames
+		// Accept all hostnames
 		request.trustAllHosts();
+		switch (type) {
+		case DVBVIEWER:
+			request.basic(ServerConsts.DVBVIEWER_USER_NAME, ServerConsts.DVBVIEWER_PASSWORD);
+			break;
+		case RECORDING_SERVICE:
+			request.basic(ServerConsts.REC_SERVICE_USER_NAME, ServerConsts.REC_SERVICE_PASSWORD);
+			break;
+
+		default:
+			break;
+		}
+		if (request.code() == HttpStatus.SC_FORBIDDEN) {
+			throw new AuthenticationException();
+		}
+		
 		return request;
 	}
 	
 
 	
-
+	enum Type {
+		DVBVIEWER, RECORDING_SERVICE, UNKNOWN
+	}
 
 
 
@@ -139,7 +154,7 @@ public class ServerRequest {
 		@Override
 		public void run() {
 			try {
-				getRequest(request).body();
+				getServiceRequest(request).body();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -177,8 +192,8 @@ public class ServerRequest {
 
 
 
-	public static String getString(String string) {
-		return getRequest(string).body();
+	public static String getString(String string) throws Exception {
+		return getRequest(string, Type.UNKNOWN).body();
 	}
 	
 	

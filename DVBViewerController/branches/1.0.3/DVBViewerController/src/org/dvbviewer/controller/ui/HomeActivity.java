@@ -75,23 +75,6 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (savedInstanceState == null) {
-			DVBViewerPreferences dvbprefs = new DVBViewerPreferences(this);
-			String expirationString = dvbprefs.getString(DVBViewerPreferences.KEY_EXPIRE_DATE);
-			try {
-				
-				Date now = new Date();
-				expirationMessage = dvbprefs.getString(DVBViewerPreferences.KEY_EXPIRE_Message);
-				Date d = dateFormat.parse(expirationString);
-				if (now.after(d) && getResources().getBoolean(R.bool.check_expire_date)) {
-					expired = true;
-				}
-			} catch (ParseException e1) {
-				Log.d(HomeActivity.class.getSimpleName(), "Cant parse date: "+expirationString);
-			}		
-		}
-		
-		
 		setContentView(R.layout.activity_home);
 		multiContainer = findViewById(R.id.multi_container);
 		multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);

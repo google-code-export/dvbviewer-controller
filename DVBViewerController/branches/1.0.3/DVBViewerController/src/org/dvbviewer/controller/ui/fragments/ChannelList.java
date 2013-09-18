@@ -226,7 +226,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						Log.e(e.getCause().getClass().getSimpleName(), "HttpRequestException");
 						e.printStackTrace();
 						if (e.getCause() instanceof UnknownHostException) {
-							setEmptyText(getString(R.string.error_unknown_host)+getString(R.string.common_colon)+" "+ServerConsts.REC_SERVICE_HOST);
+							showToast(getString(R.string.error_unknown_host)+getString(R.string.common_colon)+" "+ServerConsts.REC_SERVICE_HOST);
 						}else{
 							showToast(e.getCause().getClass().getSimpleName());
 						}

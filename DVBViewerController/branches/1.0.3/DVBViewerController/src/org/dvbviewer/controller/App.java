@@ -15,9 +15,7 @@
  */
 package org.dvbviewer.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.acra.ACRA;
@@ -26,22 +24,13 @@ import org.acra.ReportField;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 import org.acra.sender.HttpPostSender;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.dvbviewer.controller.data.DbHelper;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
-import org.json.JSONObject;
 
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageInfo;
 import android.text.TextUtils;
 
 /**
@@ -110,12 +99,6 @@ public class App extends Application {
 		super.onCreate();
 		
 		/**
-		 * Thread to check for Expiration
-		 */
-		Thread t = new Thread(new ExpirationChecker(prefs.getPrefs()));
-		t.start();
-		
-		/**
 		 * Thread to send a wake on lan request
 		 */
 		Runnable wakeOnLanRunnabel = new Runnable() {
@@ -133,54 +116,5 @@ public class App extends Application {
 		}
 	}
 
-	
-	/**
-	 * The Class ExpirationChecker.
-	 *
-	 * @author RayBa
-	 * @date 11.08.2012
-	 */
-	class ExpirationChecker implements Runnable {
-		
-		SharedPreferences prefs;
-		
-		/**
-		 * Instantiates a new expiration checker.
-		 *
-		 * @param prefs the prefs
-		 * @author RayBa
-		 * @date 11.08.2012
-		 */
-		public ExpirationChecker(SharedPreferences prefs) {
-			this.prefs = prefs;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Runnable#run()
-		 */
-		@Override
-		public void run() {
-			String urlExpireDate = getString(R.string.url_expire_date);
-			if (!TextUtils.isEmpty(urlExpireDate)) {
-				try {
-					PackageInfo pinfo = App.this.getPackageManager().getPackageInfo(getPackageName(), 0);
-					List<NameValuePair> params = new ArrayList<NameValuePair>();
-					String url = getString(R.string.url_expire_date);
-					params.add(new BasicNameValuePair("ver", pinfo.versionName));
-					String query = URLEncodedUtils.format(params, "utf-8");
-					String jsonString = ServerRequest.getString(url + query);
-					JSONObject jsonObject = new JSONObject(jsonString);
-					String expireDate = jsonObject.getString("date");
-					String expireMessage = jsonObject.getString("message");
-					Editor editor = prefs.edit();
-					editor.putString(DVBViewerPreferences.KEY_EXPIRE_DATE, expireDate);
-					editor.putString(DVBViewerPreferences.KEY_EXPIRE_Message, expireMessage);
-					editor.commit();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
 	
 }

@@ -128,7 +128,9 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 					String xml = ServerRequest.getRSString("/api/timerlist.html?utf8=255");
 					TimerHandler hanler = new TimerHandler();
 					result = hanler.parse(xml);
-					Collections.sort(result);
+					if (result != null) {
+						Collections.sort(result);
+					}
 				} catch (AuthenticationException e) {
 					Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 					e.printStackTrace();

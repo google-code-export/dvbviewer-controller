@@ -72,7 +72,7 @@ import com.actionbarsherlock.view.MenuItem;
  * @author RayBa
  * @date 07.04.2013
  */
-public class TimerList extends BaseListFragment implements AsyncCallback, LoaderCallbacks<List<Timer>>, Callback, OnClickListener, OnCheckedChangeListener {
+public class TimerList extends BaseListFragment implements AsyncCallback, LoaderCallbacks<List<Timer>>, Callback, OnClickListener, OnCheckedChangeListener, android.view.View.OnClickListener  {
 
 	TimerAdapter	mAdapter;
 	ActionMode		mode;
@@ -240,8 +240,9 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 				holder.channelName = (TextView) convertView.findViewById(R.id.channelName);
 				holder.date = (TextView) convertView.findViewById(R.id.date);
 				holder.check = (CheckBox) convertView.findViewById(R.id.checkIndicator);
-				holder.check.setOnCheckedChangeListener(TimerList.this);
 				convertView.setTag(holder);
+				holder.check.setOnCheckedChangeListener(TimerList.this);
+				holder.check.setOnClickListener(TimerList.this);
 			} else {
 				holder = (ViewHolder) convertView.getTag();
 			}
@@ -249,6 +250,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 			if (o != null) {
 				holder.title.setText(o.getTitle());
 				holder.channelName.setText(o.getChannelName());
+				holder.check.setTag(position);
 				String date = DateUtils.getDateInLocalFormat(o.getStart());
 				if (DateUtils.isToday(o.getStart().getTime())) {
 					date = getResources().getString(R.string.today);
@@ -261,8 +263,6 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 				String start = DateUtils.getTimeInLocalFormat(o.getStart());
 				String end = DateUtils.getTimeInLocalFormat(o.getEnd());
 				holder.date.setText(date + "  " + start + " - " + end);
-//				imageChacher.getImage(holder.icon, ServerConsts.URL_CHANNEL_LOGO + URLEncoder.encode(o.getChannelName()), null, true);
-				holder.check.setTag(position);
 				holder.recIndicator.setVisibility(o.isFlagSet(Timer.FLAG_RECORDING) ? View.VISIBLE : View.GONE);
 			}
 
@@ -559,5 +559,12 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		}
 	}
 
+	@Override
+	public void onClick(View v) {
+		/**
+		* just for the click sound on touchevent :-)
+		* TODO: handled this in the checkable view
+		*/
+	}
 
 }

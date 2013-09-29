@@ -37,8 +37,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 	CheckBox					checkIndicator;
 	ImageView					contextMenuButton;
 	private int					touchPadding;
-	private int					checkboxTouchPadding;
-	private boolean				mChecked;
+	private boolean				mChecked = false;
 	private boolean				error;
 	private boolean				disabled;
 	
@@ -165,8 +164,9 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		int viewY = location[1];
 
 		// point is inside view bounds
-		if ((event.getRawX() > (viewX - touchPadding) && event.getRawX() < (viewX + view.getWidth() + touchPadding))) {
-			event.setLocation(viewX, viewY);
+		boolean isInX = event.getRawX() > (viewX - touchPadding) && event.getRawX() < (viewX + view.getWidth() + touchPadding);
+		if (isInX) {
+			event.setLocation(viewX+ 1, viewY+1);
 			return true;
 		} else {
 			return false;
@@ -202,7 +202,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 	public void toggle() {
 		mChecked = !mChecked;
 		if (checkIndicator != null) {
-			checkIndicator.setChecked(mChecked);
+			checkIndicator.setChecked(mChecked); 
 		}
 		refreshDrawableState();
 	}

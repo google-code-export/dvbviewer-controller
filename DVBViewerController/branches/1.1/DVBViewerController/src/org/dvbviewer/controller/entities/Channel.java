@@ -15,9 +15,6 @@
  */
 package org.dvbviewer.controller.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 
 import android.content.ContentValues;
@@ -45,6 +42,9 @@ public class Channel implements Comparable<Channel>, Parcelable {
 
 	/** The id. */
 	private Long			id;
+	
+	/** The channel id. */
+	private long			channelID;
 
 	/** The name. */
 	private String			name;
@@ -94,6 +94,28 @@ public class Channel implements Comparable<Channel>, Parcelable {
 	 */
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	/**
+	 * Gets the channel id.
+	 *
+	 * @return the channel id
+	 * @author RayBa
+	 * @date 29.09.2013
+	 */
+	public long getChannelID() {
+		return channelID;
+	}
+
+	/**
+	 * Sets the channel id.
+	 *
+	 * @param channelID the new channel id
+	 * @author RayBa
+	 * @date 29.09.2013
+	 */
+	public void setChannelID(long channelID) {
+		this.channelID = channelID;
 	}
 
 	/**
@@ -208,6 +230,9 @@ public class Channel implements Comparable<Channel>, Parcelable {
 		if (this.id != null && !this.id.equals(0l)) {
 			result.put(ChannelTbl._ID, id);
 		}
+		if (this.channelID != 0l) {
+			result.put(ChannelTbl.CHANNEL_ID, channelID);
+		}
 		if (this.epgID != 0l) {
 			result.put(ChannelTbl.EPG_ID, this.epgID);
 		}
@@ -272,12 +297,11 @@ public class Channel implements Comparable<Channel>, Parcelable {
 	 */
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(this.id == null ? -1 : this.id);
+		dest.writeLong(this.channelID);
 		dest.writeString(this.name);
 		dest.writeInt(this.position);
-		dest.writeLong(this.epgID);
 		dest.writeInt(this.favPosition);
-		dest.writeInt(this.flags);
+		dest.writeLong(this.epgID);
 		dest.writeString(this.logoUrl);
 	}
 

@@ -84,6 +84,8 @@ public class DbConsts {
 
 		/** The table name. */
 		public static String	TABLE_NAME				= "channel";
+		
+		public static String	CHANNEL_ID				= "channel_id";
 
 		/** The name. */
 		public static String	NAME					= "name";

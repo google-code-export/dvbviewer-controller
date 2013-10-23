@@ -56,6 +56,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -151,7 +152,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
+		mAdapter = new PagerAdapter(getFragmentManager(), mGroupCursor);
 		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
@@ -186,13 +187,13 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		/**
 		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
 		 */
-		if (!Config.CHANNELS_SYNCED) {
-			loaderId = SYNCHRONIZE_CHANNELS;
-		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
-			loaderId = LOAD_CURRENT_PROGRAM;
-		}
+//		if (!Config.CHANNELS_SYNCED) {
+//			loaderId = SYNCHRONIZE_CHANNELS;
+//		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
+//			loaderId = LOAD_CURRENT_PROGRAM;
+//		}
 		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
-		showProgress(!isResumed() || loader.isStarted());
+//		showProgress(!isResumed() || loader.isStarted());
 	}
 	
 	
@@ -321,7 +322,6 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 					groupId = mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID));
 				}
 			}
-			Log.i(ChannelPager.PagerAdapter.class.getSimpleName(), "getItem");
 			ChannelList channelList = (ChannelList) Fragment.instantiate(getActivity(), ChannelList.class.getName());
 			Bundle args = new Bundle();
 			args.putLong(ChannelList.KEY_GROUP_ID, groupId);
@@ -331,10 +331,10 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			return channelList;
 		}
 		
-//		@Override
-//		public int getItemPosition(Object object) {
-//			return POSITION_NONE;
-//		}
+		@Override
+		public int getItemPosition(Object object) {
+			return POSITION_NONE;
+		}
 
 		/* (non-Javadoc)
 		 * @see android.support.v4.view.PagerAdapter#getCount()
@@ -374,6 +374,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 
 		public void setCursor(Cursor cursor) {
 			this.mCursor = cursor;
+			notifyDataSetChanged();
 		}
 		
 		
@@ -590,6 +591,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.support.v4.content.Loader, java.lang.Object)
 	 */
+	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		switch (loader.getId()) {
@@ -607,11 +609,14 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			}
 			break;
 		case LOAD_CHANNELS:
+			Log.i(ChannelPager.class.getSimpleName(), "onLoadFinished");
 			mGroupCursor = cursor;
+//			mAdapter = new PagerAdapter(getFragmentManager(), cursor)
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
-			mPager.setAdapter(mAdapter);
+//			mPager.setAdapter(mAdapter);
 			mPager.setCurrentItem(mPosition);
+			getSherlockActivity().invalidateOptionsMenu();
 			showProgress(false);
 			break;
 
@@ -658,6 +663,13 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	 * @date 05.07.2012
 	 */
 	public void refresh(int id) {
+		mGroupCursor = null;
+		mPager.setAdapter(null);
+		mAdapter.notifyDataSetChanged();
+		mAdapter = new PagerAdapter(getFragmentManager(), mGroupCursor);
+		mPager.setAdapter(mAdapter);
+		titleIndicator.notifyDataSetChanged();
+		getLoaderManager().destroyLoader(id);
 		getLoaderManager().restartLoader(id, getArguments(), this);
 	}
 	

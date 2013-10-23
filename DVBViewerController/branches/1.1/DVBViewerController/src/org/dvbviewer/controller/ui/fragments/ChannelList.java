@@ -82,10 +82,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public static final String	KEY_SELECTED_POSITION		= "SELECTED_POSITION";
 	public static final String	KEY_HAS_OPTIONMENU			= "HAS_OPTIONMENU";
 	public static final String	KEY_GROUP_ID				= "GROUP_ID";
+	public static final String	KEY_SHOWFAVS				= "SHOWFAVS";
 	ChannelAdapter				mAdapter;
 	int							selectedPosition			= -1;
 	boolean						hasOptionsMenu				= true;
-	boolean						showFavs;
+	boolean						showFavs					= false;
 	public static final int		LOADER_CHANNELLIST			= 101;
 	OnChannelSelectedListener	mCHannelSelectedListener;
 	View						selectView;
@@ -103,7 +104,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		super.onCreate(savedInstanceState);
 		mContext = getActivity().getApplicationContext();
 
-		showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		mAdapter = new ChannelAdapter(getActivity());
 		if (savedInstanceState == null) {
 			if (getArguments() != null) {
@@ -114,17 +114,20 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
 					mGroupId = getArguments().getLong(KEY_GROUP_ID);
 				}
+				showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
 			}
 		}else {
 			if (savedInstanceState.containsKey(KEY_SELECTED_POSITION)) {
 				selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION);
-				mGroupId = getArguments().getLong(KEY_GROUP_ID);
+				mGroupId = savedInstanceState.getLong(KEY_GROUP_ID);
+				showFavs = savedInstanceState.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
 			}
 		}
 		
-		setHasOptionsMenu(hasOptionsMenu);
+		setHasOptionsMenu(false);
 	}
 
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -135,7 +138,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		Log.i(ChannelList.class.getSimpleName(), "onAttach");
 		if (activity instanceof OnChannelSelectedListener) {
 			mCHannelSelectedListener = (OnChannelSelectedListener) activity;
 		}
@@ -149,8 +151,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		setListAdapter(mAdapter);
 		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+		setListAdapter(mAdapter);
 		registerForContextMenu(getListView());
 		int loaderId = LOADER_CHANNELLIST;
 //		/**
@@ -162,10 +164,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 //			loaderId = LOADER_EPG;
 //		}
 		setEmptyText(showFavs ? getResources().getString(R.string.no_favourites) : getResources().getString(R.string.no_channels));
-		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
-		setListShown(!(!isResumed() || loader.isStarted()));
+		Loader<Cursor> loader = getLoaderManager().initLoader((int)mGroupId, savedInstanceState, this);
+//		setListShown(!(!isResumed() || loader.isStarted()));
 //		setSelection(selectedPosition);
 	}
+	
 	
 
 	/*
@@ -178,24 +181,18 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
 		Loader<Cursor> loader = null;
-		switch (loaderId) {
-		case LOADER_CHANNELLIST:
-			StringBuffer selection = new StringBuffer(showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : new StringBuffer());
-			String orderBy = null;
-			if (mGroupId > 0) {
-				if (showFavs) {
-					selection.append(" and ");
-					selection.append(FavTbl.FAV_GROUP_ID + " = "+mGroupId);
-				}else {
-					selection.append(ChannelTbl.GROUP_ID + " = "+mGroupId);
-				}
+		StringBuffer selection = new StringBuffer(showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : ChannelTbl.FLAGS + " & " + Channel.FLAG_ADDITIONAL_AUDIO + "== 0");
+		if (mGroupId > 0) {
+			selection.append(" and ");
+			if (showFavs) {
+				selection.append(FavTbl.FAV_GROUP_ID + " = " + mGroupId);
+			} else {
+				selection.append(ChannelTbl.GROUP_ID + " = " + mGroupId);
 			}
-			orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-			loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
-			break;
-		default:
-			break;
 		}
+		String orderBy = null;
+		orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
+		loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
 		return loader;
 	}
 
@@ -209,6 +206,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		Log.i(ChannelList.class.getSimpleName(), "onLoadFinished");
 		if (cursor != null && cursor.getCount() > 0) {
 			mAdapter.swapCursor(cursor);
 			if (selectedPosition != ListView.INVALID_POSITION) {
@@ -579,17 +577,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onResume()
-	 */
-	@Override
-	public void onResume() {
-		super.onResume();
-		Log.i(ChannelList.class.getSimpleName(), "onResume");
-		if (!UIUtils.isTablet(getSherlockActivity())) {
-			clearSelection();
-		}
-	}
 
 	/**
 	 * Cursor to channellist.

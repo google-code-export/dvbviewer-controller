@@ -22,7 +22,7 @@ public class ServerConsts {
 	public static String	DVBVIEWER_USER_NAME				= "";
 	public static String	DVBVIEWER_PASSWORD				= "";
 	public static String	HTTP							= "http";
-	public static String	URL_CHANNELS					= "/api/getchannelsxml.html?logo=1";
+	public static String	URL_CHANNELS					= "/api/getchannelsxml.html?logo=1&subchannels=1";
 	public static String	URL_CHANNELS_OLD				= "/api/getchannelsdat.html";
 	public static String	URL_FAVS						= "/api/getfavourites.html";
 	public static String	URL_VERSION						= "/api/version.html";

@@ -272,21 +272,13 @@ public class Channel implements Comparable<Channel>, Parcelable {
 		return 0;
 	}
 
-	/**
-	 * Read from parcel.
-	 *
-	 * @param src the src
-	 * @author RayBa
-	 * @date 07.04.2013
-	 */
 	private void readFromParcel(Parcel src) {
 		long id = src.readLong();
-		this.id = id == -1 ? null : id;
+		this.channelID = id == -1 ? null : id;
 		this.name = src.readString();
 		this.position = src.readInt();
-		this.epgID = src.readLong();
 		this.favPosition = src.readInt();
-		this.flags = src.readInt();
+		this.epgID = src.readLong();
 		this.logoUrl = src.readString();
 	}
 

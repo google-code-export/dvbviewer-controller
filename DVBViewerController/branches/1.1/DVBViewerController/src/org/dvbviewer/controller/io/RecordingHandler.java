@@ -49,9 +49,10 @@ public class RecordingHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 05.07.2012
 	 */
-	public List<Recording> parse(String xml) {
+	public List<Recording> parse(String xml) throws SAXException {
 		RootElement root = new RootElement("recordings");
 		Element recordingElement = root.getChild("recording");
 		Element chanElement = recordingElement.getChild("channel");
@@ -86,52 +87,43 @@ public class RecordingHandler extends DefaultHandler {
 			}
 		});
 
-
 		chanElement.setEndTextElementListener(new EndTextElementListener() {
 
 			@Override
 			public void end(String body) {
 				currentRecording.setChannel(body);
 			}
-			
+
 		});
-		
+
 		titleElement.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentRecording.setTitle(body);
 			}
-			
+
 		});
-		
+
 		infoElement.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentRecording.setSubTitle(body);
 			}
-			
+
 		});
-		
+
 		descElement.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentRecording.setDescription(body);
 			}
 		});
 
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			return recordingList;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		Xml.parse(xml, root.getContentHandler());
+		return recordingList;
 	}
 
 }

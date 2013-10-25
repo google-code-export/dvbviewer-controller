@@ -16,12 +16,9 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Status;
 import org.dvbviewer.controller.entities.Status.Folder;
@@ -30,25 +27,27 @@ import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.StatusHandler;
 import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
-import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.utils.ArrayListAdapter;
 import org.dvbviewer.controller.utils.CategoryAdapter;
 import org.dvbviewer.controller.utils.FileUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
+import org.xml.sax.SAXException;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import ch.boye.httpclientandroidlib.ParseException;
+import ch.boye.httpclientandroidlib.auth.AuthenticationException;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
 /**
  * The Class StatusList.
@@ -118,32 +117,37 @@ public class StatusList extends BaseListFragment implements LoaderCallbacks<Stat
 					versionItem.setValue(version);
 					result.getItems().add(0, versionItem);
 				} catch (AuthenticationException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_credentials));
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (ConnectTimeoutException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_connection_timeout));
+				} catch (SAXException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_parsing_xml));
 				} catch (ParseException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 				} catch (ClientProtocolException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 				} catch (IOException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 				} catch (URISyntaxException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (IllegalStateException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (IllegalArgumentException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (Exception e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 				}
 				return result;
 			}

@@ -124,7 +124,7 @@
     <string name="firstStartMessageTitle">Keine Verbindungseinstellungen gefunden</string>
     <string name="firstStartMessage">Es wurden keine Verbindungseinstellungen gefunden.\n\nMöchten Sie zu den Einstellungen wechseln</string>
     <string name="confirmDelete">Ausgewählte Elemente löschen?</string>
-    <string name="noFlashPlayerFound">Es wurde kein Flashfähiger VideoPlayer gefunden.\nSoll der interne Player verwendet werden?</string>
+    <string name="noFlashPlayerFound">Es wurde kein Flashfähiger VideoPlayer gefunden.\nBitte einen geeigneten Videoplayer installieren!</string>
 
     <!-- Preferences -->
     <string name="preferences">Einstellungen</string>
@@ -177,10 +177,12 @@
     <string name="pref_item_epg_settings_fav_only">Nur Favoriten synchronisieren</string>
     <string name="pref_item_epg_settings_fav_only_summary">Legt fest ob nur die Favoriten synchronisisert werden sollen.</string>
 
-    <!-- Error -->
-    <string name="expiration_title">Version abgelaufen</string>
+    <!-- Error --><string name="expiration_title">Version abgelaufen</string>
     <string name="error_common">Fehler</string>
+    <string name="error_unknonwn_host">Unbekannter Host</string>
     <string name="error_no_connection">Keine Verbindung</string>
+    <string name="error_connection_timeout">Verbindungs timeout</string>
+    <string name="error_parsing_xml">Fehler beim verarbeiten des XMLs</string>
     <string name="error_sending_report">Fehlerbericht wird gesendet</string>
     <string name="error_invalid_url">Ungültige URL</string>
     <string name="error_invalid_credentials">Authentifizierung fehlgeschlagen</string>

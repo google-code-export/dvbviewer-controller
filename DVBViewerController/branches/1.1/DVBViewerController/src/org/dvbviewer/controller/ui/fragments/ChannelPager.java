@@ -17,12 +17,10 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.GroupTbl;
 import org.dvbviewer.controller.data.DbHelper;
@@ -45,6 +43,7 @@ import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
+import org.xml.sax.SAXException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -54,10 +53,11 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -69,8 +69,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import ch.boye.httpclientandroidlib.ParseException;
+import ch.boye.httpclientandroidlib.auth.AuthenticationException;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.widget.SearchView;
 import com.viewpagerindicator.TitlePageIndicator;
 
 // TODO: Auto-generated Javadoc
@@ -144,6 +151,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			mOnPageChangeListener = (OnPageChangeListener) activity;
 		}
 	}
+	
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
@@ -152,7 +160,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mAdapter = new PagerAdapter(getFragmentManager(), mGroupCursor);
+		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
 		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
@@ -174,6 +182,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		titleIndicator.setViewPager(mPager);
 		titleIndicator.setOnPageChangeListener(mOnPageChangeListener);
 		
+		int loaderId = LOAD_CHANNELS;
 		if (savedInstanceState != null) {
 			Log.i(ChannelPager.class.getSimpleName(), "savedInstanceState != null");
 			if (savedInstanceState.containsKey(KEY_ADAPTER_POSITION)) {
@@ -181,19 +190,19 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 				mPosition = savedInstanceState.getInt(KEY_ADAPTER_POSITION);
 				Log.i(ChannelPager.class.getSimpleName(), "mPosition: "+mPosition);
 			}
+		}else {
+			/**
+			 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
+			 */
+			if (!Config.CHANNELS_SYNCED) {
+				loaderId = SYNCHRONIZE_CHANNELS;
+			} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
+				loaderId = LOAD_CURRENT_PROGRAM;
+			}
 		}
 		
-		int loaderId = LOAD_CHANNELS;
-		/**
-		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
-		 */
-//		if (!Config.CHANNELS_SYNCED) {
-//			loaderId = SYNCHRONIZE_CHANNELS;
-//		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
-//			loaderId = LOAD_CURRENT_PROGRAM;
-//		}
 		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
-//		showProgress(!isResumed() || loader.isStarted());
+		showProgress(!isResumed() || loader.isStarted());
 	}
 	
 	
@@ -224,6 +233,16 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	@Override
 	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
+		
+		// Place an action bar item for searching.
+        SearchView searchView = new SearchView(getSherlockActivity().getSupportActionBar().getThemedContext());
+        searchView.setQueryHint("Search Channels");
+        searchView.setIconified(true);
+        menu.add(Menu.NONE, Menu.FIRST + 1, Menu.FIRST + 1, "Search")
+        .setIcon(R.drawable.abs__ic_search)
+        .setActionView(searchView)
+        .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		
 		inflater.inflate(R.menu.channel_list, menu);
 		for (int i = 0; i < menu.size(); i++) {
 			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
@@ -294,7 +313,6 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		
 		private Cursor mCursor;
 		
-
 		/**
 		 * Instantiates a new pager adapter.
 		 *
@@ -335,7 +353,23 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		public int getItemPosition(Object object) {
 			return POSITION_NONE;
 		}
+		
+		
+		@Override
+		public void restoreState(Parcelable arg0, ClassLoader arg1) {
+			// TODO Auto-generated method stub
+//			super.restoreState(arg0, arg1);
+		}
 
+		@Override
+		public void destroyItem(ViewGroup container, int position, Object object) {
+		    if (position >= getCount()) {
+		        FragmentManager manager = ((Fragment) object).getFragmentManager();
+		        FragmentTransaction trans = manager.beginTransaction();
+		        trans.remove((Fragment) object);
+		        trans.commit();
+		    }
+		}
 		/* (non-Javadoc)
 		 * @see android.support.v4.view.PagerAdapter#getCount()
 		 */
@@ -471,32 +505,37 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 						prefEditor.commit();
 						Config.CHANNELS_SYNCED = true;
 					} catch (AuthenticationException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (ConnectTimeoutException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_connection_timeout));
+					} catch (SAXException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_parsing_xml));
 					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					}
 					return null;
 				}
@@ -549,32 +588,37 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 						DbHelper helper = new DbHelper(getContext());
 						helper.saveNowPlaying(result);
 					} catch (AuthenticationException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (ConnectTimeoutException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_connection_timeout));
+					} catch (SAXException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_parsing_xml));
 					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
 					}
 					return null;
 				}
@@ -609,12 +653,9 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			}
 			break;
 		case LOAD_CHANNELS:
-			Log.i(ChannelPager.class.getSimpleName(), "onLoadFinished");
 			mGroupCursor = cursor;
-//			mAdapter = new PagerAdapter(getFragmentManager(), cursor)
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
-//			mPager.setAdapter(mAdapter);
 			mPager.setCurrentItem(mPosition);
 			getSherlockActivity().invalidateOptionsMenu();
 			showProgress(false);

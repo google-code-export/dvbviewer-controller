@@ -23,7 +23,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.ui.phone.VideoPlayerActivity;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
@@ -242,9 +241,7 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 				}
 			} catch (ActivityNotFoundException e) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.yes), this).setNegativeButton(getResources().getString(R.string.no), this).show();
-
-				e.printStackTrace();
+				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.ok), this).show();
 			}
 			break;
 		case R.id.startDirectButton:
@@ -259,7 +256,7 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 				}
 			} catch (ActivityNotFoundException e) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.yes), this).setNegativeButton(getResources().getString(R.string.no), this).show();
+				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.ok), this).show();
 
 				e.printStackTrace();
 			}
@@ -341,17 +338,10 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 		}
 		Log.i(StreamConfig.class.getSimpleName(), "url: " + videoUrl);
 
-		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
-		boolean external = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_STREAM_EXTERNAL_PLAYER, true);
 		Intent videoIntent;
-		if (external) {
-			videoType = "video/mpeg";
-			videoIntent = new Intent(Intent.ACTION_VIEW);
-			videoIntent.setDataAndType(Uri.parse(videoUrl), videoType);
-		} else {
-			videoIntent = new Intent(getActivity(), VideoPlayerActivity.class);
-			videoIntent.setData(Uri.parse(videoUrl));
-		}
+		videoType = "video/mpeg";
+		videoIntent = new Intent(Intent.ACTION_VIEW);
+		videoIntent.setDataAndType(Uri.parse(videoUrl), videoType);
 		return videoIntent;
 	}
 

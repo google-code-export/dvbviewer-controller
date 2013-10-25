@@ -15,16 +15,8 @@
  */
 package org.dvbviewer.controller;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.acra.ACRA;
 import org.acra.ErrorReporter;
@@ -32,25 +24,14 @@ import org.acra.ReportField;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 import org.acra.sender.HttpPostSender;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
-import org.json.JSONObject;
-
-import com.github.kevinsawicki.http.HttpRequest;
 
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageInfo;
 import android.text.TextUtils;
-import android.util.Log;
 
 /**
  * The Class App.

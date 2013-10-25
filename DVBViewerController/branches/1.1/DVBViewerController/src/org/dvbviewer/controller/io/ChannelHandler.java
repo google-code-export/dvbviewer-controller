@@ -51,10 +51,11 @@ public class ChannelHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 07.04.2013
 	 */
-	public List<ChannelRoot> parse(String xml) {
-		
+	public List<ChannelRoot> parse(String xml) throws SAXException {
+
 		RootElement channels = new RootElement("channels");
 		Element rootElement = channels.getChild("root");
 		Element groupElement = rootElement.getChild("group");
@@ -96,7 +97,7 @@ public class ChannelHandler extends DefaultHandler {
 				currentGroup.getChannels().add(currentChannel);
 			}
 		});
-		
+
 		logoElement.setEndTextElementListener(new EndTextElementListener() {
 
 			@Override
@@ -105,7 +106,7 @@ public class ChannelHandler extends DefaultHandler {
 			}
 
 		});
-		
+
 		subChanElement.setStartElementListener(new StartElementListener() {
 			public void start(Attributes attributes) {
 				Channel c = new Channel();
@@ -119,17 +120,10 @@ public class ChannelHandler extends DefaultHandler {
 			}
 		});
 
-		try {
-			Xml.parse(xml, channels.getContentHandler());
-			Log.i(ChannelHandler.class.getSimpleName(), "parse");
-			return rootElements;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Xml.parse(xml, channels.getContentHandler());
+		Log.i(ChannelHandler.class.getSimpleName(), "parse");
+		return rootElements;
 
-		return null;
 	}
 
 }

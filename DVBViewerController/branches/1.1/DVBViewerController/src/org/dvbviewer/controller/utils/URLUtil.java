@@ -66,8 +66,12 @@ public class URLUtil {
 			URL baseUrl = new URL(prefUrl);
 			ServerConsts.REC_SERVICE_PROTOCOL = baseUrl.getProtocol();
 			ServerConsts.REC_SERVICE_HOST = baseUrl.getHost();
+			String path = baseUrl.getPath();
+			if (path.endsWith("/")) {
+				path = path.substring(0, path.length() - 1);
+			}
 			ServerConsts.REC_SERVICE_PORT = port;
-			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+":"+ServerConsts.REC_SERVICE_PORT;
+			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+":"+ServerConsts.REC_SERVICE_PORT+path;
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -87,7 +91,8 @@ public class URLUtil {
 			URL baseUrl = new URL(prefUrl);
 			ServerConsts.REC_SERVICE_PROTOCOL = baseUrl.getProtocol();
 			ServerConsts.REC_SERVICE_HOST = baseUrl.getHost();
-			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+":"+ServerConsts.REC_SERVICE_PORT;
+			String path = baseUrl.getPath();
+			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+path+":"+ServerConsts.REC_SERVICE_PORT;
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}

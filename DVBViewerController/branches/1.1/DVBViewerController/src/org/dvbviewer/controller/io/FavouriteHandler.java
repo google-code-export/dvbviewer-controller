@@ -19,15 +19,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import org.dvbviewer.controller.entities.ChannelGroup;
 import org.dvbviewer.controller.entities.Channel.Fav;
+import org.dvbviewer.controller.entities.ChannelGroup;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.content.Context;
 import android.sax.Element;
-import android.sax.ElementListener;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
@@ -35,8 +34,8 @@ import android.sax.StartElementListener;
 import android.util.Xml;
 
 /**
- * Handler to parse the facourites from the DVBViewer Recording Service
- *
+ * Handler to parse the favourites from the DVBViewer Recording Service
+ * 
  * @author RayBa
  * @date 05.07.2012
  */
@@ -51,14 +50,17 @@ public class FavouriteHandler extends DefaultHandler {
 
 	/**
 	 * Parses the xml String favourites.xml
-	 *
-	 * @param context the context
-	 * @param xml the xml
+	 * 
+	 * @param context
+	 *            the context
+	 * @param xml
+	 *            the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException
 	 * @date 05.07.2012
 	 */
-	public List<ChannelGroup> parse(Context context, String xml) {
+	public List<ChannelGroup> parse(Context context, String xml) throws SAXException {
 		uncategorized.setType(ChannelGroup.TYPE_FAV);
 		RootElement root = new RootElement("settings");
 		Element sectionElement = root.getChild("section");
@@ -71,9 +73,9 @@ public class FavouriteHandler extends DefaultHandler {
 				channelGroups = new ArrayList<ChannelGroup>();
 			}
 		});
-		
+
 		sectionElement.setStartElementListener(new StartElementListener() {
-			
+
 			@Override
 			public void start(Attributes attributes) {
 				isGroup = false;
@@ -81,9 +83,9 @@ public class FavouriteHandler extends DefaultHandler {
 				currentGroup.setType(ChannelGroup.TYPE_FAV);
 			}
 		});
-		
+
 		entryElement.setStartElementListener(new StartElementListener() {
-			
+
 			@Override
 			public void start(Attributes attributes) {
 				String name = attributes.getValue("name");
@@ -92,7 +94,7 @@ public class FavouriteHandler extends DefaultHandler {
 				}
 			}
 		});
-		
+
 		entryElement.setEndTextElementListener(new EndTextElementListener() {
 
 			@Override
@@ -107,27 +109,26 @@ public class FavouriteHandler extends DefaultHandler {
 						currentGroup.getFavs().add(currentFav);
 					}
 					favourites.add(currentFav);
-				}else {
+				} else {
 					currentGroup.setName(body);
 				}
 			}
 		});
-		
-		
+
 		sectionElement.setEndElementListener(new EndElementListener() {
-			
+
 			@Override
 			public void end() {
 				if (!isGroup) {
 					uncategorized.getFavs().add(currentFav);
-				}else {
+				} else {
 					channelGroups.add(currentGroup);
 				}
 			}
 		});
-		
+
 		root.setEndElementListener(new EndElementListener() {
-			
+
 			@Override
 			public void end() {
 				if (!uncategorized.getFavs().isEmpty()) {
@@ -135,26 +136,20 @@ public class FavouriteHandler extends DefaultHandler {
 				}
 			}
 		});
-		
-		
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			for (int i = 0; i < favourites.size(); i++) {
-				Fav fav = favourites.get(i);
-				fav.position = i + 1;
-			}
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+
+		Xml.parse(xml, root.getContentHandler());
+		for (int i = 0; i < favourites.size(); i++) {
+			Fav fav = favourites.get(i);
+			fav.position = i + 1;
 		}
 		return channelGroups;
 	}
 
 	/**
 	 * Convert.
-	 *
-	 * @param value the value
+	 * 
+	 * @param value
+	 *            the value
 	 * @return the bit set´
 	 * @author RayBa
 	 * @date 05.07.2012
@@ -174,8 +169,9 @@ public class FavouriteHandler extends DefaultHandler {
 
 	/**
 	 * Convert.
-	 *
-	 * @param bits the bits
+	 * 
+	 * @param bits
+	 *            the bits
 	 * @return the int´
 	 * @author RayBa
 	 * @date 05.07.2012

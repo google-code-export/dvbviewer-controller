@@ -36,8 +36,8 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 
 	CheckBox					checkIndicator;
 	ImageView					contextMenuButton;
-	private int					checkboxTouchPadding;
-	private boolean				mChecked;
+	private int					touchPadding;
+	private boolean				mChecked = false;
 	private boolean				error;
 	private boolean				disabled;
 	
@@ -95,7 +95,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 	@Override
 	protected void onFinishInflate() {
 		super.onFinishInflate();
-		checkboxTouchPadding = (int) (10 * getResources().getDisplayMetrics().density);
+		touchPadding = (int) (15 * getResources().getDisplayMetrics().density);
 		checkIndicator = (CheckBox) findViewById(R.id.checkIndicator);
 		contextMenuButton = (ImageView) findViewById(R.id.contextMenu);
 	}
@@ -129,17 +129,17 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		return drawableState;
 	}
 
-	
-
 	/* (non-Javadoc)
 	 * @see android.view.View#onTouchEvent(android.view.MotionEvent)
 	 */
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (checkIndicator != null && checkIndicator.getVisibility() == View.VISIBLE && isLeftIndicatorClick(event)) {
+		if (checkIndicator != null && checkIndicator.getVisibility() == View.VISIBLE && isPointInsideView(event, checkIndicator)) {
+			event.setLocation(1, 1);
 			checkIndicator.onTouchEvent(event);
 			return true;
-		} else if (contextMenuButton != null && contextMenuButton.getVisibility() == View.VISIBLE && isRightIndicatorClick(event)) {
+		} else if (contextMenuButton != null && contextMenuButton.getVisibility() == View.VISIBLE && isPointInsideView(event, contextMenuButton)) {
+			event.setLocation(1, 1);
 			contextMenuButton.onTouchEvent(event);
 			return true;
 		} else {
@@ -147,22 +147,6 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		}
 	}
 	
-	private boolean isLeftIndicatorClick(MotionEvent event) {
-		boolean result = false;
-		int touchArea = getWidth()/6;
-		if (event.getX() < touchArea) {
-			result = true;
-		}
-		return result;
-	}
-	private boolean isRightIndicatorClick(MotionEvent event) {
-		boolean result = false;
-		int touchArea = getWidth()-getWidth()/6;
-		if (event.getX() > touchArea) {
-			result = true;
-		}
-		return result;
-	}
 
 	/**
 	 * Determines if given points are inside view.
@@ -180,8 +164,9 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 		int viewY = location[1];
 
 		// point is inside view bounds
-		if ((event.getRawX() > (viewX - checkboxTouchPadding) && event.getRawX() < (viewX + view.getWidth() + checkboxTouchPadding))) {
-//			event.setLocation(viewX, viewY);
+		boolean isInX = event.getRawX() > (viewX - touchPadding) && event.getRawX() < (viewX + view.getWidth() + touchPadding);
+		if (isInX) {
+			event.setLocation(viewX+ 1, viewY+1);
 			return true;
 		} else {
 			return false;
@@ -217,7 +202,7 @@ public class ClickableRelativeLayout extends RelativeLayout implements Checkable
 	public void toggle() {
 		mChecked = !mChecked;
 		if (checkIndicator != null) {
-			checkIndicator.setChecked(mChecked);
+			checkIndicator.setChecked(mChecked); 
 		}
 		refreshDrawableState();
 	}

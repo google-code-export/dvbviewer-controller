@@ -26,6 +26,7 @@ import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -82,7 +83,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mAdapter = new PagerAdapter(getChildFragmentManager());
+		mAdapter = new PagerAdapter(getSherlockActivity().getSupportFragmentManager());
 	}
 
 	/* (non-Javadoc)
@@ -131,6 +132,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
+	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
 		super.onOptionsItemSelected(item);

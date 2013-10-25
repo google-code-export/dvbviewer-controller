@@ -165,7 +165,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 //		}
 		setEmptyText(showFavs ? getResources().getString(R.string.no_favourites) : getResources().getString(R.string.no_channels));
 		Loader<Cursor> loader = getLoaderManager().initLoader((int)mGroupId, savedInstanceState, this);
-//		setListShown(!(!isResumed() || loader.isStarted()));
+		setListShown(!(!isResumed() || loader.isStarted()));
 //		setSelection(selectedPosition);
 	}
 	
@@ -206,7 +206,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		Log.i(ChannelList.class.getSimpleName(), "onLoadFinished");
 		if (cursor != null && cursor.getCount() > 0) {
 			mAdapter.swapCursor(cursor);
 			if (selectedPosition != ListView.INVALID_POSITION) {

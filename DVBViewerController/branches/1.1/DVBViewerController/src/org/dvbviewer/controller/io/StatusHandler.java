@@ -49,9 +49,10 @@ public class StatusHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the status´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 01.07.2012
 	 */
-	public Status parse(String xml) {
+	public Status parse(String xml) throws SAXException {
 		RootElement root = new RootElement("status");
 		Element recordcount = root.getChild("recordcount");
 		Element clientcount = root.getChild("clientcount");
@@ -62,9 +63,9 @@ public class StatusHandler extends DefaultHandler {
 		Element defafterrecord = root.getChild("defafterrecord");
 		Element recfolders = root.getChild("recfolders");
 		Element folder = recfolders.getChild("folder");
-		
+
 		root.setStartElementListener(new StartElementListener() {
-			
+
 			@Override
 			public void start(Attributes attributes) {
 				status = new Status();
@@ -173,29 +174,21 @@ public class StatusHandler extends DefaultHandler {
 			}
 		});
 		folder.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentFolder.setPath(body);
 			}
 		});
 		folder.setEndElementListener(new EndElementListener() {
-			
+
 			@Override
 			public void end() {
 				status.getFolders().add(currentFolder);
 			}
 		});
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			return status;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		Xml.parse(xml, root.getContentHandler());
+		return status;
 	}
 
 }

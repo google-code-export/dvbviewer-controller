@@ -125,7 +125,7 @@
     <string name="firstStartMessageTitle">No Connection Settings Found</string>
     <string name="firstStartMessage">No conenction settings found.\n\nDo you want to switch to the settings?</string>
     <string name="confirmDelete">Delete selected Items?</string>
-    <string name="noFlashPlayerFound">No Flash-capable video player has been found. \nDo you want to use the internal player?</string>
+    <string name="noFlashPlayerFound">No Flash-capable video player has been found. \nPlease install a suitable Videoplayer!</string>
 
     <!-- Preferences -->
     <string name="preferences">Settings</string>
@@ -181,7 +181,10 @@
     <!-- Error -->
     <string name="expiration_title">Version expired</string>
     <string name="error_common">Error</string>
+    <string name="error_unknonwn_host">Unknown Host</string>
     <string name="error_no_connection">No Connection</string>
+    <string name="error_connection_timeout">Connection timeout</string>
+    <string name="error_parsing_xml">Failed to parse the xml data</string>
     <string name="error_sending_report">Error report is sent</string>
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_invalid_credentials">Authentication failed</string>

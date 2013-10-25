@@ -30,16 +30,18 @@ import android.util.Xml;
  */
 public class VersionHandler extends DefaultHandler {
 
-	String result = null;
+	String	result	= null;
+
 	/**
 	 * Parses the.
 	 *
 	 * @param xml the xml
 	 * @return the version´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 01.07.2012
 	 */
-	public String parse(String xml) {
+	public String parse(String xml) throws SAXException {
 		RootElement root = new RootElement("version");
 		root.setEndTextElementListener(new EndTextElementListener() {
 
@@ -49,14 +51,7 @@ public class VersionHandler extends DefaultHandler {
 			}
 		});
 
-		try {
-			Xml.parse(xml, root.getContentHandler());
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		Xml.parse(xml, root.getContentHandler());
 		return result;
 	}
 

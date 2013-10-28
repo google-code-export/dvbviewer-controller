@@ -122,7 +122,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public Loader<List<Timer>> onCreateLoader(int arg0, Bundle arg1) {
-		AsyncLoader<List<Timer>> loader = new AsyncLoader<List<Timer>>(getActivity()) {
+		AsyncLoader<List<Timer>> loader = new AsyncLoader<List<Timer>>(getActivity().getApplicationContext()) {
 
 			@Override
 			public List<Timer> loadInBackground() {

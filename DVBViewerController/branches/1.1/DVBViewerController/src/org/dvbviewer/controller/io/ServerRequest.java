@@ -55,6 +55,7 @@ import ch.boye.httpclientandroidlib.auth.Credentials;
 import ch.boye.httpclientandroidlib.auth.UsernamePasswordCredentials;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.client.CredentialsProvider;
+import ch.boye.httpclientandroidlib.client.HttpClient;
 import ch.boye.httpclientandroidlib.client.methods.HttpGet;
 import ch.boye.httpclientandroidlib.client.protocol.ClientContext;
 import ch.boye.httpclientandroidlib.conn.scheme.PlainSocketFactory;
@@ -65,6 +66,7 @@ import ch.boye.httpclientandroidlib.conn.ssl.TrustStrategy;
 import ch.boye.httpclientandroidlib.entity.HttpEntityWrapper;
 import ch.boye.httpclientandroidlib.impl.auth.BasicScheme;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
+import ch.boye.httpclientandroidlib.impl.client.cache.CacheConfig;
 import ch.boye.httpclientandroidlib.impl.conn.PoolingClientConnectionManager;
 import ch.boye.httpclientandroidlib.params.BasicHttpParams;
 import ch.boye.httpclientandroidlib.params.HttpConnectionParams;
@@ -105,7 +107,7 @@ public class ServerRequest {
 		URI uri = null;
 		uri = new URI(ServerConsts.DVBVIEWER_URL + command);
 		Log.d(ServerRequest.class.getSimpleName(), "executing DVBViewer command: " + uri);
-		DefaultHttpClient client = getHttpClient();
+		HttpClient client = getHttpClient();
 		HttpGet request = new HttpGet(uri);
 		HttpResponse response = executeGet(client, request, true);
 		StatusLine status = response.getStatusLine();
@@ -114,7 +116,7 @@ public class ServerRequest {
 
 		case HttpStatus.SC_OK:
 			HttpEntity entity = response.getEntity();
-			entity.consumeContent();
+			EntityUtils.consume(entity);
 			break;
 
 		default:
@@ -135,7 +137,7 @@ public class ServerRequest {
 	 * @author RayBa
 	 * @date 05.07.2012
 	 */
-	private static HttpResponse executeGet(DefaultHttpClient client, HttpGet request, boolean log) throws Exception{
+	private static HttpResponse executeGet(HttpClient client, HttpGet request, boolean log) throws Exception{
 		if (log) {
 			Log.d(ServerRequest.class.getSimpleName(), "request: " + request.getRequestLine());
 		}
@@ -171,7 +173,7 @@ public class ServerRequest {
 	 * @author RayBa
 	 * @date 06.04.2012
 	 */
-	private static DefaultHttpClient getHttpClient() {
+	private static HttpClient getHttpClient() {
 		if (httpClient == null) {
 				try {
 					SSLContext sslContext = SSLContext.getInstance("SSL");
@@ -206,6 +208,10 @@ public class ServerRequest {
 					httpClient.addRequestInterceptor(preemptiveAuth, 0);
 					httpClient.addRequestInterceptor(new GZipRequestInterceptor());
 					httpClient.addResponseInterceptor(new GZipResponseInterceptor());
+					CacheConfig cacheConfig = new CacheConfig();
+					cacheConfig.setMaxCacheEntries(1000);
+					cacheConfig.setMaxObjectSize(8192);
+					
 					if (getClientAuthScope() != null) {
 						httpClient.getCredentialsProvider().setCredentials(getClientAuthScope(), getClientCredentials());
 					}
@@ -260,8 +266,7 @@ public class ServerRequest {
 				AuthScope authScope = new AuthScope(targetHost.getHostName(), targetHost.getPort());
 				Credentials creds = credsProvider.getCredentials(authScope);
 				if (creds != null) {
-					authState.setAuthScheme(new BasicScheme());
-					authState.setCredentials(creds);
+					authState.update(new BasicScheme(), creds);
 				}
 			}
 		}
@@ -326,7 +331,7 @@ public class ServerRequest {
 	 */
 	private static HttpEntity getRSEntity(String request) throws Exception {
 		HttpEntity result = null;
-		DefaultHttpClient client = getHttpClient();
+		HttpClient client = getHttpClient();
 		URI uri = null;
 		uri = new URI(ServerConsts.REC_SERVICE_URL + request);
 		HttpGet getMethod = new HttpGet(uri);
@@ -360,7 +365,7 @@ public class ServerRequest {
 	 */
 	private static HttpEntity getEntity(String url) throws Exception {
 		HttpEntity result = null;
-		DefaultHttpClient client = getHttpClient();
+		HttpClient client = getHttpClient();
 		URI uri = null;
 		uri = new URI(url);
 		HttpGet getMethod = new HttpGet(uri);
@@ -394,13 +399,13 @@ public class ServerRequest {
 	 * @date 13.04.2012
 	 */
 	public static void executeRSGet(String request) throws Exception {
-		DefaultHttpClient client = getHttpClient();
+		HttpClient client = getHttpClient();
 		URI uri = null;
 		Log.d(ServerRequest.class.getSimpleName(), "request: " + request);
 		uri = new URI(ServerConsts.REC_SERVICE_URL + request);
 		HttpGet getMethod = new HttpGet(uri);
 		HttpResponse res = executeGet(client, getMethod, true);
-		res.getEntity().consumeContent();
+		EntityUtils.consume(res.getEntity());
 	}
 
 	/**
@@ -598,20 +603,17 @@ public class ServerRequest {
 		@Override
 		public void checkClientTrusted(X509Certificate[] chain, String authType)
 				throws CertificateException {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void checkServerTrusted(X509Certificate[] chain, String authType)
 				throws CertificateException {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public X509Certificate[] getAcceptedIssuers() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 		

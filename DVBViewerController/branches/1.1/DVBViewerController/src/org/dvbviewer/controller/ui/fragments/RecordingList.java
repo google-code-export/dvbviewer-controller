@@ -121,7 +121,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public Loader<List<Recording>> onCreateLoader(int arg0, Bundle arg1) {
-		AsyncLoader<List<Recording>> loader = new AsyncLoader<List<Recording>>(getActivity()) {
+		AsyncLoader<List<Recording>> loader = new AsyncLoader<List<Recording>>(getActivity().getApplicationContext()) {
 
 			@Override
 			public List<Recording> loadInBackground() {

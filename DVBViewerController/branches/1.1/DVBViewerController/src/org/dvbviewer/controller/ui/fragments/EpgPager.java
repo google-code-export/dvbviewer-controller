@@ -229,7 +229,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : null;
 		String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-		CursorLoader loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
+		CursorLoader loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
 		return loader;
 	}
 

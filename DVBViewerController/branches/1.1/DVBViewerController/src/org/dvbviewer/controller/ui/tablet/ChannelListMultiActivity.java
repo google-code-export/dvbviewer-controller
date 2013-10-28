@@ -151,7 +151,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	 * @see org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener#channelSelected(java.util.List, org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
-	public void channelSelected(List<Channel> chans, Channel chan, int position) {
+	public void channelSelected(List<Channel> chans, int position) {
 		mEpgPager.setPosition(position);
 	}
 

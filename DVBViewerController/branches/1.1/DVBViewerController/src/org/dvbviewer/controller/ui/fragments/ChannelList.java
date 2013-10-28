@@ -105,27 +105,23 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		mContext = getActivity().getApplicationContext();
 
 		mAdapter = new ChannelAdapter(getActivity());
-		if (savedInstanceState == null) {
-			if (getArguments() != null) {
-				if (getArguments().containsKey(ChannelList.KEY_HAS_OPTIONMENU)) {
-					hasOptionsMenu = getArguments().getBoolean(KEY_HAS_OPTIONMENU);
-				}
-				selectedPosition = getActivity().getIntent().getIntExtra(KEY_SELECTED_POSITION, selectedPosition);
-				if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
-					mGroupId = getArguments().getLong(KEY_GROUP_ID);
-				}
-				showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
+		if (savedInstanceState == null && getArguments() != null) {
+			if (getArguments().containsKey(ChannelList.KEY_HAS_OPTIONMENU)) {
+				hasOptionsMenu = getArguments().getBoolean(KEY_HAS_OPTIONMENU);
 			}
-		}else {
-			if (savedInstanceState.containsKey(KEY_SELECTED_POSITION)) {
-				selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION);
-				mGroupId = savedInstanceState.getLong(KEY_GROUP_ID);
-				showFavs = savedInstanceState.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
+			selectedPosition = getActivity().getIntent().getIntExtra(KEY_SELECTED_POSITION, selectedPosition);
+			if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
+				mGroupId = getArguments().getLong(KEY_GROUP_ID);
 			}
+			showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
+		} else {
+			selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION, -1);
+			mGroupId = savedInstanceState.getLong(KEY_GROUP_ID, -1);
+			showFavs = savedInstanceState.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		}
-		
 		setHasOptionsMenu(false);
 	}
+		
 
 	
 	/*
@@ -154,15 +150,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setListAdapter(mAdapter);
 		registerForContextMenu(getListView());
-		int loaderId = LOADER_CHANNELLIST;
-//		/**
-//		 * Prüfung ob das EPG in der Senderliste angezeigt werden soll.
-//		 */
-//		if (!Config.CHANNELS_SYNCED) {
-//			loaderId = LOADER_REFRESH_CHANNELLIST;
-//		} else if ((showNowPlaying && !showNowPlayingWifi) || (showNowPlaying && showNowPlayingWifi && mNetworkInfo.isConnected())) {
-//			loaderId = LOADER_EPG;
-//		}
 		setEmptyText(showFavs ? getResources().getString(R.string.no_favourites) : getResources().getString(R.string.no_channels));
 		Loader<Cursor> loader = getLoaderManager().initLoader((int)mGroupId, savedInstanceState, this);
 		setListShown(!(!isResumed() || loader.isStarted()));
@@ -192,7 +179,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		}
 		String orderBy = null;
 		orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-		loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
+		loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
 		return loader;
 	}
 
@@ -559,15 +546,13 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			selectedPosition = position;
 			Cursor c = mAdapter.getCursor();
 			c.moveToPosition(position);
-			Channel chan = cursorToChannel(c);
-			ArrayList<Channel> chans = cursorToChannellist(position);
-			mCHannelSelectedListener.channelSelected(chans, chan, position);
+			ArrayList<Channel> chans = cursorToChannellist();
+			mCHannelSelectedListener.channelSelected(chans, position);
 			getListView().setItemChecked(position, true);
 		} else {
 			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
-			// long[] feedIds = new long[data.getCount()];
 
-			ArrayList<Channel> chans = cursorToChannellist(position);
+			ArrayList<Channel> chans = cursorToChannellist();
 
 			epgPagerIntent.putParcelableArrayListExtra(Channel.class.getName(), chans);
 			epgPagerIntent.putExtra("position", position);
@@ -585,18 +570,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	private ArrayList<Channel> cursorToChannellist(int position) {
-		Cursor c = (Cursor) mAdapter.getItem(position);
+	private ArrayList<Channel> cursorToChannellist() {
+		Cursor c = (Cursor) mAdapter.getCursor();
 		ArrayList<Channel> chans = new ArrayList<Channel>();
 		c.moveToPosition(-1);
 		while (c.moveToNext()) {
-			Channel channel = new Channel();
-			channel.setId(c.getLong(c.getColumnIndex(ChannelTbl._ID)));
-			channel.setEpgID(c.getLong(c.getColumnIndex(ChannelTbl.EPG_ID)));
-			channel.setLogoUrl(c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL)));
-			String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
-			channel.setName(name);
-			channel.setPosition(c.getInt(c.getColumnIndex(ChannelTbl.POSITION)));
+			Channel channel = cursorToChannel(c);
 			chans.add(channel);
 		}
 		return chans;
@@ -684,11 +663,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	private Channel cursorToChannel(Cursor c) {
 		Channel channel = new Channel();
-		channel.setId(c.getLong(c.getColumnIndex(ChannelTbl._ID)));
+		channel.setChannelID(c.getLong(c.getColumnIndex(ChannelTbl.CHANNEL_ID)));
 		channel.setEpgID(c.getLong(c.getColumnIndex(ChannelTbl.EPG_ID)));
 		String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 		channel.setName(name);
 		channel.setPosition(c.getInt(c.getColumnIndex(ChannelTbl.POSITION)));
+		channel.setLogoUrl(c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL)));
 		return channel;
 	}
 	
@@ -702,7 +682,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	private Timer cursorToTimer(Cursor c) {
 		String name = c.getString(c.getColumnIndex(ChannelTbl.NAME));
-		long channelID = c.getLong(c.getColumnIndex(ChannelTbl._ID));
+		long channelID = c.getLong(c.getColumnIndex(ChannelTbl.CHANNEL_ID));
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd =  c.getLong(c.getColumnIndex(EpgTbl.END));
@@ -749,7 +729,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		 * @author RayBa
 		 * @date 05.07.2012
 		 */
-		public void channelSelected(List<Channel> chans, Channel chan, int position);
+		public void channelSelected(List<Channel> chans, int position);
 
 	}
 

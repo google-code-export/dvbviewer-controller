@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <bool name="init_acra">false</bool>
+    <bool name="init_acra">true</bool>
     <bool name="check_expire_date">false</bool>
 
     <string name="url_expire_date"></string>

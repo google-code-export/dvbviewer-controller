@@ -178,9 +178,9 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		Loader<Cursor> loader = null;
 		if (Config.SYNC_EPG && mCHannel != null) {
 			String where = EpgTbl.EPG_ID + SqlSynatx.EQUALS + mCHannel.getEpgID() + SqlSynatx.AND + EpgTbl.END + SqlSynatx.BETWEEN + mDateInfo.getEpgDate().getTime() + SqlSynatx.AND + DateUtils.addDay(mDateInfo.getEpgDate()).getTime();
-			loader = new CursorLoader(getActivity(), EpgTbl.CONTENT_URI, null, where, null, EpgTbl.END);
+			loader = new CursorLoader(getActivity().getApplicationContext(), EpgTbl.CONTENT_URI, null, where, null, EpgTbl.END);
 		} else {
-			loader = new EpgLoader<Cursor>(getActivity(), mDateInfo) {
+			loader = new EpgLoader<Cursor>(getActivity().getApplicationContext(), mDateInfo) {
 				
 				@Override
 				protected void onForceLoad() {

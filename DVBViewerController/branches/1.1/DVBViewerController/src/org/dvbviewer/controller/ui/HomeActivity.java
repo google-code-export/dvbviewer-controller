@@ -171,7 +171,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	 * @see org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener#channelSelected(org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
-	public void channelSelected(List<Channel> chans, Channel chan, int position) {
+	public void channelSelected(List<Channel> chans, int position) {
 		Intent channelListIntent = new Intent(this, ChannelListMultiActivity.class);
 		channelListIntent.putParcelableArrayListExtra(Channel.class.getName(), (ArrayList<Channel>) chans);
 		channelListIntent.putExtra(ChannelList.KEY_SELECTED_POSITION, position);

@@ -55,14 +55,18 @@ public class URLUtil {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public static void setRecordingServicesAddress(String url, String port) {
+	public static void setRecordingServicesAddress(String url, String port){
 		try {
 			String prefUrl = guessUrl(url);
 			URL baseUrl = new URL(prefUrl);
 			ServerConsts.REC_SERVICE_PROTOCOL = baseUrl.getProtocol();
 			ServerConsts.REC_SERVICE_HOST = baseUrl.getHost();
+			String path = baseUrl.getPath();
+			if (path.endsWith("/")) {
+				path = path.substring(0, path.length() - 1);
+			}
 			ServerConsts.REC_SERVICE_PORT = port;
-			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL + "://" + ServerConsts.REC_SERVICE_HOST + ":" + ServerConsts.REC_SERVICE_PORT;
+			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+":"+ServerConsts.REC_SERVICE_PORT+path;
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}

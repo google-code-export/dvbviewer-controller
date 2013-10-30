@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.dvbviewer.controller.R;
-import org.apache.http.HttpConnection;
 import org.dvbviewer.controller.data.DbConsts.EpgTbl;
 import org.dvbviewer.controller.data.DbConsts.SqlSynatx;
 import org.dvbviewer.controller.entities.Channel;

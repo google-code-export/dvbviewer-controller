@@ -17,17 +17,13 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.R;
+import org.apache.http.HttpConnection;
 import org.dvbviewer.controller.data.DbConsts.EpgTbl;
 import org.dvbviewer.controller.data.DbConsts.SqlSynatx;
 import org.dvbviewer.controller.entities.Channel;
@@ -47,6 +43,7 @@ import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
+import org.xml.sax.SAXException;
 
 import android.app.Activity;
 import android.content.Context;
@@ -76,6 +73,13 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import ch.boye.httpclientandroidlib.NameValuePair;
+import ch.boye.httpclientandroidlib.ParseException;
+import ch.boye.httpclientandroidlib.auth.AuthenticationException;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.client.utils.URLEncodedUtils;
+import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
+import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
 import de.rayba.imagecache.ImageCacher;
 
 /**
@@ -175,9 +179,9 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		Loader<Cursor> loader = null;
 		if (Config.SYNC_EPG && mCHannel != null) {
 			String where = EpgTbl.EPG_ID + SqlSynatx.EQUALS + mCHannel.getEpgID() + SqlSynatx.AND + EpgTbl.END + SqlSynatx.BETWEEN + mDateInfo.getEpgDate().getTime() + SqlSynatx.AND + DateUtils.addDay(mDateInfo.getEpgDate()).getTime();
-			loader = new CursorLoader(getActivity(), EpgTbl.CONTENT_URI, null, where, null, EpgTbl.END);
+			loader = new CursorLoader(getActivity().getApplicationContext(), EpgTbl.CONTENT_URI, null, where, null, EpgTbl.END);
 		} else {
-			loader = new EpgLoader<Cursor>(getActivity(), mDateInfo) {
+			loader = new EpgLoader<Cursor>(getActivity().getApplicationContext(), mDateInfo) {
 				
 				@Override
 				protected void onForceLoad() {
@@ -207,32 +211,37 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 						}
 
 					} catch (AuthenticationException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (ConnectTimeoutException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_connection_timeout));
+					} catch (SAXException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_parsing_xml));
 					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					}
 					return cursor;
 				}
@@ -511,7 +520,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 			case R.id.menuRecord:
 				timer = cursorToTimer(c);
 				StringBuffer url = new StringBuffer();
-				url.append(timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
+				url.append(timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
 				String title = timer.getTitle();
 				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
 				String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
@@ -526,7 +535,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 				params.add(new BasicNameValuePair("stop", stop));
 				params.add(new BasicNameValuePair("title", title));
 				params.add(new BasicNameValuePair("endact", endAction));
-				if (timer.getId() > 0) {
+				if (timer.getId() >= 0) {
 					params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
 				}
 				

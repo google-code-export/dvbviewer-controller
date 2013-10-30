@@ -17,13 +17,11 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Timer;
 import org.dvbviewer.controller.io.ServerRequest;
@@ -37,6 +35,7 @@ import org.dvbviewer.controller.utils.ArrayListAdapter;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
+import org.xml.sax.SAXException;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -59,6 +58,10 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import ch.boye.httpclientandroidlib.ParseException;
+import ch.boye.httpclientandroidlib.auth.AuthenticationException;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
 import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.ActionMode.Callback;
@@ -119,7 +122,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public Loader<List<Timer>> onCreateLoader(int arg0, Bundle arg1) {
-		AsyncLoader<List<Timer>> loader = new AsyncLoader<List<Timer>>(getActivity()) {
+		AsyncLoader<List<Timer>> loader = new AsyncLoader<List<Timer>>(getActivity().getApplicationContext()) {
 
 			@Override
 			public List<Timer> loadInBackground() {
@@ -132,32 +135,37 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 						Collections.sort(result);
 					}
 				} catch (AuthenticationException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_credentials));
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (ConnectTimeoutException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_connection_timeout));
+				} catch (SAXException e) {
+					e.printStackTrace();
+					showToast(getString(R.string.error_parsing_xml));
 				} catch (ParseException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 				} catch (ClientProtocolException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 				} catch (IOException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 				} catch (URISyntaxException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (IllegalStateException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 					e.printStackTrace();
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (IllegalArgumentException e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (Exception e) {
-					Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 					e.printStackTrace();
+					showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 				}
 				return result;
 			}

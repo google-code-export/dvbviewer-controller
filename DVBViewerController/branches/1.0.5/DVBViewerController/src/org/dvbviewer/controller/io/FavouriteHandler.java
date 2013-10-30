@@ -49,9 +49,10 @@ public class FavouriteHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 05.07.2012
 	 */
-	public List<Fav> parse(Context context, String xml) {
+	public List<Fav> parse(Context context, String xml) throws SAXException {
 		RootElement root = new RootElement("settings");
 		Element sectionElement = root.getChild("section");
 		Element entryElement = sectionElement.getChild("entry");
@@ -79,16 +80,10 @@ public class FavouriteHandler extends DefaultHandler {
 			}
 		});
 
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			for (int i = 0; i < favourites.size(); i++) {
-				Fav fav = favourites.get(i);
-				fav.position = i + 1;
-			}
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		Xml.parse(xml, root.getContentHandler());
+		for (int i = 0; i < favourites.size(); i++) {
+			Fav fav = favourites.get(i);
+			fav.position = i + 1;
 		}
 		return favourites;
 	}

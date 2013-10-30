@@ -40,7 +40,7 @@ import android.util.Xml;
 public class EpgEntryHandler extends DefaultHandler {
 
 	List<EpgEntry>	epgList		= null;
-	EpgEntry			currentEPG	= null;
+	EpgEntry		currentEPG	= null;
 
 	/**
 	 * Parses the.
@@ -48,9 +48,10 @@ public class EpgEntryHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 05.07.2012
 	 */
-	public List<EpgEntry> parse(String xml) {
+	public List<EpgEntry> parse(String xml) throws SAXException {
 		RootElement root = new RootElement("epg");
 		Element programmeElement = root.getChild("programme");
 		Element titles = programmeElement.getChild("titles");
@@ -76,48 +77,40 @@ public class EpgEntryHandler extends DefaultHandler {
 				currentEPG.setEnd(DateUtils.stringToDate(attributes.getValue("stop"), DateUtils.DATEFORMAT_RS_EPG));
 			}
 		});
-		
+
 		programmeElement.setEndElementListener(new EndElementListener() {
-			
+
 			@Override
 			public void end() {
 				epgList.add(currentEPG);
 			}
 		});
-		
+
 		title.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentEPG.setTitle(body);
 			}
 		});
 		event.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentEPG.setSubTitle(body);
 			}
 		});
-		
+
 		description.setEndTextElementListener(new EndTextElementListener() {
-			
+
 			@Override
 			public void end(String body) {
 				currentEPG.setDescription(body);
 			}
 		});
 
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			return epgList;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		Xml.parse(xml, root.getContentHandler());
+		return epgList;
 	}
 
 }

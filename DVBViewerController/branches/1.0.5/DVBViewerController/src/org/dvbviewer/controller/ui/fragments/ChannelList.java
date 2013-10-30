@@ -22,12 +22,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.data.DbConsts.EpgTbl;
@@ -42,12 +36,12 @@ import org.dvbviewer.controller.io.ChannelHandler;
 import org.dvbviewer.controller.io.ChannelListParser;
 import org.dvbviewer.controller.io.EpgEntryHandler;
 import org.dvbviewer.controller.io.FavouriteHandler;
-import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.io.ResultReceiver.Receiver;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
 import org.dvbviewer.controller.io.StatusHandler;
+import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.service.SyncService;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
@@ -60,8 +54,7 @@ import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
-
-import com.github.kevinsawicki.http.HttpRequest.HttpRequestException;
+import org.xml.sax.SAXException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -91,6 +84,13 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import ch.boye.httpclientandroidlib.NameValuePair;
+import ch.boye.httpclientandroidlib.ParseException;
+import ch.boye.httpclientandroidlib.auth.AuthenticationException;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.client.utils.URLEncodedUtils;
+import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
+import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
 import de.rayba.imagecache.ImageCacher;
 
 /**
@@ -206,10 +206,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		case LOADER_CHANNELLIST:
 			String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : ChannelTbl.FLAGS + " & " + Channel.FLAG_ADDITIONAL_AUDIO + "== 0";
 			String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-			loader = new CursorLoader(getActivity(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
+			loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
 			break;
 		case LOADER_EPG:
-			loader = new AsyncLoader<Cursor>(getActivity()) {
+			loader = new AsyncLoader<Cursor>(getActivity().getApplicationContext()) {
 
 				@Override
 				public Cursor loadInBackground() {
@@ -222,42 +222,38 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						result = handler.parse(xml);
 						DbHelper helper = new DbHelper(getContext());
 						helper.saveNowPlaying(result);
-					} catch (HttpRequestException e) {
-						Log.e(e.getCause().getClass().getSimpleName(), "HttpRequestException");
-						e.printStackTrace();
-						if (e.getCause() instanceof UnknownHostException) {
-							showToast(getString(R.string.error_unknown_host)+getString(R.string.common_colon)+" "+ServerConsts.REC_SERVICE_HOST);
-						}else{
-							showToast(e.getCause().getClass().getSimpleName());
-						}
 					} catch (AuthenticationException e) {
-						loadingResult = LoadingResult.INVALID_CREDENTIALS;
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (ConnectTimeoutException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_connection_timeout));
+					} catch (SAXException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_parsing_xml));
 					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					}
 					return null;
 				}
@@ -266,7 +262,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			};
 			break;
 		case LOADER_REFRESH_CHANNELLIST:
-			loader = new AsyncLoader<Cursor>(getActivity()) {
+			loader = new AsyncLoader<Cursor>(getActivity().getApplicationContext()) {
 
 				@Override
 				public Cursor loadInBackground() {
@@ -325,32 +321,37 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						prefEditor.commit();
 						Config.CHANNELS_SYNCED = true;
 					} catch (AuthenticationException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "AuthenticationException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_credentials));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					} catch (ConnectTimeoutException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_connection_timeout));
+					} catch (SAXException e) {
+						e.printStackTrace();
+						showToast(getString(R.string.error_parsing_xml));
 					} catch (ParseException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ParseException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (ClientProtocolException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "ClientProtocolException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (IOException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IOException");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (URISyntaxException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "URISyntaxException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalStateException");
 						e.printStackTrace();
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "IllegalArgumentException");
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
-						Log.e(ChannelEpg.class.getSimpleName(), "Exception");
 						e.printStackTrace();
+						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
 					}
 					return null;
 				}
@@ -580,7 +581,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			return true;
 		case R.id.menuRecord:
 			timer = cursorToTimer(c);
-			String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+			String url = timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
 			String title = timer.getTitle();
 			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
 			String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
@@ -595,7 +596,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			params.add(new BasicNameValuePair("stop", stop));
 			params.add(new BasicNameValuePair("title", title));
 			params.add(new BasicNameValuePair("endact", endAction));
-			if (timer.getId() > 0) {
+			if (timer.getId() >= 0) {
 				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
 			}
 

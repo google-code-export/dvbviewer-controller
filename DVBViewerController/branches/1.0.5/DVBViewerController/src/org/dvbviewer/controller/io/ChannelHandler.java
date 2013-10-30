@@ -27,7 +27,6 @@ import android.sax.Element;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.StartElementListener;
-import android.util.Log;
 import android.util.Xml;
 
 /**
@@ -39,7 +38,7 @@ import android.util.Xml;
 public class ChannelHandler extends DefaultHandler {
 
 	List<Channel>	channelList		= null;
-	Channel		currentChannel	= null;
+	Channel			currentChannel	= null;
 
 	/**
 	 * Parses the.
@@ -47,9 +46,10 @@ public class ChannelHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 07.04.2013
 	 */
-	public List<Channel> parse(String xml) {
+	public List<Channel> parse(String xml) throws SAXException {
 		RootElement channels = new RootElement("channels");
 		Element rootElement = channels.getChild("root");
 		Element groupElement = rootElement.getChild("group");
@@ -69,8 +69,8 @@ public class ChannelHandler extends DefaultHandler {
 			public void start(Attributes attributes) {
 				currentChannel = new Channel();
 				currentChannel.setChannelID(Long.valueOf(attributes.getValue("ID")));
-				currentChannel.setPosition(Integer.valueOf(attributes.getValue("nr")));			
-				currentChannel.setName(attributes.getValue("name"));			
+				currentChannel.setPosition(Integer.valueOf(attributes.getValue("nr")));
+				currentChannel.setName(attributes.getValue("name"));
 				currentChannel.setEpgID(Long.valueOf(attributes.getValue("EPGID")));
 				channelList.add(currentChannel);
 			}
@@ -82,9 +82,9 @@ public class ChannelHandler extends DefaultHandler {
 			public void end(String body) {
 				currentChannel.setLogoUrl(body);
 			}
-			
+
 		});
-		
+
 		subChanElement.setStartElementListener(new StartElementListener() {
 			public void start(Attributes attributes) {
 				Channel c = new Channel();
@@ -97,18 +97,10 @@ public class ChannelHandler extends DefaultHandler {
 				channelList.add(c);
 			}
 		});
-		
 
-		try {
-			Xml.parse(xml, channels.getContentHandler());
-			return channelList;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Xml.parse(xml, channels.getContentHandler());
+		return channelList;
 
-		return null;
 	}
 
 }

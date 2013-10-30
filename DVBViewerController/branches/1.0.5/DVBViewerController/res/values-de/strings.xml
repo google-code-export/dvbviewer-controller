@@ -54,7 +54,7 @@
     <string name="createTimer">Timer anlegen</string>
     <string name="editTimer">Timer bearbeiten</string>
     <string name="date">Datum</string>
-	<string name="active">Aktiv</string>
+    <string name="active">Aktiv</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="channel">Sender</string>
@@ -103,8 +103,8 @@
     <string name="Hibernate">Hibernate</string>
     <string name="Standby">Standby</string>
     <string name="Shutdown">Shutdown</string>
-	<string name="WOL">Recording Service wecken</string>
-    
+    <string name="WOL">Recording Service wecken</string>
+
     <!-- Status -->
     <string name="status">Status</string>
     <string name="status_rs_version">Recording Service Version</string>
@@ -176,7 +176,10 @@
     <!-- Error -->
     <string name="expiration_title">Version abgelaufen</string>
     <string name="error_common">Fehler</string>
+    <string name="error_unknonwn_host">Unbekannter Host</string>
     <string name="error_no_connection">Keine Verbindung</string>
+    <string name="error_connection_timeout">Verbindungs timeout</string>
+    <string name="error_parsing_xml">Fehler beim verarbeiten des XMLs</string>
     <string name="error_sending_report">Fehlerbericht wird gesendet</string>
     <string name="error_invalid_url">Ungültige URL</string>
     <string name="error_invalid_credentials">Authentifizierung fehlgeschlagen</string>

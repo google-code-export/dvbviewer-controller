@@ -49,9 +49,10 @@ public class TimerHandler extends DefaultHandler {
 	 * @param xml the xml
 	 * @return the list´
 	 * @author RayBa
+	 * @throws SAXException 
 	 * @date 05.07.2012
 	 */
-	public List<Timer> parse(String xml) {
+	public List<Timer> parse(String xml) throws SAXException {
 		RootElement root = new RootElement("Timers");
 		Element timerElement = root.getChild("Timer");
 		Element descElement = timerElement.getChild("Descr");
@@ -142,16 +143,8 @@ public class TimerHandler extends DefaultHandler {
 				}
 			}
 		});
-		try {
-			Xml.parse(xml, root.getContentHandler());
-			return timerList;
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		Xml.parse(xml, root.getContentHandler());
+		return timerList;
 	}
 
 }

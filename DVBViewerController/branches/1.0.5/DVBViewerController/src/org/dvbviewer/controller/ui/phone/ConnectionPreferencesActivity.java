@@ -16,6 +16,7 @@
 package org.dvbviewer.controller.ui.phone;
 
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
 
@@ -109,6 +110,7 @@ public class ConnectionPreferencesActivity extends SherlockPreferenceActivity im
 		}
 		URLUtil.setRecordingServicesAddress(ServerConsts.REC_SERVICE_URL, ServerConsts.REC_SERVICE_PORT);
 		URLUtil.setViewerAddress(ServerConsts.DVBVIEWER_URL, ServerConsts.DVBVIEWER_PORT);
+		ServerRequest.resetHttpCLient();
 	}
 	
 	@Override

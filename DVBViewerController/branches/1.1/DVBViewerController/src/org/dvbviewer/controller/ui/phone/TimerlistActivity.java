@@ -20,8 +20,8 @@ import org.dvbviewer.controller.ui.fragments.TimerList;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.MenuItem;
 
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * The Class TimerlistActivity.

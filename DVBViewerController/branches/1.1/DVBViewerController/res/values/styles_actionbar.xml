@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Actionbar Title Style -->
     <style name="TextAppearance.Dvbviewer.Title" parent="Widget">
-        <item name="android:textSize">@dimen/abs__action_bar_title_text_size</item>
+        <item name="android:textSize">@dimen/abc_action_bar_title_text_size</item>
     </style>
 
     <!-- Actionbar Subtitle Style -->
     <style name="TextAppearance.Dvbviewer.Subtitle" parent="Widget">
-        <item name="android:textSize">@dimen/abs__action_bar_subtitle_text_size</item>
+        <item name="android:textSize">@dimen/abc_action_bar_subtitle_text_size</item>
     </style>
 
     <style name="ThemeDialogWhenLarge" parent="android:style/Theme"></style>
 
-    <style name="ActionBarStyle" parent="Widget.Sherlock.Light.ActionBar">
+    <style name="ActionBarStyle" parent="Widget.AppCompat.Light.ActionBar">
         <item name="background">@drawable/ab_background</item>
         <item name="backgroundSplit">@drawable/ab_background_split</item>
         <item name="subtitleTextStyle">@style/TextAppearance.Dvbviewer.Subtitle</item>
         <item name="titleTextStyle">@style/TextAppearance.Dvbviewer.Title</item>
         <!--  -->
         <item name="android:background">@drawable/ab_background</item>
-        <item name="android:backgroundSplit">@drawable/ab_background_split</item>
-        <item name="android:subtitleTextStyle">@style/TextAppearance.Dvbviewer.Subtitle</item>
-        <item name="android:titleTextStyle">@style/TextAppearance.Dvbviewer.Title</item>
+        <item name="android:backgroundSplit" tools:ignore="NewApi">@drawable/ab_background_split</item>
+        <item name="android:subtitleTextStyle" tools:ignore="NewApi">@style/TextAppearance.Dvbviewer.Subtitle</item>
+        <item name="android:titleTextStyle" tools:ignore="NewApi">@style/TextAppearance.Dvbviewer.Title</item>
     </style>
 
-    <style name="ActionModeStyle" parent="Widget.Sherlock.ActionMode">
+    <style name="ActionModeStyle" parent="Widget.AppCompat.ActionMode">
         <item name="android:background">@drawable/ab_background</item>
         <item name="background">@drawable/ab_background</item>
-        <item name="android:backgroundSplit">@drawable/ab_background_split</item>
+        <item name="android:backgroundSplit" tools:ignore="NewApi">@drawable/ab_background_split</item>
         <item name="backgroundSplit">@drawable/ab_background_split</item>
     </style>
 
     <!-- Action Mode Overflow List -->
-    <style name="PopupMenu" parent="Widget.Sherlock.ListPopupWindow"></style>
+    <style name="PopupMenu" parent="Widget.AppCompat.ListView.Menu"></style>
 
 </resources>

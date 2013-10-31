@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <item
         android:id="@+id/menuRefresh"
         android:enabled="true"
         android:icon="@drawable/ic_action_refresh"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:title="@string/refresh"
         android:visible="true">
     </item>
@@ -13,28 +13,28 @@
         android:id="@+id/menuPrev"
         android:enabled="true"
         android:icon="@drawable/ic_action_previous"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/previousDay"
         android:visible="true"/>
     <item
         android:id="@+id/menuNext"
         android:enabled="true"
         android:icon="@drawable/ic_action_next"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/nextDay"
         android:visible="true"/>
     <item
         android:id="@+id/menuToday"
         android:enabled="true"
         android:icon="@drawable/ic_action_today"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/today"
         android:visible="true"/>
     <item
         android:id="@+id/menuTime"
         android:enabled="true"
         android:icon="@drawable/ic_action_time"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/time"
         android:visible="true">
         <menu>

@@ -68,27 +68,27 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
 		Resources r = getResources();
-		sAdapter = new CategoryAdapter(getSherlockActivity());
+		sAdapter = new CategoryAdapter(getActivity());
 
-		TaskAdapter system = new TaskAdapter(getSherlockActivity());
+		TaskAdapter system = new TaskAdapter(getActivity());
 		system.addItem(new Task(r.getString(R.string.WOL), WOL_COMMAND));
 		system.addItem(new Task(r.getString(R.string.Standby), "Standby"));
 		system.addItem(new Task(r.getString(R.string.Hibernate), "Hibernate"));
 		system.addItem(new Task(r.getString(R.string.Shutdown), "Shutdown"));
 
-		TaskAdapter epg = new TaskAdapter(getSherlockActivity());
+		TaskAdapter epg = new TaskAdapter(getActivity());
 		epg.addItem(new Task(r.getString(R.string.EPGStart), "EPGStart"));
 		epg.addItem(new Task(r.getString(R.string.EPGStop), "EPGStop"));
 		epg.addItem(new Task(r.getString(R.string.AutoTimer), "AutoTimer"));
 
-		TaskAdapter rec = new TaskAdapter(getSherlockActivity());
+		TaskAdapter rec = new TaskAdapter(getActivity());
 		rec.addItem(new Task(r.getString(R.string.RefreshDB), "RefreshDB"));
 		rec.addItem(new Task(r.getString(R.string.CleanupDB), "CleanupDB"));
 		rec.addItem(new Task(r.getString(R.string.RebuildRecordedHistory), "RebuildRecordedHistory"));
 		rec.addItem(new Task(r.getString(R.string.ClearRecordingHistory), "ClearRecordingHistory"));
 		rec.addItem(new Task(r.getString(R.string.ClearRecordingStats), "ClearRecordingStats"));
 
-		TaskAdapter media = new TaskAdapter(getSherlockActivity());
+		TaskAdapter media = new TaskAdapter(getActivity());
 		media.addItem(new Task(r.getString(R.string.UpdateMediaLibrary), "UpdateVideoDB"));
 		media.addItem(new Task(r.getString(R.string.CleanupPhotoDB), "CleanupPhotoDB"));
 		media.addItem(new Task(r.getString(R.string.CleanupVideoDB), "CleanupVideoDB"));

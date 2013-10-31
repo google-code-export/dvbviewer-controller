@@ -63,21 +63,20 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import ch.boye.httpclientandroidlib.ParseException;
 import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.widget.SearchView;
 import com.viewpagerindicator.TitlePageIndicator;
 
 // TODO: Auto-generated Javadoc
@@ -87,7 +86,7 @@ import com.viewpagerindicator.TitlePageIndicator;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cursor> {
+public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 
 	private static final String		KEY_ADAPTER_POSITION	= "KEY_ADAPTER_POSITION";
 
@@ -224,31 +223,51 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	 * com.actionbarsherlock.app.SherlockListFragment#onCreateOptionsMenu(android
 	 * .view.Menu, android.view.MenuInflater)
 	 */
-	@Override
-	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
-		super.onCreateOptionsMenu(menu, inflater);
-
-		// Place an action bar item for searching.
-		SearchView searchView = new SearchView(getSherlockActivity().getSupportActionBar().getThemedContext());
-		searchView.setQueryHint("Search Channels");
-		searchView.setIconified(true);
-		menu.add(Menu.NONE, Menu.FIRST + 1, Menu.FIRST + 1, "Search").setIcon(R.drawable.abs__ic_search).setActionView(searchView).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-
-		inflater.inflate(R.menu.channel_list, menu);
-		for (int i = 0; i < menu.size(); i++) {
-			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
-				menu.getItem(i).setVisible(showFavs);
-			} else if (menu.getItem(i).getItemId() == R.id.menuFavourties) {
-				menu.getItem(i).setVisible(!showFavs);
-			}
-		}
-		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
-		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
-		if (getSherlockActivity() instanceof ChannelListMultiActivity) {
-			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
-			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
-		}
-	}
+//	@Override
+//	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
+//		super.onCreateOptionsMenu(menu, inflater);
+//
+//		inflater.inflate(R.menu.channel_list, menu);
+//		for (int i = 0; i < menu.size(); i++) {
+//			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
+//				menu.getItem(i).setVisible(showFavs);
+//			} else if (menu.getItem(i).getItemId() == R.id.menuFavourties) {
+//				menu.getItem(i).setVisible(!showFavs);
+//			}
+//		}
+//		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
+//		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
+//		if (getSherlockActivity() instanceof ChannelListMultiActivity) {
+//			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
+//			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
+//		}
+//		final MenuItem searchItem = menu.findItem(R.id.menu_search);
+//		final SearchView editsearch = (SearchView) searchItem.getActionView();
+//		editsearch.setOnCloseListener(new OnCloseListener() {
+//			
+//			@Override
+//			public boolean onClose() {
+////				editsearch.getse
+//				return false;
+//			}
+//		});
+//		editsearch.setOnQueryTextListener(new OnQueryTextListener() {
+//			
+//			@Override
+//			public boolean onQueryTextSubmit(String query) {
+//				ChannelList cl = (ChannelList) mAdapter.getCurrentFragment();
+//				cl.setSearchQuery(query);
+//				cl.refresh(LOAD_CHANNELS);
+//				searchItem.collapseActionView();
+//				return true;
+//			}
+//			
+//			@Override
+//			public boolean onQueryTextChange(String newText) {
+//				return false;
+//			}
+//		});
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -259,9 +278,11 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	 */
 	@SuppressLint("NewApi")
 	@Override
-	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
 		switch (itemId) {
+		
+		
 		case R.id.menu_refresh_now_playing:
 			refresh(LOAD_CURRENT_PROGRAM);
 			return true;
@@ -273,7 +294,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			showFavs = !showFavs;
 			persistChannelConfigConfig();
 			refresh(LOAD_CHANNELS);
-			getSherlockActivity().invalidateOptionsMenu();
+			getActivity().invalidateOptionsMenu();
 			return true;
 
 		default:
@@ -303,6 +324,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	class PagerAdapter extends FragmentStatePagerAdapter {
 
 		private Cursor	mCursor;
+		private Fragment mCurrentFragment;
 
 		/**
 		 * Instantiates a new pager adapter.
@@ -404,6 +426,18 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 		public void setCursor(Cursor cursor) {
 			this.mCursor = cursor;
 			notifyDataSetChanged();
+		}
+		
+		@Override
+		public void setPrimaryItem(ViewGroup container, int position, Object object) {
+			if (mCurrentFragment != object) {
+				mCurrentFragment = (Fragment) object;
+				}
+			super.setPrimaryItem(container, position, object);
+		}
+		
+		public Fragment getCurrentFragment(){
+			return mCurrentFragment;
 		}
 
 	}
@@ -648,7 +682,7 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
 			mPager.setCurrentItem(mPosition);
-			getSherlockActivity().invalidateOptionsMenu();
+			getActivity().invalidateOptionsMenu();
 			showProgress(false);
 			break;
 
@@ -685,9 +719,9 @@ public class ChannelPager extends SherlockFragment implements LoaderCallbacks<Cu
 	 * @date 07.04.2013
 	 */
 	protected void showToast(String message) {
-		if (getSherlockActivity() != null) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getSherlockActivity(), message);
-			getSherlockActivity().runOnUiThread(errorRunnable);
+		if (getActivity() != null) {
+			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
+			getActivity().runOnUiThread(errorRunnable);
 		}
 	}
 

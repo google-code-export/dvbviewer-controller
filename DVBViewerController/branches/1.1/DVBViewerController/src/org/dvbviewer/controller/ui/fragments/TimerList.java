@@ -47,9 +47,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
+import android.support.v7.view.ActionMode.Callback;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -63,11 +69,6 @@ import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.ActionMode.Callback;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * The Class TimerList.
@@ -80,6 +81,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	TimerAdapter	mAdapter;
 	ActionMode		mode;
 	ProgressDialog	progressDialog;
+	private boolean	finishActionMode = false;
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
@@ -103,7 +105,8 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		setEmptyText(getResources().getString(R.string.no_timer));
 		if (mode != null) {
-			mode = getSherlockActivity().startActionMode(this);
+			ActionBarActivity activty = (ActionBarActivity) getActivity();
+			mode = activty.startSupportActionMode(this);
 		}
 	}
 
@@ -295,7 +298,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
                     args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
                     args.putBoolean(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
                     timerdetails.setArguments(args);
-                    timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+                    timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
                     onDestroyActionMode(mode);
             }else {
                     getListView().setItemChecked(position, !getListView().isItemChecked(position));
@@ -341,7 +344,9 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int checkedCount = getCheckedItemCount();
 		if (mode == null && checkedCount > 0) {
-			mode = getSherlockActivity().startActionMode(TimerList.this);
+			finishActionMode = false;
+			ActionBarActivity activity = (ActionBarActivity) getActivity();
+			mode = activity.startSupportActionMode(TimerList.this);
 		} else if (checkedCount <= 0) {
 			if (mode != null) {
 				mode.finish();
@@ -358,7 +363,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		getSherlockActivity().getSupportMenuInflater().inflate(R.menu.actionmode_recording, menu);
+		getActivity().getMenuInflater().inflate(R.menu.actionmode_recording, menu);
 		return true;
 	}
 
@@ -472,7 +477,10 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		clearSelection();
+		if (finishActionMode) {
+			clearSelection();
+		}
+		finishActionMode = true;
 	}
 
 	/**

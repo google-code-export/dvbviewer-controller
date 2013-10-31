@@ -19,9 +19,11 @@ package org.dvbviewer.controller.ui.base;
 import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -36,7 +38,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockFragment;
 
 /**
  * Static library support version of the framework's {@link android.app.ListFragment}.
@@ -48,7 +49,7 @@ import com.actionbarsherlock.app.SherlockFragment;
  * @author RayBa
  * @date 07.04.2013
  */
-public class BaseListFragment extends SherlockFragment {
+public class BaseListFragment extends Fragment {
 	static final int								INTERNAL_EMPTY_ID				= android.R.id.empty;
 	static final int								INTERNAL_PROGRESS_CONTAINER_ID	= android.R.id.progress;
 	static final int								INTERNAL_LIST_CONTAINER_ID		= android.R.id.content;
@@ -241,7 +242,8 @@ public class BaseListFragment extends SherlockFragment {
      * @author RayBa
      * @date 07.04.2013
      */
-    public void setSelection(int position) {
+    @SuppressLint("NewApi")
+	public void setSelection(int position) {
     	try {
     		ensureList();
 		} catch (Exception e) {
@@ -505,9 +507,9 @@ public class BaseListFragment extends SherlockFragment {
 	 * @date 07.04.2013
 	 */
 	protected void showToast(String message) {
-		if (getSherlockActivity() != null) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getSherlockActivity(), message);
-			getSherlockActivity().runOnUiThread(errorRunnable);
+		if (getActivity() != null) {
+			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
+			getActivity().runOnUiThread(errorRunnable);
 		}
 	}
 	

@@ -60,6 +60,8 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
@@ -438,7 +440,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	 * @see com.actionbarsherlock.app.SherlockFragment#onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)
 	 */
 	@Override
-	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.channel_epg, menu);
 		menu.findItem(R.id.menuPrev).setEnabled(!DateUtils.isToday(mDateInfo.getEpgDate().getTime()));
@@ -490,7 +492,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 							args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
 							args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
 							timerdetails.setArguments(args);
-							timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+							timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 							return true;
 						}
 						return false;
@@ -651,7 +653,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd = c.getLong(c.getColumnIndex(EpgTbl.END));
-		DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
+		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
 		int epgBefore = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
 		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();

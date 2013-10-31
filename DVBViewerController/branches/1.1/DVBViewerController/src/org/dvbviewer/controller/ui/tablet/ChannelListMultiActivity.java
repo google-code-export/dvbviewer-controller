@@ -29,7 +29,7 @@ import org.dvbviewer.controller.ui.fragments.EpgPager;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import com.actionbarsherlock.view.MenuItem;
+import android.view.MenuItem;
 
 /**
  * The Class ChannelListMultiActivity.
@@ -51,7 +51,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		super.onCreate(savedInstanceState);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
-		setContentView(R.layout.activity_channel_list);
+		setContentView(R.layout.fragment_channel_multi);
 		if (savedInstanceState == null) {
 			int position = getIntent().getExtras().getInt(ChannelList.KEY_SELECTED_POSITION);
 			mChannelList = new ChannelList();

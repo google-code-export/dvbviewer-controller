@@ -15,16 +15,10 @@
  */
 package org.dvbviewer.controller.ui.phone;
 
-import org.dvbviewer.controller.R;
-import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.ui.base.BaseSinglePaneActivity;
+import org.dvbviewer.controller.ui.fragments.DVBViewerPreferenceFragment;
 
-import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceManager;
-
-import com.actionbarsherlock.app.SherlockPreferenceActivity;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v4.app.Fragment;
 
 /**
  * The Class PreferencesActivity.
@@ -32,56 +26,12 @@ import com.actionbarsherlock.view.MenuItem;
  * @author RayBa
  * @date 13.04.2012
  */
-@SuppressWarnings("deprecation")
-public class PreferencesActivity extends SherlockPreferenceActivity implements  OnPreferenceClickListener {
+public class PreferencesActivity extends BaseSinglePaneActivity{
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.preference.PreferenceActivity#onCreate(android.os.Bundle)
-	 */
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		PreferenceManager prefMgr = getPreferenceManager();
-		prefMgr.setSharedPreferencesName(DVBViewerPreferences.PREFS);
-		prefMgr.setSharedPreferencesMode(MODE_WORLD_READABLE);
-
-		addPreferencesFromResource(R.xml.preferences);
-		Preference rsSettings = (Preference) findPreference(DVBViewerPreferences.KEY_RS_SETTINGS);
-		rsSettings.setOnPreferenceClickListener(this);
-		Preference dvbvSettings = (Preference) findPreference(DVBViewerPreferences.KEY_DVBV_SETTINGS);
-		dvbvSettings.setOnPreferenceClickListener(this);
+	protected Fragment onCreatePane() {
+		return new DVBViewerPreferenceFragment();
 	}
 	
-
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockPreferenceActivity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			onBackPressed();
-			return true;
-		default:
-			break;
-		}
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see android.preference.Preference.OnPreferenceClickListener#onPreferenceClick(android.preference.Preference)
-	 */
-	@Override
-	public boolean onPreferenceClick(Preference preference) {
-		if (preference.getKey().equals(DVBViewerPreferences.KEY_RS_SETTINGS)) {
-			preference.getIntent().putExtra("id", R.xml.rs_preferences);
-		}else if (preference.getKey().equals(DVBViewerPreferences.KEY_DVBV_SETTINGS)) {
-			preference.getIntent().putExtra("id", R.xml.dvbv_preferences);
-		}
-		return false;
-	}
 
 }

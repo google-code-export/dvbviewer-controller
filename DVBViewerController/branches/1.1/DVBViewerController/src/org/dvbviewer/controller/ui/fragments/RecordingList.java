@@ -49,12 +49,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -70,10 +75,6 @@ import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * The Class RecordingList.
@@ -87,6 +88,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	ActionMode			mode;
 	int					selectedPosition;
 	ProgressDialog		progressDialog;
+	private boolean	finishActionMode;
 	
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
@@ -112,7 +114,8 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 		setEmptyText(getResources().getString(R.string.no_recordings));
 		getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		if (mode != null) {
-			mode = getSherlockActivity().startActionMode(this);
+			ActionBarActivity activity = (ActionBarActivity) getActivity();
+			mode = activity.startSupportActionMode(this);
 		}
 	}
 
@@ -299,7 +302,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		getSherlockActivity().getSupportMenuInflater().inflate(R.menu.actionmode_recording, menu);
+		getActivity().getMenuInflater().inflate(R.menu.actionmode_recording, menu);
 		return true;
 	}
 
@@ -336,7 +339,10 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		clearSelection();
+		if (finishActionMode) {
+			clearSelection();
+		}
+		finishActionMode = true;
 	}
 
 	/**
@@ -361,7 +367,9 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int count = getCheckedItemCount();
 		if (mode == null && count > 0) {
-			mode = getSherlockActivity().startActionMode(RecordingList.this);
+			finishActionMode = false;
+			ActionBarActivity activty = (ActionBarActivity) getActivity();
+			mode = activty.startSupportActionMode(RecordingList.this);
 		} else if (count <= 0) {
 			if (mode != null) {
 				mode.finish();
@@ -402,7 +410,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_RECORDING);
 				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
 				cfg.setArguments(arguments);
-				cfg.show(getSherlockActivity().getSupportFragmentManager(), StreamConfig.class.getName());
+				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
 			} else {
 				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
 				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, (int) mAdapter.getItem(selectedPosition).getId());

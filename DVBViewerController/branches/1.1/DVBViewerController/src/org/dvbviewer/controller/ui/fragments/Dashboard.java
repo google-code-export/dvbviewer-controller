@@ -19,12 +19,11 @@ import org.dvbviewer.controller.R;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-
-import com.actionbarsherlock.app.SherlockFragment;
 
 /**
  * The Class Dashboard.
@@ -32,7 +31,7 @@ import com.actionbarsherlock.app.SherlockFragment;
  * @author RayBa
  * @date 01.07.2012
  */
-public class Dashboard extends SherlockFragment implements OnClickListener{
+public class Dashboard extends Fragment implements OnClickListener{
 	
 	private OnDashboardButtonClickListener mDashboardButtonClickListener;
 	

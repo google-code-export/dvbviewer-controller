@@ -715,7 +715,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				holder.epgTitle.setText(epgTitle);
 			}
 			holder.position.setText(!showFavs ? position.toString() : favPosition.toString());
-			holder.contextMenu.setTag(!showFavs ? position : favPosition - 1);
+			holder.contextMenu.setTag(c.getPosition());
 			holder.v.setChecked(getListView().isItemChecked(c.getPosition()));
 			
 			if (!TextUtils.isEmpty(logoUrl)) {

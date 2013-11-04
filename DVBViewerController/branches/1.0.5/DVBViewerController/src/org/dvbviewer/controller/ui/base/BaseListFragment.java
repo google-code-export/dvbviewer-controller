@@ -520,6 +520,14 @@ public class BaseListFragment extends SherlockFragment {
 		}
 	}
 	
+	public String getStringSafely(int resId){
+		String result = "";
+		if (!isDetached()) {
+			result = getString(resId);
+		}
+		return result;
+	}
+	
 	public static enum LoadingResult {
 		OK, ERROR, NETWORK_ERROR, INVALID_URL, INVALID_CREDENTIALS
 	}

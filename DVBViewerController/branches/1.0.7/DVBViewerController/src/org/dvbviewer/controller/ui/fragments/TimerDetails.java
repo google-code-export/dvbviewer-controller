@@ -100,7 +100,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		prefs = new DVBViewerPreferences(getSherlockActivity());
 		if (timer == null && savedInstanceState == null) {
 			timer = new Timer();
-			timer.setId(getArguments().getLong(EXTRA_ID, 0l));
+			timer.setId(getArguments().getLong(EXTRA_ID, -1l));
 			timer.setTitle(getArguments().getString(EXTRA_TITLE));
 			timer.setChannelName(getArguments().getString(EXTRA_CHANNEL_NAME));
 			timer.setChannelId(getArguments().getLong(EXTRA_CHANNEL_ID, 0));

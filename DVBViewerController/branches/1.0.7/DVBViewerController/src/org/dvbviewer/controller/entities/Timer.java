@@ -32,7 +32,7 @@ public class Timer implements Comparable<Timer> {
 	public static final int		TIMERACTION_RECORDING	= 0;
 
 
-	private long				id;
+	private long				id = -1;
 
 	private long				channelId;
 

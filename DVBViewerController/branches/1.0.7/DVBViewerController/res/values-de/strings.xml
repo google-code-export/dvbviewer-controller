@@ -20,8 +20,11 @@
     <string name="minutes">Minuten</string>
     <string name="gmt">GMT</string>
     <string name="details">Details</string>
+    <string name="about">Über</string>
     <string name="common_colon">:&#160;</string>
     <string name="common_hyphen">&#160;-&#160;</string>
+    <string name="about_app">Über DVBViewer Controller</string>
+    <string name="version">App Version:</string>
 
     <!-- Channels -->
     <string name="channelList">Senderliste</string>
@@ -183,5 +186,6 @@
     <string name="error_sending_report">Fehlerbericht wird gesendet</string>
     <string name="error_invalid_url">Ungültige URL</string>
     <string name="error_invalid_credentials">Authentifizierung fehlgeschlagen</string>
+     <string name="support_this_app">Die App unterstützen</string>
 
 </resources>

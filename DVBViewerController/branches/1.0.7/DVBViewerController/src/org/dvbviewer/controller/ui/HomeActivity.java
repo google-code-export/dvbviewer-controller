@@ -32,6 +32,7 @@ import org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickLis
 import org.dvbviewer.controller.ui.fragments.RecordingList;
 import org.dvbviewer.controller.ui.fragments.Remote;
 import org.dvbviewer.controller.ui.fragments.TimerList;
+import org.dvbviewer.controller.ui.phone.AboutActivity;
 import org.dvbviewer.controller.ui.phone.ChannelListActivity;
 import org.dvbviewer.controller.ui.phone.PreferencesActivity;
 import org.dvbviewer.controller.ui.phone.RecordinglistActivity;
@@ -41,6 +42,9 @@ import org.dvbviewer.controller.ui.phone.TaskActivity;
 import org.dvbviewer.controller.ui.phone.TimerlistActivity;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.utils.Config;
+
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -239,6 +243,26 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		if (multiContainerIndicator != null) {
 			outState.putString("indicatorText", multiContainerIndicator.getText().toString());
 		}
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		getSupportMenuInflater().inflate(R.menu.home, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menuAbout:
+			startActivity(new Intent(this, AboutActivity.class));
+			return true;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

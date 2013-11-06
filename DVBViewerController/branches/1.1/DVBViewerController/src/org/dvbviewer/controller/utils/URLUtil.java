@@ -24,7 +24,10 @@ import java.util.regex.Pattern;
 
 
 
+
+
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -60,7 +63,7 @@ public class URLUtil {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public static void setRecordingServicesAddress(String url, String port){
+    public static void setRecordingServicesAddress(String url, String port){
 		try {
 			String prefUrl = guessUrl(url);
 			URL baseUrl = new URL(prefUrl);
@@ -70,8 +73,12 @@ public class URLUtil {
 			if (path.endsWith("/")) {
 				path = path.substring(0, path.length() - 1);
 			}
-			ServerConsts.REC_SERVICE_PORT = port;
-			ServerConsts.REC_SERVICE_URL = ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST+":"+ServerConsts.REC_SERVICE_PORT+path;
+			StringBuffer buf = new StringBuffer(ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST);
+			if (!TextUtils.isEmpty(port)) {
+				buf.append(":"+ServerConsts.REC_SERVICE_PORT);
+			}
+			buf.append(path);
+			ServerConsts.REC_SERVICE_URL = buf.toString();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -109,6 +116,19 @@ public class URLUtil {
 	 */
 	public static void setRecordingServicesAddress(String scheme, String url, String port){
 		setRecordingServicesAddress(scheme+"://"+url, port);
+	}
+	
+	public static void setViewerAddress(String url, String port) {
+		try {
+			String prefUrl = guessUrl(url);
+			URL baseUrl = new URL(prefUrl);
+			ServerConsts.DVBVIEWER_PROTOCOL = baseUrl.getProtocol();
+			ServerConsts.DVBVIEWER_HOST = baseUrl.getHost();
+			ServerConsts.DVBVIEWER_PORT = port;
+			ServerConsts.DVBVIEWER_URL = ServerConsts.DVBVIEWER_PROTOCOL + "://" + ServerConsts.DVBVIEWER_HOST + ":" + ServerConsts.DVBVIEWER_PORT;
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**

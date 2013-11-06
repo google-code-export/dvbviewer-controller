@@ -513,6 +513,17 @@ public class BaseListFragment extends Fragment {
 		}
 	}
 	
+	public String getStringSafely(int resId){
+		String result = "";
+		if (!isDetached() && isAdded() && isVisible()) {
+			try {
+				result = getString(resId);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
 	
 	public static enum LoadingResult {
 		OK, ERROR, NETWORK_ERROR, INVALID_URL, INVALID_CREDENTIALS

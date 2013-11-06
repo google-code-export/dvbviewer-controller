@@ -522,42 +522,45 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, s.getEpgAfter());
 							prefEditor.putInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, s.getDefAfterRecord());
 						}
-						prefEditor.putString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS, macAddress);
+						if (!TextUtils.isEmpty(macAddress)) {
+							ServerConsts.REC_SERVICE_MAC_ADDRESS = macAddress;
+							prefEditor.putString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS, macAddress);
+						}
 						prefEditor.putBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, true);
 						prefEditor.commit();
 						Config.CHANNELS_SYNCED = true;
 					} catch (AuthenticationException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_credentials));
+						showToast(getStringSafely(R.string.error_invalid_credentials));
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (ConnectTimeoutException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_connection_timeout));
+						showToast(getStringSafely(R.string.error_connection_timeout));
 					} catch (SAXException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_parsing_xml));
+						showToast(getStringSafely(R.string.error_parsing_xml));
 					} catch (ParseException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (ClientProtocolException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (IOException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (URISyntaxException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
 						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					}
 					return null;
 				}
@@ -611,36 +614,36 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 						helper.saveNowPlaying(result);
 					} catch (AuthenticationException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_credentials));
+						showToast(getStringSafely(R.string.error_invalid_credentials));
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (ConnectTimeoutException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_connection_timeout));
+						showToast(getStringSafely(R.string.error_connection_timeout));
 					} catch (SAXException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_parsing_xml));
+						showToast(getStringSafely(R.string.error_parsing_xml));
 					} catch (ParseException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (ClientProtocolException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (IOException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 					} catch (URISyntaxException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					}
 					return null;
 				}
@@ -751,6 +754,18 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			mPagerIndicator.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 
+	}
+	
+	public String getStringSafely(int resId){
+		String result = "";
+		if (!isDetached() && isAdded() && isVisible()) {
+			try {
+				result = getString(resId);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
 	}
 
 }

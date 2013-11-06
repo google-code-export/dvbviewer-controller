@@ -213,36 +213,36 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 
 					} catch (AuthenticationException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_credentials));
+						showToast(getStringSafely(R.string.error_invalid_credentials));
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (ConnectTimeoutException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_connection_timeout));
+						showToast(getStringSafely(R.string.error_connection_timeout));
 					} catch (SAXException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_parsing_xml));
+						showToast(getStringSafely(R.string.error_parsing_xml));
 					} catch (ParseException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (ClientProtocolException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (IOException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
 					} catch (URISyntaxException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalStateException e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showToast(getString(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
 					}
 					return cursor;
 				}

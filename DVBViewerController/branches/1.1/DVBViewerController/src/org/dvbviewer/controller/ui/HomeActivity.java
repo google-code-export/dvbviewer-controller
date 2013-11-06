@@ -30,6 +30,7 @@ import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
 import org.dvbviewer.controller.ui.fragments.ChannelPager;
 import org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickListener;
+import org.dvbviewer.controller.ui.fragments.AboutFragment;
 import org.dvbviewer.controller.ui.fragments.RecordingList;
 import org.dvbviewer.controller.ui.fragments.Remote;
 import org.dvbviewer.controller.ui.fragments.TimerList;
@@ -43,6 +44,7 @@ import org.dvbviewer.controller.ui.phone.TimerlistActivity;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.utils.Config;
 
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -50,6 +52,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -272,6 +276,28 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		if (multiContainerIndicator != null) {
 			outState.putString("indicatorText", multiContainerIndicator.getText().toString());
 		}
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.home, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menuAbout:
+			AboutFragment about = new AboutFragment();
+			about.show(getSupportFragmentManager(), "ABOUT");
+//			startActivity(new Intent(this, AboutActivity.class));
+			return true;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

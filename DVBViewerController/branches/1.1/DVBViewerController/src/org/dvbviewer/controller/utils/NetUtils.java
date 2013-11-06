@@ -54,6 +54,7 @@ public class NetUtils {
 	        return null;
 	    BufferedReader br = null;
 	    try {
+	    	ip = InetAddress.getByName(ip).getHostAddress();
 	        br = new BufferedReader(new FileReader("/proc/net/arp"));
 	        String line;
 	        while ((line = br.readLine()) != null) {

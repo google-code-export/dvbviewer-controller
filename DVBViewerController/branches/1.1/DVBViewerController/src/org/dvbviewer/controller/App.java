@@ -71,16 +71,16 @@ public class App extends Application {
 			ErrorReporter.getInstance().addReportSender(new HttpPostSender(acraUrl, mapping));
 		}
 		
-		/**
-		 * Read DVBViewer preferences
-		 */
 		DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 		Config.IS_FIRST_START = prefs.getBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, true);
 		Config.CHANNELS_SYNCED = prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, false);
 		Config.SYNC_EPG = prefs.getBoolean(DVBViewerPreferences.KEY_SYNC_EPG, false);
+		/**
+		 * Read DVBViewer preferences
+		 */
 		ServerConsts.DVBVIEWER_URL = prefs.getString(DVBViewerPreferences.KEY_DVBV_URL, "http://");
 		ServerConsts.DVBVIEWER_PORT = prefs.getString(DVBViewerPreferences.KEY_DVBV_PORT, "80");
-		ServerConsts.DVBVIEWER_URL = ServerConsts.DVBVIEWER_URL+":"+ServerConsts.DVBVIEWER_PORT;
+		URLUtil.setViewerAddress(ServerConsts.DVBVIEWER_URL, ServerConsts.DVBVIEWER_PORT);
 		ServerConsts.DVBVIEWER_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_DVBV_USERNAME, "");
 		ServerConsts.DVBVIEWER_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_DVBV_PASSWORD, "");
 		
@@ -102,15 +102,6 @@ public class App extends Application {
 		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
 			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
 		}
-//		Thread t = new Thread(new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//					String response = HttpRequest.get(ServerConsts.REC_SERVICE_URL+ServerConsts.URL_CHANNELS).body();
-//					Log.i(App.class.getSimpleName(), response);
-//			}
-//		});
-//		t.start();
 	}
 
 	

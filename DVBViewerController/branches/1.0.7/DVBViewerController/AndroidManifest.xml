@@ -75,6 +75,11 @@
             android:windowSoftInputMode="adjustPan" >
         </activity>
         <activity
+            android:name=".ui.phone.StreamConfigActivity"
+            android:label="@string/streamConfig"
+            android:windowSoftInputMode="adjustPan" >
+        </activity>
+        <activity
             android:name=".ui.phone.VideoPlayerActivity"
             android:configChanges="orientation|keyboard|keyboardHidden|navigation|screenSize"
             android:label="@string/channelEPG"

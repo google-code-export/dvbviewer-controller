@@ -253,7 +253,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					}
 					return null;
 				}
@@ -307,6 +307,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 						 * Get the Mac Address for WOL
 						 */
 						String macAddress = NetUtils.getMacFromArpCache(ServerConsts.REC_SERVICE_HOST);
+						ServerConsts.REC_SERVICE_MAC_ADDRESS = macAddress;
 						/**
 						 * Save the data in sharedpreferences
 						 */

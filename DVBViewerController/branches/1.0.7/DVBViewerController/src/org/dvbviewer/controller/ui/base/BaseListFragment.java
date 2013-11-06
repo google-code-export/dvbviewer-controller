@@ -23,6 +23,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -513,7 +514,9 @@ public class BaseListFragment extends SherlockFragment {
 
 				@Override
 				public void run() {
-					Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_LONG).show();
+					if (!TextUtils.isEmpty(message)) {
+						Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_LONG).show();
+					}
 				}
 			};
 			getSherlockActivity().runOnUiThread(errorRunnable);
@@ -522,8 +525,13 @@ public class BaseListFragment extends SherlockFragment {
 	
 	public String getStringSafely(int resId){
 		String result = "";
-		if (!isDetached()) {
-			result = getString(resId);
+		if (!isDetached() && isVisible() && isAdded()) {
+			try {
+				result = getString(resId);
+			} catch (Exception e) {
+				// Dirty Exception Handling, because this keeps and keeps crashing...
+				e.printStackTrace();
+			}
 		}
 		return result;
 	}

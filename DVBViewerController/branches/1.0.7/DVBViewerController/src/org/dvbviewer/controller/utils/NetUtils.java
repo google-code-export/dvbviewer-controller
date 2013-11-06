@@ -35,16 +35,16 @@ public class NetUtils {
 	private static final int PORT = 9; 
 	
 	/**
-	 * Try to extract a hardware MAC address from a given IP address using the
+	 * Try to extract a hardware MAC address from a given IP address or machine name using the
 	 * ARP cache (/proc/net/arp).<br>
 	 * <br>
 	 * We assume that the file has this structure:<br>
 	 * <br>
-	 * IP address       HW type     Flags       HW address            Mask     Device
-	 * 192.168.18.11    0x1         0x2         00:04:20:06:55:1a     *        eth0
-	 * 192.168.18.36    0x1         0x2         00:22:43:ab:2a:5b     *        eth0
+	 * IP address       HW type     Flags       HW address            Mask     Device<br>
+	 * 192.168.18.11    0x1         0x2         00:04:20:06:55:1a     *        eth0<br>
+	 * 192.168.18.36    0x1         0x2         00:22:43:ab:2a:5b     *        eth0<br>
 	 *
-	 * @param ip the ip
+	 * @param ip the ip or a machine name
 	 * @return the MAC from the ARP cache
 	 * @author RayBa
 	 * @date 07.04.2013
@@ -54,6 +54,7 @@ public class NetUtils {
 	        return null;
 	    BufferedReader br = null;
 	    try {
+	    	ip = InetAddress.getByName(ip).getHostAddress();
 	        br = new BufferedReader(new FileReader("/proc/net/arp"));
 	        String line;
 	        while ((line = br.readLine()) != null) {

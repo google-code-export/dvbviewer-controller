@@ -42,6 +42,7 @@ import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
+import org.dvbviewer.controller.utils.URLUtil;
 import org.xml.sax.SAXException;
 
 import android.app.Activity;
@@ -55,23 +56,21 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.webkit.URLUtil;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import ch.boye.httpclientandroidlib.NameValuePair;
@@ -89,7 +88,7 @@ import de.rayba.imagecache.ImageCacher;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Cursor>, OnItemClickListener, OnClickListener {
+public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Cursor>, OnItemClickListener, OnClickListener, OnMenuItemClickListener {
 	public static final String		KEY_EPG_DAY			= "EPG_DAY";
 	ChannelEPGAdapter				mAdapter;
 	Channel							mCHannel;
@@ -142,7 +141,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		setListAdapter(mAdapter);
 		setListShown(false);
 		getListView().setOnItemClickListener(this);
-		registerForContextMenu(getListView());
 		if (mCHannel != null) {
 			setChannel(mCHannel);
 			mImageCacher.getImage(channelLogo, ServerConsts.REC_SERVICE_URL+ "/" + mCHannel.getLogoUrl(), null, true);
@@ -307,6 +305,19 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		i.putExtra(IEPG.class.getSimpleName(), entry);
 		startActivity(i);
 	}
+	
+	
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
+		Cursor c = mAdapter.getCursor();
+		c.moveToPosition(position);
+		IEPG entry = cursorToEpgEntry(c);
+
+		Intent i = new Intent(getActivity(), IEpgDetailsActivity.class);
+		i.putExtra(IEPG.class.getSimpleName(), entry);
+		startActivity(i);
+	}
 
 	/**
 	 * Reads the current cursorposition to an EpgEntry.
@@ -446,147 +457,20 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		menu.findItem(R.id.menuPrev).setEnabled(!DateUtils.isToday(mDateInfo.getEpgDate().getTime()));
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
-	 */
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-		if (getUserVisibleHint()) {
-			super.onCreateContextMenu(menu, v, menuInfo);
-			getActivity().getMenuInflater().inflate(R.menu.context_menu_epg, menu);
-			MenuItem switchItem = menu.findItem(R.id.menuSwitch).setVisible(URLUtil.isValidUrl(ServerConsts.DVBVIEWER_URL));
-			switchItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-				
-				@Override
-				public boolean onMenuItemClick(MenuItem item) {
-					if (getUserVisibleHint()) {
-						String switchRequest = ServerConsts.URL_SWITCH_COMMAND+mCHannel.getPosition();
-						DVBViewerCommand command = new DVBViewerCommand(switchRequest);
-						Thread exexuterTHread = new Thread(command);
-						exexuterTHread.start();
-						return true;
-					}
-					return false;
-				}
-			});
-			/**
-			 * Damn Hack for Tablets, onContextItemSelected is not called,
-			 * But the Dialog appears...
-			 */
-			if (UIUtils.isTablet(getActivity())) {
-				menu.findItem(R.id.menuTimer).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-					
-					@Override
-					public boolean onMenuItemClick(MenuItem item) {
-						if (getUserVisibleHint()) {
-							Cursor c = mAdapter.getCursor();
-							c.moveToPosition(selectedPosition);
-							Timer timer = cursorToTimer(c);
-							TimerDetails timerdetails = TimerDetails.newInstance();
-							Bundle args = new Bundle();
-							args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-							args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-							args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-							args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-							args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-							args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-							args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
-							timerdetails.setArguments(args);
-							timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-							return true;
-						}
-						return false;
-					}
-				});
-			}
-		}
-	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onContextItemSelected(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getMenuInfo() != null) {
-			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-			selectedPosition = info.position;
-		}
-		Cursor c;
-		c = mAdapter.getCursor();
-		c.moveToPosition(selectedPosition);
-		Timer timer;
-		if (getUserVisibleHint()) {
-			switch (item.getItemId()) {
-			case R.id.menuRecord:
-				timer = cursorToTimer(c);
-				String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
-				String title = timer.getTitle();
-				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
-				String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
-				String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
-				String endAction = String.valueOf(timer.getTimerAction());
-				List<NameValuePair> params = new ArrayList<NameValuePair>();
-				params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
-				params.add(new BasicNameValuePair("dor", days));
-				params.add(new BasicNameValuePair("encoding", "255"));
-				params.add(new BasicNameValuePair("enable", "1"));
-				params.add(new BasicNameValuePair("start", start));
-				params.add(new BasicNameValuePair("stop", stop));
-				params.add(new BasicNameValuePair("title", title));
-				params.add(new BasicNameValuePair("endact", endAction));
-				if (timer.getId() > 0) {
-					params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
-				}
-				
-				String query = URLEncodedUtils.format(params, "utf-8");
-				String request = url + query;
-				RecordingServiceGet rsGet = new RecordingServiceGet(request);
-				Thread executionThread = new Thread(rsGet);
-				executionThread.start();
-				return true;
-			case R.id.menuTimer:
-				timer = cursorToTimer(c);
-				if (!UIUtils.isTablet(getActivity())) {
-					Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
-					timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-					timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-					timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-					timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, true);
-					startActivity(timerIntent);
-				}
-				return true;
-			case R.id.menuDetails:
-				Intent details = new Intent(getActivity(), IEpgDetailsActivity.class);
-				c = mAdapter.getCursor();
-				c.moveToPosition(selectedPosition);
-				IEPG entry = cursorToEpgEntry(c);
-				details.putExtra(IEPG.class.getSimpleName(), entry);
-				startActivity(details);
-				return true;
-			default:
-				break;
-			}
-		}
-		return false;
-	}
 
 	/* (non-Javadoc)
 	 * @see android.view.View.OnClickListener#onClick(android.view.View)
 	 */
 	@Override
 	public void onClick(View v) {
-		switch (v.getId()) {
-		case R.id.contextMenu:
-			selectedPosition = (Integer) v.getTag();
-			getListView().showContextMenu();
-			break;
-
-		default:
-			break;
-		}
-
+		selectedPosition = (Integer) v.getTag();
+		PopupMenu popup = new PopupMenu(getActivity(), v);
+		popup.getMenuInflater().inflate(R.menu.context_menu_epg, popup.getMenu());
+		MenuItem item = popup.getMenu().findItem(R.id.menuSwitch);
+		item.setVisible(URLUtil.isValidUrl(ServerConsts.DVBVIEWER_URL));
+		popup.setOnMenuItemClickListener(this);
+		popup.show();
 	}
 
 	
@@ -671,6 +555,75 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		timer.setEnd(end);
 		timer.setTimerAction(prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_DEF_AFTER_RECORD, 0));
 		return timer;
+	}
+
+	@Override
+	public boolean onMenuItemClick(MenuItem item) {
+		Cursor c;
+		c = mAdapter.getCursor();
+		c.moveToPosition(selectedPosition);
+		Timer timer;
+		if (getUserVisibleHint()) {
+			switch (item.getItemId()) {
+			case R.id.menuRecord:
+				timer = cursorToTimer(c);
+				String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+				String title = timer.getTitle();
+				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
+				String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
+				String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
+				String endAction = String.valueOf(timer.getTimerAction());
+				List<NameValuePair> params = new ArrayList<NameValuePair>();
+				params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
+				params.add(new BasicNameValuePair("dor", days));
+				params.add(new BasicNameValuePair("encoding", "255"));
+				params.add(new BasicNameValuePair("enable", "1"));
+				params.add(new BasicNameValuePair("start", start));
+				params.add(new BasicNameValuePair("stop", stop));
+				params.add(new BasicNameValuePair("title", title));
+				params.add(new BasicNameValuePair("endact", endAction));
+				if (timer.getId() > 0) {
+					params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+				}
+				
+				String query = URLEncodedUtils.format(params, "utf-8");
+				String request = url + query;
+				RecordingServiceGet rsGet = new RecordingServiceGet(request);
+				Thread executionThread = new Thread(rsGet);
+				executionThread.start();
+				return true;
+			case R.id.menuTimer:
+				timer = cursorToTimer(c);
+				if (!UIUtils.isTablet(getActivity())) {
+					Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
+					timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+					timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+					timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+					timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+					timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, true);
+					startActivity(timerIntent);
+				}
+				return true;
+			case R.id.menuDetails:
+				Intent details = new Intent(getActivity(), IEpgDetailsActivity.class);
+				c = mAdapter.getCursor();
+				c.moveToPosition(selectedPosition);
+				IEPG entry = cursorToEpgEntry(c);
+				details.putExtra(IEPG.class.getSimpleName(), entry);
+				startActivity(details);
+				return true;
+			case R.id.menuSwitch:
+				String switchRequest = ServerConsts.URL_SWITCH_COMMAND+mCHannel.getPosition();
+				DVBViewerCommand command = new DVBViewerCommand(switchRequest);
+				Thread exexuterTHread = new Thread(command);
+				exexuterTHread.start();
+				return true;
+			default:
+				break;
+			}
+		}
+		return false;
 	}
 
 }

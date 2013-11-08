@@ -42,7 +42,6 @@ import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -53,10 +52,10 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -64,9 +63,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.webkit.URLUtil;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.FilterQueryProvider;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -79,7 +75,7 @@ import de.rayba.imagecache.ImageCacher;
  * @author RayBa
  * @date 05.07.2012
  */
-public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener, Receiver {
+public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener, Receiver, OnMenuItemClickListener {
 
 	public static final String	KEY_SELECTED_POSITION	= "SELECTED_POSITION";
 	public static final String	KEY_HAS_OPTIONMENU		= "HAS_OPTIONMENU";
@@ -95,7 +91,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	View						selectView;
 	Context						mContext;
 	private long				mGroupId				= -1;
-	private boolean				showContextMenu			= false;
 
 	private String				searchQuery;
 
@@ -123,17 +118,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			mGroupId = savedInstanceState.getLong(KEY_GROUP_ID, -1);
 			showFavs = savedInstanceState.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 			searchQuery = savedInstanceState.getString(KEY_SEARCH_QUERY);
-			Log.i(ChannelList.class.getSimpleName(), "searchQuery: "+searchQuery);
+			Log.i(ChannelList.class.getSimpleName(), "searchQuery: " + searchQuery);
 		}
 		mAdapter = new ChannelAdapter(mContext);
-		mAdapter.setFilterQueryProvider(new FilterQueryProvider() {
-			
-			@Override
-			public Cursor runQuery(CharSequence constraint) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		});
 		setHasOptionsMenu(true);
 	}
 
@@ -162,11 +149,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		super.onActivityCreated(savedInstanceState);
 		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setListAdapter(mAdapter);
-		registerForContextMenu(getListView());
 		setEmptyText(showFavs ? getResources().getString(R.string.no_favourites) : getResources().getString(R.string.no_channels));
 		Loader<Cursor> loader = getLoaderManager().initLoader((int) LOADER_CHANNELLIST, savedInstanceState, this);
 		setListShown(!(!isResumed() || loader.isStarted()));
-		// setSelection(selectedPosition);
 	}
 
 	/*
@@ -190,9 +175,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		}
 		if (!TextUtils.isEmpty(searchQuery)) {
 			Log.i(ChannelList.class.getSimpleName(), "searchQuery is not empty");
-			selection.append(" and " + ChannelTbl.NAME + " like '%" +searchQuery + "%'" );
+			selection.append(" and " + ChannelTbl.NAME + " like '%" + searchQuery + "%'");
 		}
-		
+
 		String orderBy = null;
 		orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
 		loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI_NOW, null, selection.toString(), null, orderBy);
@@ -231,7 +216,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public void onLoaderReset(Loader<Cursor> arg0) {
 		Log.i(ChannelList.class.getSimpleName(), "onLoaderReset");
 		mAdapter = new ChannelAdapter(mContext);
-//		mAdapter.swapCursor(null);
+		// mAdapter.swapCursor(null);
 		if (isVisible()) {
 			setListShown(true);
 		}
@@ -281,26 +266,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu
-	 * , android.view.View, android.view.ContextMenu.ContextMenuInfo)
-	 */
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		getActivity().getMenuInflater().inflate(R.menu.context_menu_channellist, menu);
-		menu.findItem(R.id.menuSwitch).setVisible(URLUtil.isValidUrl(ServerConsts.DVBVIEWER_URL));
-	}
-
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		super.onPrepareOptionsMenu(menu);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
 	 * com.actionbarsherlock.app.SherlockListFragment#onOptionsItemSelected(
 	 * android.view.MenuItem)
 	 */
@@ -319,109 +284,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * android.support.v4.app.Fragment#onContextItemSelected(android.view.MenuItem
-	 * )
-	 */
-	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getMenuInfo() != null) {
-			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-			selectedPosition = info.position;
-		}
-		if (selectedPosition < 0 || !showContextMenu) {
-			return false;
-		}
-		Cursor c = mAdapter.getCursor();
-		c.moveToPosition(selectedPosition);
-		Channel chan = cursorToChannel(c);
-		Timer timer;
-		switch (item.getItemId()) {
-		case R.id.menuTimer:
-			timer = cursorToTimer(c);
-			if (UIUtils.isTablet(getActivity())) {
-				TimerDetails timerdetails = TimerDetails.newInstance();
-				Bundle args = new Bundle();
-				args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
-				timerdetails.setArguments(args);
-				timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-			} else {
-				Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
-				timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
-				startActivity(timerIntent);
-			}
-			return true;
-		case R.id.menuStream:
-			if (UIUtils.isTablet(getActivity())) {
-				StreamConfig cfg = StreamConfig.newInstance();
-				Bundle arguments = new Bundle();
-				arguments.putInt(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-				cfg.setArguments(arguments);
-				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
-			} else {
-				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
-				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-				streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-				streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-				startActivity(streamConfig);
-			}
-			return true;
-		case R.id.menuSwitch:
-			String switchRequest = ServerConsts.URL_SWITCH_COMMAND + chan.getPosition();
-			DVBViewerCommand command = new DVBViewerCommand(switchRequest);
-			Thread exexuterTHread = new Thread(command);
-			exexuterTHread.start();
-			return true;
-		case R.id.menuRecord:
-			timer = cursorToTimer(c);
-			String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
-			String title = timer.getTitle();
-			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
-			String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
-			String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
-			String endAction = String.valueOf(timer.getTimerAction());
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
-			params.add(new BasicNameValuePair("dor", days));
-			params.add(new BasicNameValuePair("encoding", "255"));
-			params.add(new BasicNameValuePair("enable", "1"));
-			params.add(new BasicNameValuePair("start", start));
-			params.add(new BasicNameValuePair("stop", stop));
-			params.add(new BasicNameValuePair("title", title));
-			params.add(new BasicNameValuePair("endact", endAction));
-			if (timer.getId() > 0) {
-				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
-			}
-
-			String query = URLEncodedUtils.format(params, "utf-8");
-			String request = url + query;
-			RecordingServiceGet rsGet = new RecordingServiceGet(request);
-			Thread executionThread = new Thread(rsGet);
-			executionThread.start();
-			return true;
-
-		default:
-			break;
-		}
-		return false;
-	}
-
 	/**
 	 * Refresh.
 	 *
@@ -431,7 +293,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	public void refresh(int loaderId) {
 		getLoaderManager().restartLoader(LOADER_CHANNELLIST, getArguments(), this);
-		
+
 		setListShown(false);
 	}
 
@@ -512,8 +374,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				holder.epgTitle.setText(epgTitle);
 			}
 			holder.position.setText(!showFavs ? position.toString() : favPosition.toString());
-			holder.contextMenu.setTag(position);
-			holder.v.setChecked(getListView().isItemChecked(c.getPosition()));
+			holder.contextMenu.setTag(c.getPosition());
 
 			if (!TextUtils.isEmpty(logoUrl)) {
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
@@ -549,12 +410,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			view.setTag(holder);
 			return view;
 		}
-		
-		
+
 		@Override
 		public long getItemId(int position) {
 			return position;
 		}
+
 		@Override
 		public boolean hasStableIds() {
 			return true;
@@ -579,9 +440,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			getListView().setItemChecked(position, true);
 		} else {
 			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
-
 			ArrayList<Channel> chans = cursorToChannellist();
-
 			epgPagerIntent.putParcelableArrayListExtra(Channel.class.getName(), chans);
 			epgPagerIntent.putExtra("position", position);
 			startActivity(epgPagerIntent);
@@ -642,17 +501,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	@Override
 	public void onClick(View v) {
-		switch (v.getId()) {
-		case R.id.contextMenu:
-			if (getUserVisibleHint()) {
-				selectedPosition = (Integer) v.getTag();
-				getListView().showContextMenu();
-			}
-			break;
-
-		default:
-			break;
-		}
+		selectedPosition = (Integer) v.getTag();
+		PopupMenu popup = new PopupMenu(getActivity(), v);
+		popup.getMenuInflater().inflate(R.menu.context_menu_channellist, popup.getMenu());
+		popup.setOnMenuItemClickListener(this);
+		popup.show();
 	}
 
 	/*
@@ -796,23 +649,98 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		return showFavs;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.support.v4.app.Fragment#setUserVisibleHint(boolean)
-	 */
-	@Override
-	public void setUserVisibleHint(boolean isVisibleToUser) {
-		super.setUserVisibleHint(isVisibleToUser);
-		if (isVisibleToUser) {
-			showContextMenu = true;
-		} else {
-			showContextMenu = false;
-		}
-	}
-	
 	public void setSearchQuery(String searchQuery) {
 		this.searchQuery = searchQuery;
+	}
+
+	@Override
+	public boolean onMenuItemClick(MenuItem item) {
+		Cursor c = mAdapter.getCursor();
+		c.moveToPosition(selectedPosition);
+		Channel chan = cursorToChannel(c);
+		Timer timer;
+		switch (item.getItemId()) {
+		case R.id.menuTimer:
+			timer = cursorToTimer(c);
+			if (UIUtils.isTablet(getActivity())) {
+				TimerDetails timerdetails = TimerDetails.newInstance();
+				Bundle args = new Bundle();
+				args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
+				args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
+				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+				args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
+				timerdetails.setArguments(args);
+				timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+			} else {
+				Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
+				timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+				timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+				startActivity(timerIntent);
+			}
+			return true;
+		case R.id.menuStream:
+			if (UIUtils.isTablet(getActivity())) {
+				StreamConfig cfg = StreamConfig.newInstance();
+				Bundle arguments = new Bundle();
+				arguments.putInt(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
+				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+				cfg.setArguments(arguments);
+				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
+			} else {
+				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
+				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
+				streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+				streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+				startActivity(streamConfig);
+			}
+			return true;
+		case R.id.menuSwitch:
+			String switchRequest = ServerConsts.URL_SWITCH_COMMAND + chan.getPosition();
+			DVBViewerCommand command = new DVBViewerCommand(switchRequest);
+			Thread exexuterTHread = new Thread(command);
+			exexuterTHread.start();
+			return true;
+		case R.id.menuRecord:
+			timer = cursorToTimer(c);
+			String url = timer.getId() <= 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+			String title = timer.getTitle();
+			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
+			String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
+			String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
+			String endAction = String.valueOf(timer.getTimerAction());
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
+			params.add(new BasicNameValuePair("dor", days));
+			params.add(new BasicNameValuePair("encoding", "255"));
+			params.add(new BasicNameValuePair("enable", "1"));
+			params.add(new BasicNameValuePair("start", start));
+			params.add(new BasicNameValuePair("stop", stop));
+			params.add(new BasicNameValuePair("title", title));
+			params.add(new BasicNameValuePair("endact", endAction));
+			if (timer.getId() > 0) {
+				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+			}
+
+			String query = URLEncodedUtils.format(params, "utf-8");
+			String request = url + query;
+			RecordingServiceGet rsGet = new RecordingServiceGet(request);
+			Thread executionThread = new Thread(rsGet);
+			executionThread.start();
+			return true;
+
+		default:
+			break;
+		}
+		return false;
 	}
 
 }

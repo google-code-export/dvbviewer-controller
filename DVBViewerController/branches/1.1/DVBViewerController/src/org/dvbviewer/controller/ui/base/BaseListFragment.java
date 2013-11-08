@@ -24,6 +24,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -507,7 +508,7 @@ public class BaseListFragment extends Fragment {
 	 * @date 07.04.2013
 	 */
 	protected void showToast(String message) {
-		if (getActivity() != null) {
+		if (getActivity() != null && !TextUtils.isEmpty(message)) {
 			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
 			getActivity().runOnUiThread(errorRunnable);
 		}

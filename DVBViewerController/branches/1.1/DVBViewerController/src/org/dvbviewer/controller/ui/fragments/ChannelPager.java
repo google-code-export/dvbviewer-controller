@@ -590,11 +590,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			};
 			break;
 		case LOAD_CHANNELS:
-			// if (showGroups) {
 			String selection = showFavs ? GroupTbl.TYPE + " = " + 1 : GroupTbl.TYPE + " = " + 0;
-			// }else {
-			//
-			// }
 			String orderBy = GroupTbl._ID;
 			loader = new CursorLoader(getActivity().getApplicationContext(), GroupTbl.CONTENT_URI, null, selection, null, orderBy);
 			break;
@@ -715,20 +711,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	}
 
 	/**
-	 * Show toast.
-	 *
-	 * @param message the message
-	 * @author RayBa
-	 * @date 07.04.2013
-	 */
-	protected void showToast(String message) {
-		if (getActivity() != null) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
-			getActivity().runOnUiThread(errorRunnable);
-		}
-	}
-
-	/**
 	 * Refresh.
 	 *
 	 * @param id the id
@@ -754,6 +736,20 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			mPagerIndicator.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 
+	}
+	
+	/**
+	 * Show toast.
+	 *
+	 * @param message the message
+	 * @author RayBa
+	 * @date 07.04.2013
+	 */
+	protected void showToast(String message) {
+		if (getActivity() != null && !TextUtils.isEmpty(message)) {
+			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
+			getActivity().runOnUiThread(errorRunnable);
+		}
 	}
 	
 	public String getStringSafely(int resId){

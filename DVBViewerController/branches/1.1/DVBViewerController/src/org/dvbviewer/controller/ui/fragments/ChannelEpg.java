@@ -223,13 +223,13 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 						showToast(getStringSafely(R.string.error_parsing_xml));
 					} catch (ParseException e) {
 						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					} catch (ClientProtocolException e) {
 						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					} catch (IOException e) {
 						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					} catch (URISyntaxException e) {
 						e.printStackTrace();
 						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
@@ -237,10 +237,10 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 						e.printStackTrace();
 						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" +e.getMessage());
+						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
 					}
 					return cursor;
 				}

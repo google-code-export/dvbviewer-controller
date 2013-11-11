@@ -53,22 +53,24 @@ public class DbHelper extends SQLiteOpenHelper {
 	CursorFactory				mCursorFactory;
 
 	public static String		SMALLER_OR_EQUALS	= " <= ";
-	
+
 	public static String		BIGGER_OR_EQUALS	= " >= ";
-	
+
 	public static String		EQUALS				= " = ";
-	
+
 	public static String		NOT_EQUALS			= " != ";
-	
+
 	public static String		AND					= " AND ";
-	
+
 	public static String		BETWEEN				= " BETWEEN ";
-	
+
 	public static String		WHERE				= " WHERE ";
-	
+
 	public static String		ORDER_BY			= " ORDER BY ";
-	
+
 	public static String		BIT_AND				= " & ";
+
+	private Context				mContext;
 
 	/**
 	 * Instantiates a new dB helper.
@@ -80,10 +82,9 @@ public class DbHelper extends SQLiteOpenHelper {
 	 */
 	public DbHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		mContext = context;
 	}
 
-	
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -97,14 +98,12 @@ public class DbHelper extends SQLiteOpenHelper {
 		db.execSQL("CREATE TABLE " + EpgTbl.TABLE_NAME + "(" + EpgTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + EpgTbl.EPG_ID + " INTEGER," + EpgTbl.START + " INTEGER, " + EpgTbl.END + " INTEGER," + EpgTbl.TITLE + " TEXT," + EpgTbl.SUBTITLE + " TEXT," + EpgTbl.DESC + " TEXT);");
 		db.execSQL("CREATE TABLE " + NowTbl.TABLE_NAME + "(" + NowTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + NowTbl.EPG_ID + " INTEGER," + NowTbl.START + " INTEGER, " + NowTbl.END + " INTEGER," + NowTbl.TITLE + " TEXT," + NowTbl.SUBTITLE + " TEXT," + NowTbl.DESC + " TEXT);");
 		db.execSQL("CREATE TABLE " + RootTbl.TABLE_NAME + "(" + RootTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + RootTbl.NAME + " TEXT);");
-		db.execSQL("CREATE TABLE " + GroupTbl.TABLE_NAME + "(" + GroupTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + GroupTbl.ROOT_ID + " INTEGER," + GroupTbl.NAME + " TEXT,"  + GroupTbl.TYPE + " INTEGER);");
-	}
-	
-	
-	public void createChannelTable(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE " + ChannelTbl.TABLE_NAME + "(" + ChannelTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + ChannelTbl.CHANNEL_ID + " INTEGER," + ChannelTbl.GROUP_ID + " INTEGER,"  + ChannelTbl.FAV_GROUP_ID + " INTEGER,"  + ChannelTbl.NAME + " TEXT," + ChannelTbl.POSITION + " INTEGER, " + ChannelTbl.FAV_POSITION + " INTEGER, " + ChannelTbl.FAV_ID + " INTEGER,"  + ChannelTbl.EPG_ID + " INTEGER," + ChannelTbl.LOGO_URL + " TEXT," + ChannelTbl.FLAGS + " INTEGER);");
+		db.execSQL("CREATE TABLE " + GroupTbl.TABLE_NAME + "(" + GroupTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + GroupTbl.ROOT_ID + " INTEGER," + GroupTbl.NAME + " TEXT," + GroupTbl.TYPE + " INTEGER);");
 	}
 
+	public void createChannelTable(SQLiteDatabase db) {
+		db.execSQL("CREATE TABLE " + ChannelTbl.TABLE_NAME + "(" + ChannelTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + ChannelTbl.CHANNEL_ID + " INTEGER," + ChannelTbl.GROUP_ID + " INTEGER," + ChannelTbl.FAV_GROUP_ID + " INTEGER," + ChannelTbl.NAME + " TEXT," + ChannelTbl.POSITION + " INTEGER, " + ChannelTbl.FAV_POSITION + " INTEGER, " + ChannelTbl.FAV_ID + " INTEGER," + ChannelTbl.EPG_ID + " INTEGER," + ChannelTbl.LOGO_URL + " TEXT," + ChannelTbl.FLAGS + " INTEGER);");
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -118,7 +117,7 @@ public class DbHelper extends SQLiteOpenHelper {
 		Log.i(this.getClass().getSimpleName(), "Upgrading database from version " + oldVersion + " to " + newVersion);
 		switch (newVersion) {
 		case 2:
-			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN "+ ChannelTbl.LOGO_URL + " TEXT");
+			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN " + ChannelTbl.LOGO_URL + " TEXT");
 			break;
 		case 3:
 			List<Channel> result = new ArrayList<Channel>();
@@ -149,15 +148,15 @@ public class DbHelper extends SQLiteOpenHelper {
 			}
 			break;
 		case 4:
-			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN "+ ChannelTbl.GROUP_ID + " INTEGER");
-			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN "+ ChannelTbl.FAV_GROUP_ID + " INTEGER");
+			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN " + ChannelTbl.GROUP_ID + " INTEGER");
+			db.execSQL("ALTER TABLE " + ChannelTbl.TABLE_NAME + " ADD COLUMN " + ChannelTbl.FAV_GROUP_ID + " INTEGER");
 			db.execSQL("CREATE TABLE IF NOT EXISTS " + RootTbl.TABLE_NAME + "(" + RootTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + RootTbl.NAME + " TEXT);");
-			db.execSQL("CREATE TABLE IF NOT EXISTS " + GroupTbl.TABLE_NAME + "(" + GroupTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + GroupTbl.ROOT_ID + " INTEGER," + GroupTbl.NAME + " TEXT,"  + GroupTbl.TYPE + " INTEGER);");
+			db.execSQL("CREATE TABLE IF NOT EXISTS " + GroupTbl.TABLE_NAME + "(" + GroupTbl._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + GroupTbl.ROOT_ID + " INTEGER," + GroupTbl.NAME + " TEXT," + GroupTbl.TYPE + " INTEGER);");
 			break;
 
 		default:
-//			db.execSQL("DROP TABLE IF EXISTS " + ChannelTbl.TABLE_NAME);
-//			db.execSQL("DROP TABLE IF EXISTS " + EpgTbl.TABLE_NAME);
+			// db.execSQL("DROP TABLE IF EXISTS " + ChannelTbl.TABLE_NAME);
+			// db.execSQL("DROP TABLE IF EXISTS " + EpgTbl.TABLE_NAME);
 			break;
 		}
 	}
@@ -335,7 +334,7 @@ public class DbHelper extends SQLiteOpenHelper {
 			db.execSQL("DELETE FROM " + GroupTbl.TABLE_NAME);
 			db.execSQL("DELETE FROM " + ChannelTbl.TABLE_NAME);
 			db.beginTransaction();
-			
+
 			for (ChannelRoot channelRoot : rootElements) {
 				long rootId = db.insert(RootTbl.TABLE_NAME, null, channelRoot.toContentValues());
 				for (ChannelGroup group : channelRoot.getGroups()) {
@@ -352,8 +351,9 @@ public class DbHelper extends SQLiteOpenHelper {
 			db.endTransaction();
 			db.close();
 		}
+		mContext.getContentResolver().notifyChange(GroupTbl.CONTENT_URI, null);
 	}
-	
+
 	public void saveChannels(List<Channel> channels) {
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
@@ -393,7 +393,7 @@ public class DbHelper extends SQLiteOpenHelper {
 			db.close();
 		}
 	}
-	
+
 	/**
 	 * Save now playing.
 	 *
@@ -407,7 +407,7 @@ public class DbHelper extends SQLiteOpenHelper {
 		}
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
-		 db.execSQL("DELETE FROM " + NowTbl.TABLE_NAME);
+		db.execSQL("DELETE FROM " + NowTbl.TABLE_NAME);
 		try {
 			for (EpgEntry epgEntrie : epgEntries) {
 				db.insert(NowTbl.TABLE_NAME, null, epgEntrie.toContentValues());
@@ -494,7 +494,7 @@ public class DbHelper extends SQLiteOpenHelper {
 			db.close();
 		}
 	}
-	
+
 	/**
 	 * Save favs.
 	 *

@@ -69,12 +69,13 @@ public class URLUtil {
 			URL baseUrl = new URL(prefUrl);
 			ServerConsts.REC_SERVICE_PROTOCOL = baseUrl.getProtocol();
 			ServerConsts.REC_SERVICE_HOST = baseUrl.getHost();
+			ServerConsts.REC_SERVICE_PORT = port;
 			String path = baseUrl.getPath();
 			if (path.endsWith("/")) {
 				path = path.substring(0, path.length() - 1);
 			}
 			StringBuffer buf = new StringBuffer(ServerConsts.REC_SERVICE_PROTOCOL+"://"+ServerConsts.REC_SERVICE_HOST);
-			if (!TextUtils.isEmpty(port)) {
+			if (!TextUtils.isEmpty(ServerConsts.REC_SERVICE_PORT)) {
 				buf.append(":"+ServerConsts.REC_SERVICE_PORT);
 			}
 			buf.append(path);

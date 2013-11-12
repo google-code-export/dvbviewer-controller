@@ -56,13 +56,15 @@ import android.widget.AdapterView;
  */
 public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 
-	List<Channel>		mChannels;
-	int					mPosition = AdapterView.INVALID_POSITION;
-	ChannelEpg			mCurrent;
-	private ViewPager	mPager;
-	PagerAdapter		mAdapter;
-	private OnPageChangeListener mOnPageChangeListener;
-	private Boolean	showFavs;
+	public static final String		KEY_CHANNELS	= EpgPager.class.getSimpleName() + "_KEY_CHANNELS";
+	public static final String		KEY_POSITION	= EpgPager.class.getSimpleName() + "_KEY_POSITION";
+	List<Channel>					mChannels;
+	int								mPosition		= AdapterView.INVALID_POSITION;
+	ChannelEpg						mCurrent;
+	private ViewPager				mPager;
+	PagerAdapter					mAdapter;
+	private OnPageChangeListener	mOnPageChangeListener;
+	private Boolean					showFavs;
 	private DVBViewerPreferences	prefs;
 	
 	/* (non-Javadoc)
@@ -83,7 +85,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mAdapter = new PagerAdapter(getActivity().getSupportFragmentManager());
+		mAdapter = new PagerAdapter(getChildFragmentManager());
 	}
 
 	/* (non-Javadoc)
@@ -94,12 +96,14 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		super.onActivityCreated(savedInstanceState);
 		prefs = new DVBViewerPreferences(getActivity());
 		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		mChannels = getArguments().getParcelableArrayList(Channel.class.getName());
-		mPosition = getArguments().containsKey("position") ? getArguments().getInt("position", mPosition) : mPosition;
+		mChannels = getArguments().getParcelableArrayList(KEY_CHANNELS);
+		mPosition = getArguments().containsKey(KEY_POSITION) ? getArguments().getInt(KEY_POSITION, mPosition) : mPosition;
+		mAdapter.notifyDataSetChanged();
 		mPager.setAdapter(mAdapter);
 		mPager.setCurrentItem(mPosition);
 		mPager.setPageMargin((int) UIUtils.dipToPixel(getActivity(), 25));
 		mPager.setOnPageChangeListener(mOnPageChangeListener);
+		mPager.setVisibility(View.VISIBLE);
 	}
 
 	/* (non-Javadoc)
@@ -251,4 +255,5 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		
 	}
 
+	
 }

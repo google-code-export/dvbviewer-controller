@@ -121,7 +121,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			Log.i(ChannelList.class.getSimpleName(), "searchQuery: " + searchQuery);
 		}
 		mAdapter = new ChannelAdapter(mContext);
-		setHasOptionsMenu(true);
+		setHasOptionsMenu(false);
 	}
 
 	/*
@@ -441,8 +441,8 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		} else {
 			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
 			ArrayList<Channel> chans = cursorToChannellist();
-			epgPagerIntent.putParcelableArrayListExtra(Channel.class.getName(), chans);
-			epgPagerIntent.putExtra("position", position);
+			epgPagerIntent.putParcelableArrayListExtra(EpgPager.KEY_CHANNELS, chans);
+			epgPagerIntent.putExtra(EpgPager.KEY_POSITION, position);
 			startActivity(epgPagerIntent);
 			selectedPosition = ListView.INVALID_POSITION;
 		}

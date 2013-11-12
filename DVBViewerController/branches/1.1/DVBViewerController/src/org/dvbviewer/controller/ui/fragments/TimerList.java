@@ -258,7 +258,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 			Timer o = getItem(position);
 			if (o != null) {
 				holder.check.setTag(position);
-				holder.layout.setChecked(getListView().isItemChecked(position));
+//				holder.layout.setChecked(getListView().isItemChecked(position));
 				holder.title.setText(o.getTitle());
 				holder.channelName.setText(o.getChannelName());
 				String date = DateUtils.getDateInLocalFormat(o.getStart());

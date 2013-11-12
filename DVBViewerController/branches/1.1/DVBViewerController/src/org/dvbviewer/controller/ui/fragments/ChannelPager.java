@@ -63,15 +63,15 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import ch.boye.httpclientandroidlib.ParseException;
 import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
@@ -79,7 +79,6 @@ import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
 import com.viewpagerindicator.TitlePageIndicator;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class EpgPager.
  *
@@ -88,39 +87,40 @@ import com.viewpagerindicator.TitlePageIndicator;
  */
 public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 
-	private static final String		KEY_ADAPTER_POSITION	= "KEY_ADAPTER_POSITION";
+	private static final String			KEY_ADAPTER_POSITION	= "KEY_ADAPTER_POSITION";
 
-	int								mPosition				= AdapterView.INVALID_POSITION;
+	int									mPosition				= AdapterView.INVALID_POSITION;
 
-	private Cursor					mGroupCursor;
+	private Cursor						mGroupCursor;
 
-	private ViewPager				mPager;
+	private ViewPager					mPager;
 
-	private View					mProgress;
+	private View						mProgress;
 
-	private TitlePageIndicator		mPagerIndicator;
+	private TitlePageIndicator			mPagerIndicator;
 
-	private PagerAdapter			mAdapter;
+	private PagerAdapter				mAdapter;
 
-	private OnPageChangeListener	mOnPageChangeListener;
+	private OnPageChangeListener		mOnPageChangeListener;
 
-	private boolean					showFavs;
-	private boolean					showGroups;
-	private boolean					showExtraGroup;
+	private boolean						showFavs;
+	private boolean						showGroups;
+	private boolean						showExtraGroup;
 
-	private DVBViewerPreferences	prefs;
+	private DVBViewerPreferences		prefs;
 
-	private static final int		SYNCHRONIZE_CHANNELS	= 0;
+	private static final int			SYNCHRONIZE_CHANNELS	= 0;
 
-	private static final int		LOAD_CHANNELS			= 1;
+	private static final int			LOAD_CHANNELS			= 1;
 
-	private static final int		LOAD_CURRENT_PROGRAM	= 2;
+	private static final int			LOAD_CURRENT_PROGRAM	= 2;
 
-	private NetworkInfo				mNetworkInfo;
+	private NetworkInfo					mNetworkInfo;
 
-	private boolean					showNowPlaying;
+	private boolean						showNowPlaying;
 
-	private boolean					showNowPlayingWifi;
+	private boolean						showNowPlayingWifi;
+	private onGroupTypeCHangedListener	mOnGroupTypeCHangedListener;
 
 	/*
 	 * (non-Javadoc)
@@ -133,6 +133,9 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		super.onAttach(activity);
 		if (activity instanceof OnPageChangeListener) {
 			mOnPageChangeListener = (OnPageChangeListener) activity;
+		}
+		if (activity instanceof onGroupTypeCHangedListener) {
+			mOnGroupTypeCHangedListener = (onGroupTypeCHangedListener) activity;
 		}
 	}
 
@@ -223,51 +226,25 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 * com.actionbarsherlock.app.SherlockListFragment#onCreateOptionsMenu(android
 	 * .view.Menu, android.view.MenuInflater)
 	 */
-//	@Override
-//	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
-//		super.onCreateOptionsMenu(menu, inflater);
-//
-//		inflater.inflate(R.menu.channel_list, menu);
-//		for (int i = 0; i < menu.size(); i++) {
-//			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
-//				menu.getItem(i).setVisible(showFavs);
-//			} else if (menu.getItem(i).getItemId() == R.id.menuFavourties) {
-//				menu.getItem(i).setVisible(!showFavs);
-//			}
-//		}
-//		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
-//		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
-//		if (getSherlockActivity() instanceof ChannelListMultiActivity) {
-//			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
-//			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
-//		}
-//		final MenuItem searchItem = menu.findItem(R.id.menu_search);
-//		final SearchView editsearch = (SearchView) searchItem.getActionView();
-//		editsearch.setOnCloseListener(new OnCloseListener() {
-//			
-//			@Override
-//			public boolean onClose() {
-////				editsearch.getse
-//				return false;
-//			}
-//		});
-//		editsearch.setOnQueryTextListener(new OnQueryTextListener() {
-//			
-//			@Override
-//			public boolean onQueryTextSubmit(String query) {
-//				ChannelList cl = (ChannelList) mAdapter.getCurrentFragment();
-//				cl.setSearchQuery(query);
-//				cl.refresh(LOAD_CHANNELS);
-//				searchItem.collapseActionView();
-//				return true;
-//			}
-//			
-//			@Override
-//			public boolean onQueryTextChange(String newText) {
-//				return false;
-//			}
-//		});
-//	}
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+
+		inflater.inflate(R.menu.channel_list, menu);
+		for (int i = 0; i < menu.size(); i++) {
+			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
+				menu.getItem(i).setVisible(showFavs);
+			} else if (menu.getItem(i).getItemId() == R.id.menuFavourties) {
+				menu.getItem(i).setVisible(!showFavs);
+			}
+		}
+		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
+		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
+		if (getActivity() instanceof ChannelListMultiActivity) {
+			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
+			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
+		}
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -281,8 +258,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
 		switch (itemId) {
-		
-		
+
 		case R.id.menu_refresh_now_playing:
 			refresh(LOAD_CURRENT_PROGRAM);
 			return true;
@@ -293,6 +269,9 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		case R.id.menuFavourties:
 			showFavs = !showFavs;
 			persistChannelConfigConfig();
+			if (mOnGroupTypeCHangedListener != null) {
+				mOnGroupTypeCHangedListener.onTypeChanged(showFavs ? ChannelGroup.TYPE_FAV : ChannelGroup.TYPE_CHAN);
+			}
 			refresh(LOAD_CHANNELS);
 			getActivity().invalidateOptionsMenu();
 			return true;
@@ -323,8 +302,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 */
 	class PagerAdapter extends FragmentStatePagerAdapter {
 
-		private Cursor	mCursor;
-		private Fragment mCurrentFragment;
+		private Cursor		mCursor;
+		private Fragment	mCurrentFragment;
 
 		/**
 		 * Instantiates a new pager adapter.
@@ -427,16 +406,16 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			this.mCursor = cursor;
 			notifyDataSetChanged();
 		}
-		
+
 		@Override
 		public void setPrimaryItem(ViewGroup container, int position, Object object) {
 			if (mCurrentFragment != object) {
 				mCurrentFragment = (Fragment) object;
-				}
+			}
 			super.setPrimaryItem(container, position, object);
 		}
-		
-		public Fragment getCurrentFragment(){
+
+		public Fragment getCurrentFragment() {
 			return mCurrentFragment;
 		}
 
@@ -452,7 +431,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void setPosition(int position) {
 		mPosition = position;
 		if (mPager != null) {
-			mPager.setCurrentItem(mPosition);
+			mPager.setCurrentItem(mPosition, false);
 		}
 	}
 
@@ -557,7 +536,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 						e.printStackTrace();
 						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (IllegalArgumentException e) {
-						showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 					} catch (Exception e) {
 						e.printStackTrace();
 						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
@@ -590,7 +569,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			};
 			break;
 		case LOAD_CHANNELS:
-			String selection = showFavs ? GroupTbl.TYPE + " = " + 1 : GroupTbl.TYPE + " = " + 0;
+			String selection = showFavs ? GroupTbl.TYPE + " = " + ChannelGroup.TYPE_FAV : GroupTbl.TYPE + " = " + ChannelGroup.TYPE_CHAN;
 			String orderBy = GroupTbl._ID;
 			loader = new CursorLoader(getActivity().getApplicationContext(), GroupTbl.CONTENT_URI, null, selection, null, orderBy);
 			break;
@@ -700,7 +679,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 */
 	@Override
 	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -710,6 +688,20 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		outState.putInt(KEY_ADAPTER_POSITION, mPager.getCurrentItem());
 	}
 
+	/**
+	 * Show toast.
+	 *
+	 * @param message the message
+	 * @author RayBa
+	 * @date 07.04.2013
+	 */
+	protected void showToast(String message) {
+		if (getActivity() != null && !isDetached() &&isAdded() && !TextUtils.isEmpty(message)) {
+			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
+			getActivity().runOnUiThread(errorRunnable);
+		}
+	}
+	
 	/**
 	 * Refresh.
 	 *
@@ -738,20 +730,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 
 	}
 	
-	/**
-	 * Show toast.
-	 *
-	 * @param message the message
-	 * @author RayBa
-	 * @date 07.04.2013
-	 */
-	protected void showToast(String message) {
-		if (getActivity() != null && !TextUtils.isEmpty(message)) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
-			getActivity().runOnUiThread(errorRunnable);
-		}
-	}
-	
 	public String getStringSafely(int resId){
 		String result = "";
 		if (!isDetached() && isAdded() && isVisible()) {
@@ -762,6 +740,12 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			}
 		}
 		return result;
+	}
+
+	public static interface onGroupTypeCHangedListener {
+
+		public void onTypeChanged(int type);
+
 	}
 
 }

@@ -17,17 +17,19 @@ package org.dvbviewer.controller.ui.tablet;
 
 import java.util.Date;
 import java.util.List;
+
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Channel;
-import org.dvbviewer.controller.ui.base.BaseActivity;
-import org.dvbviewer.controller.ui.base.BaseMultiPaneActivity;
+import org.dvbviewer.controller.ui.base.BaseSinglePaneActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.MenuItem;
 
@@ -37,7 +39,7 @@ import android.view.MenuItem;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelListMultiActivity extends BaseMultiPaneActivity implements EpgDateInfo, OnChannelSelectedListener, OnPageChangeListener {
+public class ChannelMultiActivity extends BaseSinglePaneActivity implements EpgDateInfo, OnChannelSelectedListener, OnPageChangeListener {
 	
 	Date epgDate = new Date();
 	private EpgPager	mEpgPager;
@@ -49,23 +51,23 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
-		setContentView(R.layout.fragment_channel_multi);
-		if (savedInstanceState == null) {
-			int position = getIntent().getExtras().getInt(ChannelList.KEY_SELECTED_POSITION);
-			mChannelList = new ChannelList();
-			mChannelList.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
-			mChannelList.setSelectedPosition(position);
-			mEpgPager = new EpgPager();
-			mEpgPager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
-			mEpgPager.setPosition(position);
-			getSupportFragmentManager().beginTransaction().add(R.id.left_container, mChannelList, ChannelList.class.getName()).commit();
-			getSupportFragmentManager().beginTransaction().add(R.id.right_container, mEpgPager, EpgPager.class.getName()).commit();
-		}else {
-			mChannelList = (ChannelList) getSupportFragmentManager().findFragmentByTag(ChannelList.class.getName());
-			mEpgPager = (EpgPager) getSupportFragmentManager().findFragmentByTag(EpgPager.class.getName());
-		}
+//		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
+//		setContentView(R.layout.fragment_channel_multi);
+//		if (savedInstanceState == null) {
+//			int position = getIntent().getExtras().getInt(ChannelList.KEY_SELECTED_POSITION);
+//			mChannelList = new ChannelList();
+//			mChannelList.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
+//			mChannelList.setSelectedPosition(position);
+//			mEpgPager = new EpgPager();
+//			mEpgPager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
+//			mEpgPager.setPosition(position);
+//			getSupportFragmentManager().beginTransaction().add(R.id.fragment_container_channel_list, mChannelList, ChannelList.class.getName()).commit();
+//			getSupportFragmentManager().beginTransaction().add(R.id.fragment_container_channel_epg, mEpgPager, EpgPager.class.getName()).commit();
+//		}else {
+//			mChannelList = (ChannelList) getSupportFragmentManager().findFragmentByTag(ChannelList.class.getName());
+//			mEpgPager = (EpgPager) getSupportFragmentManager().findFragmentByTag(EpgPager.class.getName());
+//		}
 	}
 
 	/* (non-Javadoc)
@@ -152,7 +154,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	 */
 	@Override
 	public void channelSelected(List<Channel> chans, int position) {
-		mEpgPager.setPosition(position);
+//		mEpgPager.setPosition(position);
 	}
 
 	/* (non-Javadoc)
@@ -178,8 +180,13 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	 */
 	@Override
 	public void onPageSelected(int position) {
-		mChannelList.setSelection(position);
+//		mChannelList.setSelection(position);
 		
+	}
+
+	@Override
+	protected Fragment onCreatePane() {
+		return new ChannelFragment();
 	}
 
 }

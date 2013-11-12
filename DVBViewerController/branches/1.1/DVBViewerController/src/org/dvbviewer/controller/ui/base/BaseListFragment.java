@@ -508,7 +508,7 @@ public class BaseListFragment extends Fragment {
 	 * @date 07.04.2013
 	 */
 	protected void showToast(String message) {
-		if (getActivity() != null && !TextUtils.isEmpty(message)) {
+		if (getActivity() != null  && !isDetached() && isAdded() && !TextUtils.isEmpty(message)) {
 			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
 			getActivity().runOnUiThread(errorRunnable);
 		}

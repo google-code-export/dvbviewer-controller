@@ -22,11 +22,11 @@
             android:layout_height="fill_parent"
             android:padding="8dp"
             android:layout_weight="4"
-            android:id="@+id/fragment_container_channel_list" />
+            android:id="@+id/left_container" />
         
         <ImageView style="@style/HorizontalDivider" />
 
-        <FrameLayout android:id="@+id/fragment_container_channel_epg"
+        <FrameLayout android:id="@+id/right_container"
             android:layout_width="0dp"
             android:padding="8dp"
             android:layout_height="fill_parent"

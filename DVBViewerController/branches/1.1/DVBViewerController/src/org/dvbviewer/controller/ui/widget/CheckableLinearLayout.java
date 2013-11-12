@@ -91,11 +91,11 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
 	 */
 	@Override
 	public void setChecked(boolean checked) {
-	    mChecked = checked;
-	    if (checkIndicator != null) {
-			checkIndicator.setChecked(mChecked);
+		if (checkIndicator != null && mChecked != checked) {
+			checkIndicator.setChecked(checked);
 		}
-	    refreshDrawableState();
+		mChecked = checked;
+		refreshDrawableState();
 	}
 
 	/* (non-Javadoc)

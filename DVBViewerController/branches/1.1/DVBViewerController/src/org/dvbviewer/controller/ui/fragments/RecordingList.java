@@ -258,7 +258,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 			Recording o = getItem(position);
 			if (o != null) {
 				holder.check.setTag(position);
-				holder.layout.setChecked(getListView().isItemChecked(position));
+//				holder.layout.setChecked(getListView().isItemChecked(position));
 				holder.title.setText(o.getTitle());
 				if (TextUtils.isEmpty(o.getSubTitle())) {
 					holder.subTitle.setVisibility(View.GONE);

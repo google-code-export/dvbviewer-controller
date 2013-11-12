@@ -29,7 +29,9 @@ import org.dvbviewer.controller.ui.base.BaseActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
 import org.dvbviewer.controller.ui.fragments.ChannelPager;
+import org.dvbviewer.controller.ui.fragments.Dashboard;
 import org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickListener;
+import org.dvbviewer.controller.ui.fragments.EpgPager;
 import org.dvbviewer.controller.ui.fragments.AboutFragment;
 import org.dvbviewer.controller.ui.fragments.RecordingList;
 import org.dvbviewer.controller.ui.fragments.Remote;
@@ -41,9 +43,8 @@ import org.dvbviewer.controller.ui.phone.RemoteActivity;
 import org.dvbviewer.controller.ui.phone.StatusActivity;
 import org.dvbviewer.controller.ui.phone.TaskActivity;
 import org.dvbviewer.controller.ui.phone.TimerlistActivity;
-import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
+import org.dvbviewer.controller.ui.tablet.ChannelMultiActivity;
 import org.dvbviewer.controller.utils.Config;
-
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -65,16 +66,20 @@ import android.widget.TextView;
  */
 public class HomeActivity extends BaseActivity implements OnClickListener, OnChannelSelectedListener, OnDashboardButtonClickListener {
 
-	SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
-	private View		multiContainer;
-	private TextView	multiContainerIndicator;
-	boolean expired = false;
-	private AlertDialog	expirationDialog;
-	String expirationMessage;
+	SimpleDateFormat				dateFormat	= new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+	private View					mRightContainer;
+	private View					mLeftContainer;
+	private TextView				multiContainerIndicator;
+	boolean							expired		= false;
+	private AlertDialog				expirationDialog;
+	String							expirationMessage;
 	private DVBViewerPreferences	prefs;
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onCreate(android.os.Bundle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.base.BaseActivity#onCreate(android.os.Bundle)
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +89,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			DVBViewerPreferences dvbprefs = new DVBViewerPreferences(this);
 			String expirationString = dvbprefs.getString(DVBViewerPreferences.KEY_EXPIRE_DATE);
 			try {
-				
+
 				Date now = new Date();
 				expirationMessage = dvbprefs.getString(DVBViewerPreferences.KEY_EXPIRE_Message);
 				Date d = dateFormat.parse(expirationString);
@@ -92,46 +97,39 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 					expired = true;
 				}
 			} catch (ParseException e1) {
-				Log.d(HomeActivity.class.getSimpleName(), "Cant parse date: "+expirationString);
-			}		
+				Log.d(HomeActivity.class.getSimpleName(), "Cant parse date: " + expirationString);
+			}
 		}
-		
-		
+
 		setContentView(R.layout.activity_home);
-		multiContainer = findViewById(R.id.multi_container);
-		multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);
-		
+		mLeftContainer = findViewById(R.id.left_container);
+		mRightContainer = findViewById(R.id.right_container);
+		multiContainerIndicator = (TextView) findViewById(R.id.right_container_indicator);
+
 		if (savedInstanceState == null) {
-			
-			if (multiContainer != null) {
-				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
+			FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
+			Dashboard dashboard = new Dashboard();
+			tran.add(mLeftContainer.getId(), dashboard);
+			if (mRightContainer != null) {
 				ChannelPager chanPager = new ChannelPager();
 				Bundle args = new Bundle();
 				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
 				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
 				chanPager.setArguments(args);
-				tran.add(multiContainer.getId(), chanPager);
-//				ChannelList chans = new ChannelList();
-//				Bundle args = new Bundle();
-//				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
-//				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
-//				chans.setArguments(args);
-//				tran.add(multiContainer.getId(), chans);
-				tran.commit();
+				tran.add(mRightContainer.getId(), chanPager);
 				multiContainerIndicator.setText(R.string.channelList);
 			}
+			tran.commit();
 			if (Config.IS_FIRST_START) {
 				Config.IS_FIRST_START = false;
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage(getResources().getString(R.string.firstStartMessage)).setPositiveButton(R.string.yes, this).setTitle(getResources().getString(R.string.firstStartMessageTitle))
-				.setNegativeButton(R.string.no, this).show();
+				builder.setMessage(getResources().getString(R.string.firstStartMessage)).setPositiveButton(R.string.yes, this).setTitle(getResources().getString(R.string.firstStartMessageTitle)).setNegativeButton(R.string.no, this).show();
 				prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, false).commit();
 			}
 		}
-		
-		
+
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -139,7 +137,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			expirationDialog.dismiss();
 		}
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -154,8 +152,12 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.content.DialogInterface.OnClickListener#onClick(android.content
+	 * .DialogInterface, int)
 	 */
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
@@ -171,27 +173,34 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener#channelSelected(org.dvbviewer.controller.entities.Channel, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener
+	 * #channelSelected(org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
 	public void channelSelected(List<Channel> chans, int position) {
-		Intent channelListIntent = new Intent(this, ChannelListMultiActivity.class);
-		channelListIntent.putParcelableArrayListExtra(Channel.class.getName(), (ArrayList<Channel>) chans);
-		channelListIntent.putExtra(ChannelList.KEY_SELECTED_POSITION, position);
+		Intent channelListIntent = new Intent(this, ChannelMultiActivity.class);
+		channelListIntent.putParcelableArrayListExtra(EpgPager.KEY_CHANNELS, (ArrayList<Channel>) chans);
+		channelListIntent.putExtra(EpgPager.KEY_POSITION, position);
 		startActivity(channelListIntent);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickListener#onDashboarButtonClick(android.view.View)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.dvbviewer.controller.ui.fragments.Dashboard.
+	 * OnDashboardButtonClickListener#onDashboarButtonClick(android.view.View)
 	 */
 	@Override
 	public void onDashboarButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.home_btn_remote:
-			if (multiContainer != null) {
+			if (mRightContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
-				tran.replace(multiContainer.getId(), new Remote());
+				tran.replace(mRightContainer.getId(), new Remote());
 				tran.commit();
 				multiContainerIndicator.setText(R.string.remote);
 			} else {
@@ -199,17 +208,17 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			}
 			break;
 		case R.id.home_btn_channels:
-			if (multiContainer != null) {
+			if (mRightContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
 				ChannelPager chanPager = new ChannelPager();
 				Bundle args = new Bundle();
 				args.putBoolean(ChannelList.KEY_HAS_OPTIONMENU, true);
 				args.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false));
 				chanPager.setArguments(args);
-				tran.replace(multiContainer.getId(), chanPager);
-//				ChannelList chans = new ChannelList();
-//				chans.setHasOptionsMenu(true);
-//				tran.replace(multiContainer.getId(), chans);
+				tran.replace(mRightContainer.getId(), chanPager);
+				// ChannelList chans = new ChannelList();
+				// chans.setHasOptionsMenu(true);
+				// tran.replace(multiContainer.getId(), chans);
 				tran.commit();
 				multiContainerIndicator.setText(R.string.channelList);
 			} else {
@@ -217,9 +226,9 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			}
 			break;
 		case R.id.home_btn_timers:
-			if (multiContainer != null) {
+			if (mRightContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
-				tran.replace(multiContainer.getId(), new TimerList());
+				tran.replace(mRightContainer.getId(), new TimerList());
 				tran.commit();
 				multiContainerIndicator.setText(R.string.timer);
 			} else {
@@ -228,9 +237,9 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			}
 			break;
 		case R.id.home_btn_recordings:
-			if (multiContainer != null) {
+			if (mRightContainer != null) {
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
-				tran.replace(multiContainer.getId(), new RecordingList());
+				tran.replace(mRightContainer.getId(), new RecordingList());
 				tran.commit();
 				multiContainerIndicator.setText(R.string.recordings);
 			} else {
@@ -251,22 +260,28 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			break;
 		}
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Activity#onRestoreInstanceState(android.os.Bundle)
 	 */
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 		expired = savedInstanceState.getBoolean("expired", false);
-		expirationMessage= savedInstanceState.getString("expirationMessage");
+		expirationMessage = savedInstanceState.getString("expirationMessage");
 		if (savedInstanceState != null && savedInstanceState.containsKey("indicatorText")) {
 			multiContainerIndicator.setText(savedInstanceState.getString("indicatorText"));
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.FragmentActivity#onSaveInstanceState(android.os.Bundle)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.FragmentActivity#onSaveInstanceState(android.os
+	 * .Bundle)
 	 */
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -277,21 +292,20 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			outState.putString("indicatorText", multiContainerIndicator.getText().toString());
 		}
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		getMenuInflater().inflate(R.menu.home, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menuAbout:
 			AboutFragment about = new AboutFragment();
 			about.show(getSupportFragmentManager(), "ABOUT");
-//			startActivity(new Intent(this, AboutActivity.class));
 			return true;
 
 		default:

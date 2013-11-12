@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -176,7 +174,7 @@ public class ServerRequest {
 	private static HttpClient getHttpClient() {
 		if (httpClient == null) {
 				try {
-					SSLContext sslContext = SSLContext.getInstance("SSL");
+					SSLContext sslContext = SSLContext.getInstance("TLS");
 					sslContext.init(null, new TrustManager[] { new TrustAllTrustManager() }, new SecureRandom());
 					SSLSocketFactory sf = new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 					Scheme httpsScheme = new Scheme("https", 443, sf);
@@ -218,14 +216,50 @@ public class ServerRequest {
 					if (getRsAuthScope() != null) {
 						httpClient.getCredentialsProvider().setCredentials(getRsAuthScope(), getRsCredentials());
 					}
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
-				} catch (KeyManagementException e) {
+				} catch (Exception e) {
+					httpClient = getFallBackHttpClient();
 					e.printStackTrace();
 				}
 
 
 		}
+		return httpClient;
+	}
+	
+	private static DefaultHttpClient getFallBackHttpClient() {
+		HttpParams httpParams = new BasicHttpParams();
+		// Set the timeout in milliseconds until a connection is
+		// established.
+		int timeoutConnection = 10000;
+		HttpConnectionParams.setConnectionTimeout(httpParams, timeoutConnection);
+		// Set the default socket timeout (SO_TIMEOUT)
+		// in milliseconds which is the timeout for waiting for data.
+		int timeoutSocket = 10000;
+		HttpConnectionParams.setSoTimeout(httpParams, timeoutSocket);
+
+		HttpProtocolParams.setContentCharset(httpParams, "UTF-8");
+
+
+		SchemeRegistry registry = new SchemeRegistry();
+		Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
+		Scheme httpsScheme = new Scheme("https", 443, PlainSocketFactory.getSocketFactory());
+		registry.register(httpScheme);
+		registry.register(httpsScheme);
+		HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
+		HttpProtocolParams.setUseExpectContinue(httpParams, true);
+		PoolingClientConnectionManager manager = new PoolingClientConnectionManager(registry);
+		AuthRequestInterceptor preemptiveAuth = new AuthRequestInterceptor();
+		httpClient = new DefaultHttpClient(manager, httpParams);
+		httpClient.addRequestInterceptor(preemptiveAuth, 0);
+		if (getClientAuthScope() != null) {
+			httpClient.getCredentialsProvider().setCredentials(getClientAuthScope(), getClientCredentials());
+		}
+		if (getRsAuthScope() != null) {
+			httpClient.getCredentialsProvider().setCredentials(getRsAuthScope(), getRsCredentials());
+		}
+
+		httpClient.addRequestInterceptor(new GZipRequestInterceptor());
+		httpClient.addResponseInterceptor(new GZipResponseInterceptor());
 		return httpClient;
 	}
 

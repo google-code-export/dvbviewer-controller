@@ -16,6 +16,9 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -148,13 +151,25 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 					showToast(getStringSafely(R.string.error_parsing_xml));
 				} catch (ParseException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (IOException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (URISyntaxException e) {
 					e.printStackTrace();
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
@@ -162,10 +177,14 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 					e.printStackTrace();
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (IllegalArgumentException e) {
-					showToast(getString(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (Exception e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				}
 				return result;
 			}

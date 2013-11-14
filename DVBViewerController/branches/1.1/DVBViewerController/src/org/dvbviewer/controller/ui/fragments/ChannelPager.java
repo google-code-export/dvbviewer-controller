@@ -434,6 +434,21 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			mPager.setCurrentItem(mPosition, false);
 		}
 	}
+	
+	/**
+	 * Sets the position.
+	 *
+	 * @param position the new position
+	 * @author RayBa
+	 * @date 07.04.2013
+	 */
+	public int getPosition() {
+		int result = 0;
+		if (mPager != null) {
+			result = mPager.getCurrentItem();
+		}
+		return result;
+	}
 
 	/*
 	 * (non-Javadoc)

@@ -33,6 +33,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.MenuItem;
@@ -47,7 +48,7 @@ import android.widget.ListView;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelListActivity extends BaseActivity implements LoaderCallbacks<Cursor>, onGroupTypeCHangedListener {
+public class ChannelListActivity extends BaseActivity implements LoaderCallbacks<Cursor>, onGroupTypeCHangedListener, OnPageChangeListener {
 
 	private DrawerLayout			mDrawerLayout;
 	private ListView				mDrawerList;
@@ -74,6 +75,7 @@ public class ChannelListActivity extends BaseActivity implements LoaderCallbacks
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerLayout.setDrawerShadow(android.R.color.white, GravityCompat.RELATIVE_LAYOUT_DIRECTION);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
+//		mDrawerList.setItemChecked(0, true);
 		mDrawerList.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
@@ -151,6 +153,7 @@ public class ChannelListActivity extends BaseActivity implements LoaderCallbacks
 		} else {
 			pager = (ChannelPager) f;
 		}
+		mDrawerList.setItemChecked(pager.getPosition(), true);
 	}
 
 	@Override
@@ -163,6 +166,26 @@ public class ChannelListActivity extends BaseActivity implements LoaderCallbacks
 	public void onTypeChanged(int type) {
 		showFavs = prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		getSupportLoaderManager().restartLoader(0, getIntent().getExtras(), this);
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageScrolled(int arg0, float arg1, int arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		for (int i = 0; i < mDrawerList.getAdapter().getCount(); i++) {
+			mDrawerList.setItemChecked(i, false);
+		}
+		mDrawerList.setItemChecked(position, true);
 	}
 
 }

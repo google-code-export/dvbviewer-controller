@@ -417,6 +417,7 @@ public class DbHelper extends SQLiteOpenHelper {
 			db.endTransaction();
 			db.close();
 		}
+		mContext.getContentResolver().notifyChange(ChannelTbl.CONTENT_URI_NOW, null);
 	}
 
 	/**

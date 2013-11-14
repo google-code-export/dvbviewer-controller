@@ -36,7 +36,6 @@ import org.dvbviewer.controller.service.SyncService;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
 import org.dvbviewer.controller.ui.phone.TimerDetailsActivity;
-import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
 import org.dvbviewer.controller.ui.widget.CheckableLinearLayout;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
@@ -57,8 +56,6 @@ import android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -236,53 +233,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		return super.onCreateView(inflater, container, savedInstanceState);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.actionbarsherlock.app.SherlockListFragment#onCreateOptionsMenu(android
-	 * .view.Menu, android.view.MenuInflater)
-	 */
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		super.onCreateOptionsMenu(menu, inflater);
-		inflater.inflate(R.menu.channel_list, menu);
-		for (int i = 0; i < menu.size(); i++) {
-			if (menu.getItem(i).getItemId() == R.id.menuChannelList) {
-				menu.getItem(i).setVisible(showFavs);
-			} else if (menu.getItem(i).getItemId() == R.id.menuFavourties) {
-				menu.getItem(i).setVisible(!showFavs);
-			}
-		}
-		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
-		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
-		if (getActivity() instanceof ChannelListMultiActivity) {
-			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
-			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
-		}
-	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.actionbarsherlock.app.SherlockListFragment#onOptionsItemSelected(
-	 * android.view.MenuItem)
-	 */
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		int itemId = item.getItemId();
-		switch (itemId) {
-		case R.id.menuChannelList:
-		case R.id.menuFavourties:
-			showFavs = !showFavs;
-			refresh(LOADER_CHANNELLIST);
-			return true;
-
-		default:
-			return false;
-		}
-	}
 
 	/**
 	 * Refresh.

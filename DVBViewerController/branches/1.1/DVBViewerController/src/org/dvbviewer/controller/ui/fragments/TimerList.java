@@ -84,7 +84,6 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	TimerAdapter	mAdapter;
 	ActionMode		mode;
 	ProgressDialog	progressDialog;
-	private boolean	finishActionMode = false;
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
@@ -363,7 +362,6 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int checkedCount = getCheckedItemCount();
 		if (mode == null && checkedCount > 0) {
-			finishActionMode = false;
 			ActionBarActivity activity = (ActionBarActivity) getActivity();
 			mode = activity.startSupportActionMode(TimerList.this);
 		} else if (checkedCount <= 0) {
@@ -496,10 +494,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		if (finishActionMode) {
 			clearSelection();
-		}
-		finishActionMode = true;
 	}
 
 	/**

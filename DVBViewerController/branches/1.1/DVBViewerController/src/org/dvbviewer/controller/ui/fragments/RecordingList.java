@@ -91,7 +91,6 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	ActionMode			mode;
 	int					selectedPosition;
 	ProgressDialog		progressDialog;
-	private boolean	finishActionMode;
 	
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
@@ -358,10 +357,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		if (finishActionMode) {
 			clearSelection();
-		}
-		finishActionMode = true;
 	}
 
 	/**
@@ -386,7 +382,6 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int count = getCheckedItemCount();
 		if (mode == null && count > 0) {
-			finishActionMode = false;
 			ActionBarActivity activty = (ActionBarActivity) getActivity();
 			mode = activty.startSupportActionMode(RecordingList.this);
 		} else if (count <= 0) {

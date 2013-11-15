@@ -34,6 +34,7 @@ import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
 import org.dvbviewer.controller.service.SyncService;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
+import org.dvbviewer.controller.ui.phone.EpgPagerActivity;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
 import org.dvbviewer.controller.ui.phone.TimerDetailsActivity;
 import org.dvbviewer.controller.ui.widget.CheckableLinearLayout;
@@ -390,9 +391,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			mCHannelSelectedListener.channelSelected(chans, position);
 			getListView().setItemChecked(position, true);
 		} else {
-			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
+			Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
 			ArrayList<Channel> chans = cursorToChannellist();
-			epgPagerIntent.putParcelableArrayListExtra(EpgPager.KEY_CHANNELS, chans);
+			EpgPagerActivity.channels = chans;
 			epgPagerIntent.putExtra(EpgPager.KEY_POSITION, position);
 			startActivity(epgPagerIntent);
 			selectedPosition = ListView.INVALID_POSITION;

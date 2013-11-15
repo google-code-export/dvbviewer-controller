@@ -58,7 +58,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 
 	public static final String		KEY_CHANNELS	= EpgPager.class.getSimpleName() + "_KEY_CHANNELS";
 	public static final String		KEY_POSITION	= EpgPager.class.getSimpleName() + "_KEY_POSITION";
-	List<Channel>					mChannels;
+	public static List<Channel>		channels;
 	int								mPosition		= AdapterView.INVALID_POSITION;
 	ChannelEpg						mCurrent;
 	private ViewPager				mPager;
@@ -96,7 +96,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		super.onActivityCreated(savedInstanceState);
 		prefs = new DVBViewerPreferences(getActivity());
 		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		mChannels = getArguments().getParcelableArrayList(KEY_CHANNELS);
 		mPosition = getArguments().containsKey(KEY_POSITION) ? getArguments().getInt(KEY_POSITION, mPosition) : mPosition;
 		mAdapter.notifyDataSetChanged();
 		mPager.setAdapter(mAdapter);
@@ -196,7 +195,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		@Override
 		public Fragment getItem(int position) {
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
-			channelEpg.setChannel(mChannels.get(position));
+			channelEpg.setChannel(channels.get(position));
 			Log.i(PagerAdapter.class.getSimpleName(), "channelEpg id" + channelEpg.getId());
 			return channelEpg;
 		}
@@ -206,7 +205,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		 */
 		@Override
 		public int getCount() {
-			return mChannels.size();
+			return channels.size();
 		}
 
 		

@@ -84,6 +84,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_home);
 		prefs = new DVBViewerPreferences(this);
 		if (savedInstanceState == null) {
 			DVBViewerPreferences dvbprefs = new DVBViewerPreferences(this);
@@ -101,7 +102,6 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 			}
 		}
 
-		setContentView(R.layout.activity_home);
 		mLeftContainer = findViewById(R.id.left_container);
 		mRightContainer = findViewById(R.id.right_container);
 		multiContainerIndicator = (TextView) findViewById(R.id.right_container_indicator);

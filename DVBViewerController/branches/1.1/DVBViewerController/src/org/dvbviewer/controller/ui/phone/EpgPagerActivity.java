@@ -16,7 +16,9 @@
 package org.dvbviewer.controller.ui.phone;
 
 import java.util.Date;
+import java.util.List;
 
+import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.ui.base.BaseSinglePaneActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
@@ -35,6 +37,7 @@ import android.util.Log;
 public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateInfo{
 	
 	Date epgDate;
+	public static List<Channel> channels;
 	
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragmentActivity#onRestoreInstanceState(android.os.Bundle)
@@ -91,6 +94,7 @@ public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateI
 	 */
 	@Override
 	protected Fragment onCreatePane() {
+		EpgPager.channels = channels;
 		return new EpgPager();
 	}
 

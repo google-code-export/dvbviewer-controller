@@ -91,7 +91,6 @@ public class ChannelMultiActivity extends BaseSinglePaneActivity implements EpgD
 	/* (non-Javadoc)
 	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
@@ -125,7 +124,7 @@ public class ChannelMultiActivity extends BaseSinglePaneActivity implements EpgD
 		default:
 			return false;
 		}
-		invalidateOptionsMenu();
+		supportInvalidateOptionsMenu();
 		return true;
 	}
 

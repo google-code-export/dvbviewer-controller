@@ -121,7 +121,6 @@ public class ChannelHandler extends DefaultHandler {
 		});
 
 		Xml.parse(xml, channels.getContentHandler());
-		Log.i(ChannelHandler.class.getSimpleName(), "parse");
 		return rootElements;
 
 	}

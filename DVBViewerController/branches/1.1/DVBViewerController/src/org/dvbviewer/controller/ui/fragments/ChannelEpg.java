@@ -561,9 +561,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();
 		Date end = epgEnd > 0 ? new Date(epgEnd) : new Date();
-		Log.i(ChannelList.class.getSimpleName(), start.toString());
-		Log.i(ChannelList.class.getSimpleName(), start.toString());
-		Log.i(ChannelList.class.getSimpleName(), start.toString());
 		start = DateUtils.addMinutes(start, 0 - epgBefore);
 		end = DateUtils.addMinutes(end, epgAfter);
 		Timer timer = new Timer();

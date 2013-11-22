@@ -18,15 +18,28 @@ package org.dvbviewer.controller.ui.phone;
 import java.util.Date;
 import java.util.List;
 
+import org.dvbviewer.controller.R;
+import org.dvbviewer.controller.data.DbConsts.GroupTbl;
 import org.dvbviewer.controller.entities.Channel;
-import org.dvbviewer.controller.ui.base.BaseSinglePaneActivity;
+import org.dvbviewer.controller.entities.ChannelGroup;
+import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.ui.base.BaseActivity;
+import org.dvbviewer.controller.ui.base.DrawerActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 
 /**
  * The Class EpgPagerActivity.
@@ -34,38 +47,51 @@ import android.util.Log;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateInfo{
+public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, LoaderCallbacks<Cursor> {
+
+	/** The epg date. */
+	Date							epgDate;
 	
-	Date epgDate;
-	public static List<Channel> channels;
+	/** The prefs. */
+	private DVBViewerPreferences	prefs;
 	
+	/** The show favs. */
+	private boolean					showFavs;
+	
+	/** The drawer adapter. */
+	private SimpleCursorAdapter		drawerAdapter;
+	
+	/** The pager fragment tag. */
+	private final String			pagerFragmentTag	= EpgPagerActivity.class.getSimpleName() + EpgPager.class.getSimpleName();
+	
+	/** The pager. */
+	private EpgPager				pager;
+	
+	/** The channels. */
+	public static List<Channel>		channels;
+	
+	/** The drawer position. */
+	public static int				drawerPosition;
+
 	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragmentActivity#onRestoreInstanceState(android.os.Bundle)
-	 */
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-	}
-	
-	
-	
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseSinglePaneActivity#onCreate(android.os.Bundle)
+	 * @see org.dvbviewer.controller.ui.base.DrawerActivity#onCreate(android.os.Bundle)
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		prefs = new DVBViewerPreferences(this);
+		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
+		drawerAdapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.simple_list_item_1, null, new String[] { GroupTbl.NAME }, new int[] { android.R.id.text1 }, 0);
+		mDrawerList.setAdapter(drawerAdapter);
+		getSupportLoaderManager().initLoader(0, savedInstanceState, this);
 	}
-	
-	
+
 	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragmentActivity#onSaveInstanceState(android.os.Bundle)
+	 * @see android.support.v4.app.FragmentActivity#onSaveInstanceState(android.os.Bundle)
 	 */
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		Log.i(EpgPagerActivity.class.getSimpleName(), "onSaveInstanceState");
 		outState.putLong(ChannelEpg.KEY_EPG_DAY, epgDate.getTime());
 		super.onSaveInstanceState(outState);
 	}
@@ -78,7 +104,6 @@ public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateI
 		this.epgDate = epgDate;
 	}
 
-
 	/* (non-Javadoc)
 	 * @see org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo#getEpgDate()
 	 */
@@ -87,15 +112,52 @@ public class EpgPagerActivity extends BaseSinglePaneActivity implements EpgDateI
 		return epgDate;
 	}
 
-
-
 	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseSinglePaneActivity#onCreatePane()
+	 * @see android.widget.AdapterView.OnItemClickListener#onItemClick(android.widget.AdapterView, android.view.View, int, long)
 	 */
 	@Override
-	protected Fragment onCreatePane() {
-		EpgPager.channels = channels;
-		return new EpgPager();
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		ChannelListActivity.GROUP_INDEX = position;
+	}
+
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onCreateLoader(int, android.os.Bundle)
+	 */
+	@Override
+	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+		String selection = showFavs ? GroupTbl.TYPE + " = " + ChannelGroup.TYPE_FAV : GroupTbl.TYPE + " = " + ChannelGroup.TYPE_CHAN;
+		String orderBy = GroupTbl._ID;
+		CursorLoader loader = new CursorLoader(getApplicationContext(), GroupTbl.CONTENT_URI, null, selection, null, orderBy);
+		return loader;
+	}
+
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.support.v4.content.Loader, java.lang.Object)
+	 */
+	@Override
+	public void onLoadFinished(Loader<Cursor> arg0, Cursor arg1) {
+		drawerAdapter.swapCursor(arg1);
+		Fragment f = getSupportFragmentManager().findFragmentByTag(pagerFragmentTag);
+		if (f == null) {
+			FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
+			pager = new EpgPager();
+			EpgPager.channels = channels;
+			pager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
+			tran.add(R.id.content_frame, pager, pagerFragmentTag);
+			tran.commitAllowingStateLoss();
+		} else {
+			pager = (EpgPager) f;
+		}
+		mDrawerList.setItemChecked(ChannelListActivity.GROUP_INDEX, true);
+	}
+
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoaderReset(android.support.v4.content.Loader)
+	 */
+	@Override
+	public void onLoaderReset(Loader<Cursor> arg0) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

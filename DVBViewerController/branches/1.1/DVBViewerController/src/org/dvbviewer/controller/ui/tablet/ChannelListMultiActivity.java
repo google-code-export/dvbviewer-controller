@@ -89,7 +89,6 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 	/* (non-Javadoc)
 	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
@@ -123,7 +122,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		default:
 			return false;
 		}
-		invalidateOptionsMenu();
+		supportInvalidateOptionsMenu();
 		return true;
 	}
 

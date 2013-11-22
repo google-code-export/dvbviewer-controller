@@ -556,9 +556,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	public void onClick(DialogInterface dialog, int which) {
 		switch (which) {
 		case DialogInterface.BUTTON_POSITIVE:
-			Log.i(RecordingList.class.getSimpleName(), "onClick");
 			SparseBooleanArray checkedPositions = getListView().getCheckedItemPositions();
-			Log.i(RecordingList.class.getSimpleName(), "items selected: " + checkedPositions.size());
 			if (checkedPositions != null && checkedPositions.size() > 0) {
 
 				int size = checkedPositions.size();

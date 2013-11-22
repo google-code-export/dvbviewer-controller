@@ -77,7 +77,6 @@ public class DialogEditText extends EditText implements DialogInterface.OnClickL
 	 */
 	@Override
 	public boolean performClick() {
-		Log.i(DialogEditText.class.getSimpleName(), "performClick");
 		AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
 
 		alert.setTitle("Title");

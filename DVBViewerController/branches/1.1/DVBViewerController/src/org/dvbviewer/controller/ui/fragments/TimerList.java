@@ -517,7 +517,6 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		switch (which) {
 		case DialogInterface.BUTTON_POSITIVE:
 			SparseBooleanArray checkedPositions = getListView().getCheckedItemPositions();
-			Log.i(RecordingList.class.getSimpleName(), "items selected: " + checkedPositions.size());
 			if (checkedPositions != null && checkedPositions.size() > 0) {
 				int size = checkedPositions.size();
 				TimerDeleter deleter = new TimerDeleter(TimerList.this);

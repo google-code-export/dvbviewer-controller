@@ -19,26 +19,18 @@ import java.util.Date;
 import java.util.List;
 
 import org.dvbviewer.controller.R;
-import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.entities.Channel;
-import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.UIUtils;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,7 +46,7 @@ import android.widget.AdapterView;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
+public class EpgPager extends Fragment {
 
 	public static final String		KEY_CHANNELS	= EpgPager.class.getSimpleName() + "_KEY_CHANNELS";
 	public static final String		KEY_POSITION	= EpgPager.class.getSimpleName() + "_KEY_POSITION";
@@ -64,8 +56,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	private ViewPager				mPager;
 	PagerAdapter					mAdapter;
 	private OnPageChangeListener	mOnPageChangeListener;
-	private Boolean					showFavs;
-	private DVBViewerPreferences	prefs;
 	
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
@@ -94,8 +84,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		prefs = new DVBViewerPreferences(getActivity());
-		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		mPosition = getArguments().containsKey(KEY_POSITION) ? getArguments().getInt(KEY_POSITION, mPosition) : mPosition;
 		mAdapter.notifyDataSetChanged();
 		mPager.setAdapter(mAdapter);
@@ -135,7 +123,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	/* (non-Javadoc)
 	 * @see com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
@@ -162,7 +149,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		default:
 			return false;
 		}
-		getActivity().invalidateOptionsMenu();
+		getActivity().supportInvalidateOptionsMenu();
 		ChannelEpg mCurrent;
 		mCurrent = (ChannelEpg) mAdapter.instantiateItem(mPager, mPager.getCurrentItem());
 		mCurrent.refresh(true);
@@ -196,7 +183,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		public Fragment getItem(int position) {
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
 			channelEpg.setChannel(channels.get(position));
-			Log.i(PagerAdapter.class.getSimpleName(), "channelEpg id" + channelEpg.getId());
 			return channelEpg;
 		}
 
@@ -205,7 +191,11 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		 */
 		@Override
 		public int getCount() {
-			return channels.size();
+			if (channels != null) {
+				return channels.size();
+			}else {
+				return 0;
+			}
 		}
 
 		
@@ -218,41 +208,21 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public void setPosition(int position){
+	public void setPosition(int position) {
 		mPosition = position;
 		if (mPager != null) {
-			mPager.setCurrentItem(mPosition);
+			mPager.setCurrentItem(mPosition, false);
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onCreateLoader(int, android.os.Bundle)
-	 */
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		String selection = showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : null;
-		String orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-		CursorLoader loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI_NOW, null, selection, null, orderBy);
-		return loader;
+	
+	public int getPosition() {
+		int result = 0;
+		if (mPager != null) {
+			result = mPager.getCurrentItem();
+		}
+		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.support.v4.content.Loader, java.lang.Object)
-	 */
-	@Override
-	public void onLoadFinished(Loader<Cursor> arg0, Cursor arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoaderReset(android.support.v4.content.Loader)
-	 */
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	
 }

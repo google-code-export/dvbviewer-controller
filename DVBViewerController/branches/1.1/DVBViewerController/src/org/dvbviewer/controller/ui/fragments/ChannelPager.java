@@ -45,7 +45,6 @@ import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.xml.sax.SAXException;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences.Editor;
@@ -174,11 +173,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 
 		int loaderId = LOAD_CHANNELS;
 		if (savedInstanceState != null) {
-			Log.i(ChannelPager.class.getSimpleName(), "savedInstanceState != null");
 			if (savedInstanceState.containsKey(KEY_ADAPTER_POSITION)) {
-				Log.i(ChannelPager.class.getSimpleName(), "savedInstanceState.containsKey(KEY_ADAPTER_POSITION)");
 				mPosition = savedInstanceState.getInt(KEY_ADAPTER_POSITION);
-				Log.i(ChannelPager.class.getSimpleName(), "mPosition: " + mPosition);
 			}
 		} else {
 			/**
@@ -253,7 +249,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 * com.actionbarsherlock.app.SherlockListFragment#onOptionsItemSelected(
 	 * android.view.MenuItem)
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
@@ -268,12 +263,13 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		case R.id.menuChannelList:
 		case R.id.menuFavourties:
 			showFavs = !showFavs;
+			mPosition = 0;
 			persistChannelConfigConfig();
 			if (mOnGroupTypeCHangedListener != null) {
 				mOnGroupTypeCHangedListener.onTypeChanged(showFavs ? ChannelGroup.TYPE_FAV : ChannelGroup.TYPE_CHAN);
 			}
 			refresh(LOAD_CHANNELS);
-			getActivity().invalidateOptionsMenu();
+			getActivity().supportInvalidateOptionsMenu();
 			return true;
 
 		default:
@@ -653,7 +649,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 * android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android
 	 * .support.v4.content.Loader, java.lang.Object)
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		switch (loader.getId()) {
@@ -675,7 +670,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
 			mPager.setCurrentItem(mPosition);
-			getActivity().invalidateOptionsMenu();
+			getActivity().supportInvalidateOptionsMenu();
 			showProgress(false);
 			break;
 

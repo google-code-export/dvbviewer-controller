@@ -37,6 +37,7 @@ import org.dvbviewer.controller.io.EpgEntryHandler;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
+import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.base.EpgLoader;
 import org.dvbviewer.controller.ui.phone.IEpgDetailsActivity;
@@ -62,7 +63,6 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -83,7 +83,8 @@ import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.client.utils.URLEncodedUtils;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
-import de.rayba.imagecache.ImageCacher;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
  * The Class ChannelEpg.
@@ -95,7 +96,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public static final String		KEY_EPG_DAY			= "EPG_DAY";
 	ChannelEPGAdapter				mAdapter;
 	Channel							mCHannel;
-	ImageCacher						mImageCacher;
+	ImageLoader						mImageCacher;
 	TextView						mEmptyView;
 	ProgressBar						mProgress;
 	AsyncTaskLoader<List<EpgEntry>>	loader;
@@ -114,7 +115,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setLayoutRessource(R.layout.fragment_channel_epg);
-		mImageCacher = ImageCacher.getInstance(getActivity());
+		mImageCacher = ImageLoader.getInstance();
 		if (savedInstanceState != null && savedInstanceState.containsKey(Channel.class.getName())) {
 			mCHannel = savedInstanceState.getParcelable(Channel.class.getName());
 		}
@@ -141,12 +142,14 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		mAdapter = new ChannelEPGAdapter(getActivity());
+		mImageCacher.cancelDisplayTask(channelLogo);
 		setListAdapter(mAdapter);
 		setListShown(false);
 		getListView().setOnItemClickListener(this);
 		if (mCHannel != null) {
 			setChannel(mCHannel);
-			mImageCacher.getImage(channelLogo, ServerConsts.REC_SERVICE_URL+ "/" + mCHannel.getLogoUrl(), null, true);
+			String url = ServerConsts.REC_SERVICE_URL+ "/" + mCHannel.getLogoUrl();
+			mImageCacher.displayImage(url, channelLogo, new AnimationLoadingListener());
 			position.setText(mCHannel.getPosition().toString());
 			channelName.setText(mCHannel.getName());
 		}
@@ -382,7 +385,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public class ChannelEPGAdapter extends CursorAdapter {
 
 		Context		mContext;
-		ImageCacher	imageChacher;
 
 		/**
 		 * Instantiates a new channel epg adapter.
@@ -394,7 +396,6 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		public ChannelEPGAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = ImageCacher.getInstance(mContext);
 		}
 
 		/* (non-Javadoc)

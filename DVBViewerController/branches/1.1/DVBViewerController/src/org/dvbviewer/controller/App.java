@@ -25,10 +25,15 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 import org.acra.sender.HttpPostSender;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.io.imageloader.AuthImageDownloader;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import android.app.Application;
 import android.text.TextUtils;
@@ -41,14 +46,15 @@ import android.text.TextUtils;
  */
 @ReportsCrashes(formKey = "", mode = ReportingInteractionMode.TOAST, resToastText = R.string.error_sending_report)
 public class App extends Application {
-	
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Application#onCreate()
 	 */
 	@Override
 	public void onCreate() {
-		
+
 		/**
 		 * Acra initialisation
 		 */
@@ -70,7 +76,7 @@ public class App extends Application {
 			// create your own instance with your specific mapping
 			ErrorReporter.getInstance().addReportSender(new HttpPostSender(acraUrl, mapping));
 		}
-		
+
 		DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 		Config.IS_FIRST_START = prefs.getBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, true);
 		Config.CHANNELS_SYNCED = prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, false);
@@ -83,7 +89,7 @@ public class App extends Application {
 		URLUtil.setViewerAddress(ServerConsts.DVBVIEWER_URL, ServerConsts.DVBVIEWER_PORT);
 		ServerConsts.DVBVIEWER_USER_NAME = prefs.getString(DVBViewerPreferences.KEY_DVBV_USERNAME, "");
 		ServerConsts.DVBVIEWER_PASSWORD = prefs.getString(DVBViewerPreferences.KEY_DVBV_PASSWORD, "");
-		
+
 		/**
 		 * Read Recordingservice Preferences
 		 */
@@ -96,14 +102,21 @@ public class App extends Application {
 		ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_MEDIA_STREAM_PORT, ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT);
 		ServerConsts.REC_SERVICE_MAC_ADDRESS = prefs.getString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS);
 		super.onCreate();
-		
-		
+
 		boolean sendWakeOnLan = prefs.getBoolean(DVBViewerPreferences.KEY_RS_WOL_ON_START, true);
 		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
 			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
 		}
+		DisplayImageOptions options = new DisplayImageOptions.Builder()
+		.cacheInMemory(true)
+		.cacheOnDisc(true)
+		.build();
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+		.imageDownloader(new AuthImageDownloader(getApplicationContext()))
+		.defaultDisplayImageOptions(options)
+		.build();
+		
+		ImageLoader.getInstance().init(config);
 	}
 
-	
-	
 }

@@ -24,12 +24,15 @@ import org.dvbviewer.controller.data.DbConsts.GroupTbl;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.ChannelGroup;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.BaseActivity;
 import org.dvbviewer.controller.ui.base.DrawerActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
 import org.dvbviewer.controller.utils.ServerConsts;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -49,7 +52,6 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import de.rayba.imagecache.ImageCacher;
 
 /**
  * The Class EpgPagerActivity.
@@ -193,7 +195,7 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 	public class ChannelAdapter extends CursorAdapter {
 
 		Context		mContext;
-		ImageCacher	imageChacher;
+		ImageLoader	imageChacher;
 
 		/**
 		 * Instantiates a new channel adapter.
@@ -205,7 +207,7 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 		public ChannelAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = ImageCacher.getInstance(mContext);
+			imageChacher = ImageLoader.getInstance();
 		}
 
 		/*
@@ -218,6 +220,7 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 		@Override
 		public void bindView(View view, Context context, Cursor c) {
 			ViewHolder holder = (ViewHolder) view.getTag();
+			imageChacher.cancelDisplayTask(holder.icon);
 			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
 			Integer position = c.getInt(c.getColumnIndex(ChannelTbl.POSITION));
@@ -228,7 +231,7 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
 				url.append("/");
 				url.append(logoUrl);
-				imageChacher.getImage(holder.icon, url.toString(), null, true);
+				imageChacher.displayImage(url.toString(), holder.icon, new AnimationLoadingListener());
 			} else {
 				holder.icon.setImageBitmap(null);
 			}

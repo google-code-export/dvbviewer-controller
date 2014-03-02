@@ -32,6 +32,7 @@ import org.dvbviewer.controller.entities.Timer;
 import org.dvbviewer.controller.io.ResultReceiver.Receiver;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
+import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.service.SyncService;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.EpgPagerActivity;
@@ -62,7 +63,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import de.rayba.imagecache.ImageCacher;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
  * The Class ChannelList.
@@ -261,7 +263,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public class ChannelAdapter extends CursorAdapter {
 
 		Context		mContext;
-		ImageCacher	imageChacher;
+		ImageLoader loader;
 
 		/**
 		 * Instantiates a new channel adapter.
@@ -273,7 +275,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		public ChannelAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = ImageCacher.getInstance(mContext);
+			loader = ImageLoader.getInstance();
 		}
 
 		/*
@@ -286,6 +288,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		@Override
 		public void bindView(View view, Context context, Cursor c) {
 			ViewHolder holder = (ViewHolder) view.getTag();
+			loader.cancelDisplayTask(holder.icon);
 			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
 			String epgTitle = c.getString(c.getColumnIndex(EpgTbl.TITLE));
@@ -318,7 +321,9 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
 				url.append("/");
 				url.append(logoUrl);
-				imageChacher.getImage(holder.icon, url.toString(), null, true);
+				
+				loader.displayImage(url.toString(), holder.icon, new AnimationLoadingListener());
+				
 			} else {
 				holder.icon.setImageBitmap(null);
 			}

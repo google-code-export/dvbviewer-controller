@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.dvbviewer.controller.R;
+import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.data.DbConsts.GroupTbl;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.ChannelGroup;
@@ -28,7 +29,9 @@ import org.dvbviewer.controller.ui.base.DrawerActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
+import org.dvbviewer.controller.utils.ServerConsts;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -36,10 +39,17 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import de.rayba.imagecache.ImageCacher;
 
 /**
  * The Class EpgPagerActivity.
@@ -82,7 +92,7 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 		prefs = new DVBViewerPreferences(this);
 		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
-		drawerAdapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.simple_list_item_1, null, new String[] { GroupTbl.NAME }, new int[] { android.R.id.text1 }, 0);
+		drawerAdapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.list_item_group, null, new String[] { GroupTbl.NAME }, new int[] { android.R.id.text1 }, 0);
 		mDrawerList.setAdapter(drawerAdapter);
 		getSupportLoaderManager().initLoader(0, savedInstanceState, this);
 	}
@@ -117,7 +127,12 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 	 */
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		ChannelListActivity.GROUP_INDEX = position;
+		Cursor c = drawerAdapter.getCursor();
+		c.moveToPosition(position);
+		long groupId = c.getLong(c.getColumnIndex(GroupTbl._ID));
+		mDrawerLayout.closeDrawers();
+		pager.setGroupId(groupId);
+		pager.refresh();
 	}
 
 	/* (non-Javadoc)
@@ -141,7 +156,6 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 		if (f == null) {
 			FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
 			pager = new EpgPager();
-			EpgPager.channels = channels;
 			pager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
 			tran.add(R.id.content_frame, pager, pagerFragmentTag);
 			tran.commitAllowingStateLoss();
@@ -158,6 +172,104 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 	public void onLoaderReset(Loader<Cursor> arg0) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	/**
+	 * The Class ViewHolder.
+	 *
+	 * @author RayBa
+	 * @date 05.07.2012
+	 */
+	private class ViewHolder {
+		ImageView				icon;
+		TextView				position;
+		TextView				channelName;
+		TextView				epgTime;
+		ProgressBar				progress;
+		TextView				epgTitle;
+		ImageView				contextMenu;
+	}
+	
+	public class ChannelAdapter extends CursorAdapter {
+
+		Context		mContext;
+		ImageCacher	imageChacher;
+
+		/**
+		 * Instantiates a new channel adapter.
+		 *
+		 * @param context the context
+		 * @author RayBa
+		 * @date 05.07.2012
+		 */
+		public ChannelAdapter(Context context) {
+			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+			mContext = context;
+			imageChacher = ImageCacher.getInstance(mContext);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * android.support.v4.widget.CursorAdapter#bindView(android.view.View,
+		 * android.content.Context, android.database.Cursor)
+		 */
+		@Override
+		public void bindView(View view, Context context, Cursor c) {
+			ViewHolder holder = (ViewHolder) view.getTag();
+			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
+			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
+			Integer position = c.getInt(c.getColumnIndex(ChannelTbl.POSITION));
+			Integer favPosition = c.getInt(c.getColumnIndex(ChannelTbl.FAV_POSITION));
+			holder.channelName.setText(channelName);
+			holder.position.setText(!showFavs ? position.toString() : favPosition.toString());
+			if (!TextUtils.isEmpty(logoUrl)) {
+				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
+				url.append("/");
+				url.append(logoUrl);
+				imageChacher.getImage(holder.icon, url.toString(), null, true);
+			} else {
+				holder.icon.setImageBitmap(null);
+			}
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * android.support.v4.widget.CursorAdapter#newView(android.content.Context
+		 * , android.database.Cursor, android.view.ViewGroup)
+		 */
+		@Override
+		public View newView(Context context, Cursor cursor, ViewGroup parent) {
+			LayoutInflater vi = getLayoutInflater();
+			ViewHolder holder = new ViewHolder();
+			View view = vi.inflate(R.layout.list_item_channel, null);
+			holder.icon = (ImageView) view.findViewById(R.id.icon);
+			holder.position = (TextView) view.findViewById(R.id.position);
+			holder.channelName = (TextView) view.findViewById(R.id.title);
+			holder.epgTime = (TextView) view.findViewById(R.id.epgTime);
+			holder.progress = (ProgressBar) view.findViewById(R.id.progress);
+			holder.epgTitle = (TextView) view.findViewById(R.id.epgTitle);
+			holder.contextMenu = (ImageView) view.findViewById(R.id.contextMenu);
+			holder.epgTime.setVisibility(View.GONE);
+			holder.epgTitle.setVisibility(View.GONE);
+			holder.progress.setVisibility(View.GONE);
+			holder.contextMenu.setVisibility(View.GONE);
+			view.setTag(holder);
+			return view;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public boolean hasStableIds() {
+			return true;
+		}
 	}
 
 }

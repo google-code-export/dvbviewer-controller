@@ -40,9 +40,11 @@ import org.dvbviewer.controller.io.VersionHandler;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
+import org.dvbviewer.controller.ui.widget.DepthPageTransformer;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
+import org.dvbviewer.controller.utils.UIUtils;
 import org.xml.sax.SAXException;
 
 import android.app.Activity;
@@ -63,7 +65,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -84,7 +85,7 @@ import com.viewpagerindicator.TitlePageIndicator;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
+public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, OnPageChangeListener{
 
 	private static final String			KEY_ADAPTER_POSITION	= "KEY_ADAPTER_POSITION";
 
@@ -147,6 +148,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
+//		setRetainInstance(true);
 		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
 		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -168,6 +170,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		mPager.setAdapter(mAdapter);
+		mPager.setOnPageChangeListener(this);
+		mPager.setPageMargin((int) UIUtils.dipToPixel(getActivity(), 25));
 		mPagerIndicator.setViewPager(mPager);
 		mPagerIndicator.setOnPageChangeListener(mOnPageChangeListener);
 
@@ -186,7 +190,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 				loaderId = LOAD_CURRENT_PROGRAM;
 			}
 		}
-
+		mPager.setCurrentItem(mPosition);
 		Loader<Cursor> loader = getLoaderManager().initLoader(loaderId, savedInstanceState, this);
 		showProgress(!isResumed() || loader.isStarted());
 	}
@@ -669,7 +673,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 			mGroupCursor = cursor;
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
-			mPager.setCurrentItem(mPosition);
+			mPager.setCurrentItem(mPosition, false);
+			mPager.setPageTransformer(true, new DepthPageTransformer());
 			getActivity().supportInvalidateOptionsMenu();
 			showProgress(false);
 			break;
@@ -697,7 +702,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		super.onSaveInstanceState(outState);
 		outState.putInt(KEY_ADAPTER_POSITION, mPager.getCurrentItem());
 	}
-
+	
 	/**
 	 * Show toast.
 	 *
@@ -723,7 +728,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 		mGroupCursor = null;
 		mPager.setAdapter(null);
 		mAdapter.notifyDataSetChanged();
-		mAdapter = new PagerAdapter(getFragmentManager(), mGroupCursor);
+		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
 		mPager.setAdapter(mAdapter);
 		mPagerIndicator.notifyDataSetChanged();
 		getLoaderManager().destroyLoader(id);
@@ -756,6 +761,23 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor> {
 
 		public void onTypeChanged(int type);
 
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageScrolled(int arg0, float arg1, int arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		mPosition = position;
 	}
 
 }

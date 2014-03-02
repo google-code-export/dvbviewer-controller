@@ -31,7 +31,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.util.Log;
 
 /**
  * The Class DvbProvider.
@@ -98,6 +97,13 @@ public class DvbProvider extends ContentProvider {
 		case CHANNELS:
 			qb = new SQLiteQueryBuilder();
 			qb.setTables(ChannelTbl.TABLE_NAME);
+			projectionMap = new HashMap<String, String>();
+			projectionMap.put(ChannelTbl._ID, ChannelTbl._ID);
+			projectionMap.put(ChannelTbl.CHANNEL_ID, ChannelTbl.CHANNEL_ID);
+			projectionMap.put(ChannelTbl.EPG_ID, ChannelTbl.EPG_ID);
+			projectionMap.put(ChannelTbl.POSITION, ChannelTbl.POSITION);
+			projectionMap.put(ChannelTbl.FAV_POSITION, ChannelTbl.FAV_POSITION);
+			projectionMap.put(ChannelTbl.LOGO_URL, ChannelTbl.LOGO_URL);
 			break;
 		case FAVOURITES:
 			qb = new SQLiteQueryBuilder();

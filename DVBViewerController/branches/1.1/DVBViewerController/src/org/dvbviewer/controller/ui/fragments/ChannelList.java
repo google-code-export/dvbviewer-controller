@@ -53,7 +53,6 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -336,7 +335,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		public View newView(Context context, Cursor cursor, ViewGroup parent) {
 			LayoutInflater vi = getActivity().getLayoutInflater();
 			ViewHolder holder = new ViewHolder();
-			View view = vi.inflate(R.layout.list_row_channel, null);
+			View view = vi.inflate(R.layout.list_item_channel, null);
 			holder.icon = (ImageView) view.findViewById(R.id.icon);
 			holder.position = (TextView) view.findViewById(R.id.position);
 			holder.channelName = (TextView) view.findViewById(R.id.title);
@@ -377,10 +376,12 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			mCHannelSelectedListener.channelSelected(chans, position);
 			getListView().setItemChecked(position, true);
 		} else {
+			Cursor c = mAdapter.getCursor();
+			c.moveToPosition(position);
 			Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
-			ArrayList<Channel> chans = cursorToChannellist();
-			EpgPagerActivity.channels = chans;
+			epgPagerIntent.putExtra(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
 			epgPagerIntent.putExtra(EpgPager.KEY_POSITION, position);
+			epgPagerIntent.putExtra(EpgPager.KEY_GROUP_ID, mGroupId);
 			startActivity(epgPagerIntent);
 			selectedPosition = ListView.INVALID_POSITION;
 		}

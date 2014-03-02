@@ -61,7 +61,7 @@ public class ChannelListActivity extends DrawerActivity implements LoaderCallbac
 		super.onCreate(savedInstanceState);
 		prefs = new DVBViewerPreferences(this);
 		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		drawerAdapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.simple_list_item_1, null, new String[] { GroupTbl.NAME }, new int[] { android.R.id.text1 }, 0);
+		drawerAdapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.list_item_group, null, new String[] { GroupTbl.NAME }, new int[] { android.R.id.text1 }, 0);
 		mDrawerList.setAdapter(drawerAdapter);
 		getSupportLoaderManager().initLoader(0, savedInstanceState, this);
 	}

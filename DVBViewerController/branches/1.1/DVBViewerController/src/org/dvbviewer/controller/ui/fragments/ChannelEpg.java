@@ -368,6 +368,10 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	public void setChannel(Channel channel) {
 		this.mCHannel = channel;
 	}
+	
+	public Channel getChannel(){
+		return mCHannel;
+	}
 
 	/**
 	 * The Class ChannelEPGAdapter.
@@ -418,7 +422,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		@Override
 		public View newView(Context context, Cursor cursor, ViewGroup parent) {
 			LayoutInflater vi = getActivity().getLayoutInflater();
-			View view = vi.inflate(R.layout.list_row_epg, null);
+			View view = vi.inflate(R.layout.list_item_epg, null);
 			ViewHolder holder = new ViewHolder();
 			holder.startTime = (TextView) view.findViewById(R.id.startTime);
 			holder.title = (TextView) view.findViewById(R.id.title);

@@ -28,7 +28,7 @@ import java.util.List;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Timer;
 import org.dvbviewer.controller.io.ServerRequest;
-import org.dvbviewer.controller.io.TimerHandler;
+import org.dvbviewer.controller.io.data.TimerHandler;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseActivity.AsyncCallback;
 import org.dvbviewer.controller.ui.base.BaseListFragment;

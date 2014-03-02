@@ -29,7 +29,6 @@ import org.dvbviewer.controller.data.DbConsts.FavTbl;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.entities.Timer;
-import org.dvbviewer.controller.io.ResultReceiver.Receiver;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
 import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
@@ -72,7 +71,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
  * @author RayBa
  * @date 05.07.2012
  */
-public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener, Receiver, OnMenuItemClickListener {
+public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener, OnMenuItemClickListener {
 
 	public static final String	KEY_SELECTED_POSITION	= "SELECTED_POSITION";
 	public static final String	KEY_HAS_OPTIONMENU		= "HAS_OPTIONMENU";
@@ -451,31 +450,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		popup.show();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.dvbviewer.controller.io.ResultReceiver.Receiver#onReceiveResult(int,
-	 * android.os.Bundle)
-	 */
-	@Override
-	public void onReceiveResult(int resultCode, Bundle resultData) {
-		switch (resultCode) {
-		case SyncService.STATUS_RUNNING:
-			setListShown(false);
-			break;
-		case SyncService.STATUS_ERROR:
-			setListShown(false);
-			break;
-		case SyncService.STATUS_FINISHED:
-			refresh(LOADER_CHANNELLIST);
-			break;
-
-		default:
-			break;
-		}
-
-	}
 
 	/**
 	 * Reads the current cursorposition to a Channel.

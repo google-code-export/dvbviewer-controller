@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.dvbviewer.controller.io;
+package org.dvbviewer.controller.io.data;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

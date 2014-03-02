@@ -28,8 +28,8 @@ import java.util.List;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.IEPG;
 import org.dvbviewer.controller.entities.Recording;
-import org.dvbviewer.controller.io.RecordingHandler;
 import org.dvbviewer.controller.io.ServerRequest;
+import org.dvbviewer.controller.io.data.RecordingHandler;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseActivity.AsyncCallback;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
@@ -72,7 +72,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import ch.boye.httpclientandroidlib.ParseException;
 import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;

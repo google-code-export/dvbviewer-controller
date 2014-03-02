@@ -25,10 +25,15 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 import org.acra.sender.HttpPostSender;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.io.imageloader.AuthImageDownloader;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import android.app.Application;
 import android.text.TextUtils;
@@ -114,6 +119,17 @@ public class App extends Application {
 			Thread wakeOnLanThread = new Thread(wakeOnLanRunnabel);
 			wakeOnLanThread.start();
 		}
+		
+		DisplayImageOptions options = new DisplayImageOptions.Builder()
+		.cacheInMemory(true)
+		.cacheOnDisc(true)
+		.build();
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+		.imageDownloader(new AuthImageDownloader(getApplicationContext()))
+		.defaultDisplayImageOptions(options)
+		.build();
+		
+		ImageLoader.getInstance().init(config);
 	}
 
 	

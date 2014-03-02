@@ -16,34 +16,20 @@
 package org.dvbviewer.controller.io;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.util.Log;
 import android.webkit.URLUtil;
 import ch.boye.httpclientandroidlib.Consts;
-import ch.boye.httpclientandroidlib.Header;
-import ch.boye.httpclientandroidlib.HeaderElement;
 import ch.boye.httpclientandroidlib.HttpEntity;
 import ch.boye.httpclientandroidlib.HttpException;
 import ch.boye.httpclientandroidlib.HttpHost;
 import ch.boye.httpclientandroidlib.HttpRequest;
 import ch.boye.httpclientandroidlib.HttpRequestInterceptor;
 import ch.boye.httpclientandroidlib.HttpResponse;
-import ch.boye.httpclientandroidlib.HttpResponseInterceptor;
 import ch.boye.httpclientandroidlib.HttpStatus;
 import ch.boye.httpclientandroidlib.HttpVersion;
 import ch.boye.httpclientandroidlib.ParseException;
@@ -61,9 +47,6 @@ import ch.boye.httpclientandroidlib.client.protocol.ClientContext;
 import ch.boye.httpclientandroidlib.conn.scheme.PlainSocketFactory;
 import ch.boye.httpclientandroidlib.conn.scheme.Scheme;
 import ch.boye.httpclientandroidlib.conn.scheme.SchemeRegistry;
-import ch.boye.httpclientandroidlib.conn.ssl.SSLSocketFactory;
-import ch.boye.httpclientandroidlib.conn.ssl.TrustStrategy;
-import ch.boye.httpclientandroidlib.entity.HttpEntityWrapper;
 import ch.boye.httpclientandroidlib.impl.auth.BasicScheme;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.impl.client.cache.CacheConfig;
@@ -156,15 +139,6 @@ public class ServerRequest {
 		return response;
 	}
 
-	class TrustAllStrategy implements TrustStrategy {
-
-		@Override
-		public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-			return true;
-		}
-
-	}
-
 	/**
 	 * Gets the http client.
 	 * 
@@ -175,11 +149,6 @@ public class ServerRequest {
 	private static HttpClient getHttpClient() {
 		if (httpClient == null) {
 			try {
-				SSLContext sslContext = SSLContext.getInstance("SSL");
-				sslContext.init(null, new TrustManager[] { new TrustAllTrustManager() }, new SecureRandom());
-				SSLSocketFactory sf = new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-				Scheme httpsScheme = new Scheme("https", 443, sf);
-
 				HttpParams httpParams = new BasicHttpParams();
 				// Set the timeout in milliseconds until a connection is
 				// established.
@@ -195,7 +164,7 @@ public class ServerRequest {
 
 				SchemeRegistry registry = new SchemeRegistry();
 				registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-				registry.register(httpsScheme);
+				registry.register(SSLUtil.getHttpsScheme());
 
 				HttpProtocolParams.setUseExpectContinue(httpParams, true);
 				PoolingClientConnectionManager connManager = new PoolingClientConnectionManager(registry);
@@ -204,8 +173,8 @@ public class ServerRequest {
 				AuthRequestInterceptor preemptiveAuth = new AuthRequestInterceptor();
 				httpClient = new DefaultHttpClient(connManager, httpParams);
 				httpClient.addRequestInterceptor(preemptiveAuth, 0);
-				httpClient.addRequestInterceptor(new GZipRequestInterceptor());
-				httpClient.addResponseInterceptor(new GZipResponseInterceptor());
+				httpClient.addRequestInterceptor(ZipUtil.getGzipRequestInterceptor());
+				httpClient.addResponseInterceptor(ZipUtil.getGZipResponseInterceptor());
 				CacheConfig cacheConfig = new CacheConfig();
 				cacheConfig.setMaxCacheEntries(1000);
 				cacheConfig.setMaxObjectSize(8192);
@@ -216,9 +185,7 @@ public class ServerRequest {
 				if (getRsAuthScope() != null) {
 					httpClient.getCredentialsProvider().setCredentials(getRsAuthScope(), getRsCredentials());
 				}
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			} catch (KeyManagementException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
@@ -538,77 +505,6 @@ public class ServerRequest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-
-	}
-
-	static class GZipResponseInterceptor implements HttpResponseInterceptor {
-
-		@Override
-		public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
-			HttpEntity entity = response.getEntity();
-			Header ceheader = entity.getContentEncoding();
-			if (ceheader != null) {
-				HeaderElement[] codecs = ceheader.getElements();
-				for (int i = 0; i < codecs.length; i++) {
-					if (codecs[i].getName().equalsIgnoreCase("gzip")) {
-						response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-						return;
-					}
-				}
-			}
-		}
-
-	}
-
-	static class GZipRequestInterceptor implements HttpRequestInterceptor {
-
-		public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
-			if (!request.containsHeader("Accept-Encoding")) {
-				request.addHeader("Accept-Encoding", "gzip");
-			}
-		}
-
-	}
-
-	static class GzipDecompressingEntity extends HttpEntityWrapper {
-
-		public GzipDecompressingEntity(final HttpEntity entity) {
-			super(entity);
-		}
-
-		@Override
-		public InputStream getContent() throws IOException, IllegalStateException {
-
-			// the wrapped entity's getContent() decides about repeatability
-			InputStream wrappedin = wrappedEntity.getContent();
-
-			return new GZIPInputStream(wrappedin);
-		}
-
-		@Override
-		public long getContentLength() {
-			// length of ungzipped content is not known
-			return -1;
-		}
-
-	}
-
-	public static class TrustAllTrustManager implements X509TrustManager {
-
-		@Override
-		public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-		}
-
-		@Override
-		public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-		}
-
-		@Override
-		public X509Certificate[] getAcceptedIssuers() {
-			return null;
 		}
 
 	}

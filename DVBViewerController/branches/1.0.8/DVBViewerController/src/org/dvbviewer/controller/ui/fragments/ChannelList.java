@@ -32,17 +32,16 @@ import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.entities.EpgEntry;
 import org.dvbviewer.controller.entities.Status;
 import org.dvbviewer.controller.entities.Timer;
-import org.dvbviewer.controller.io.ChannelHandler;
-import org.dvbviewer.controller.io.ChannelListParser;
-import org.dvbviewer.controller.io.EpgEntryHandler;
-import org.dvbviewer.controller.io.FavouriteHandler;
-import org.dvbviewer.controller.io.ResultReceiver.Receiver;
 import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
-import org.dvbviewer.controller.io.StatusHandler;
-import org.dvbviewer.controller.io.VersionHandler;
-import org.dvbviewer.controller.service.SyncService;
+import org.dvbviewer.controller.io.data.ChannelHandler;
+import org.dvbviewer.controller.io.data.ChannelListParser;
+import org.dvbviewer.controller.io.data.EpgEntryHandler;
+import org.dvbviewer.controller.io.data.FavouriteHandler;
+import org.dvbviewer.controller.io.data.StatusHandler;
+import org.dvbviewer.controller.io.data.VersionHandler;
+import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
@@ -91,7 +90,8 @@ import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.client.utils.URLEncodedUtils;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
-import de.rayba.imagecache.ImageCacher;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
  * The Class ChannelList.
@@ -99,7 +99,7 @@ import de.rayba.imagecache.ImageCacher;
  * @author RayBa
  * @date 05.07.2012
  */
-public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener, Receiver {
+public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cursor>, OnClickListener {
 
 	public static final String	KEY_SELECTED_POSITION		= "SELECTED_POSITION";
 	public static final String	KEY_HAS_OPTIONMENU			= "HAS_OPTIONMENU";
@@ -665,7 +665,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public class ChannelAdapter extends CursorAdapter {
 
 		Context		mContext;
-		ImageCacher	imageChacher;
+		ImageLoader	imageChacher;
 
 		/**
 		 * Instantiates a new channel adapter.
@@ -677,7 +677,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		public ChannelAdapter(Context context) {
 			super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 			mContext = context;
-			imageChacher = ImageCacher.getInstance(mContext);
+			imageChacher = ImageLoader.getInstance();
 		}
 
 		/*
@@ -690,6 +690,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		@Override
 		public void bindView(View view, Context context, Cursor c) {
 			ViewHolder holder = (ViewHolder) view.getTag();
+			imageChacher.cancelDisplayTask(holder.icon);
 			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
 			String epgTitle = c.getString(c.getColumnIndex(EpgTbl.TITLE));
@@ -723,7 +724,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
 				url.append("/");
 				url.append(logoUrl);
-				imageChacher.getImage(holder.icon, url.toString(), null, true);
+				imageChacher.displayImage(url.toString(), holder.icon, new AnimationLoadingListener());
 			}else{
 				holder.icon.setImageBitmap(null);
 			}
@@ -856,32 +857,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		default:
 			break;
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.dvbviewer.controller.io.ResultReceiver.Receiver#onReceiveResult(int,
-	 * android.os.Bundle)
-	 */
-	@Override
-	public void onReceiveResult(int resultCode, Bundle resultData) {
-		switch (resultCode) {
-		case SyncService.STATUS_RUNNING:
-			setListShown(false);
-			break;
-		case SyncService.STATUS_ERROR:
-			setListShown(false);
-			break;
-		case SyncService.STATUS_FINISHED:
-			refresh(LOADER_CHANNELLIST);
-			break;
-
-		default:
-			break;
-		}
-
 	}
 
 	/**

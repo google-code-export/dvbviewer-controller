@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.EpgTbl;
-import org.dvbviewer.controller.data.DbConsts.SqlSynatx;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.entities.EpgEntry;
@@ -39,7 +38,6 @@ import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.base.EpgLoader;
 import org.dvbviewer.controller.ui.phone.IEpgDetailsActivity;
 import org.dvbviewer.controller.ui.phone.TimerDetailsActivity;
-import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
@@ -53,7 +51,6 @@ import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.text.TextUtils;
@@ -61,6 +58,8 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
@@ -180,77 +179,72 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		Loader<Cursor> loader = null;
-		if (Config.SYNC_EPG && mCHannel != null) {
-			String where = EpgTbl.EPG_ID + SqlSynatx.EQUALS + mCHannel.getEpgID() + SqlSynatx.AND + EpgTbl.END + SqlSynatx.BETWEEN + mDateInfo.getEpgDate().getTime() + SqlSynatx.AND + DateUtils.addDay(mDateInfo.getEpgDate()).getTime();
-			loader = new CursorLoader(getActivity().getApplicationContext(), EpgTbl.CONTENT_URI, null, where, null, EpgTbl.END);
-		} else {
-			loader = new EpgLoader<Cursor>(getActivity().getApplicationContext(), mDateInfo) {
-				
-				@Override
-				protected void onForceLoad() {
-					super.onForceLoad();
-					setListShown(false);
-				}
-				
-				@Override
-				public Cursor loadInBackground() {
-					MatrixCursor cursor = null;
-					Date now = mDateInfo.getEpgDate();
-					String nowFloat = DateUtils.getFloatDate(now);
-					Date tommorrow = DateUtils.addDay(now);
-					String tommorrowFloat = DateUtils.getFloatDate(tommorrow);
-					String url = ServerConsts.URL_CHANNEL_EPG + mCHannel.getEpgID() + "&start=" + nowFloat + "&end=" + tommorrowFloat;
-					try {
-						List<EpgEntry> result = null;
-						EpgEntryHandler handler = new EpgEntryHandler();
-						String xml = ServerRequest.getRSString(url);
-						result = handler.parse(xml);
-						if (result != null && !result.isEmpty()) {
-							String[] columnNames = new String[] { EpgTbl._ID, EpgTbl.EPG_ID, EpgTbl.TITLE, EpgTbl.SUBTITLE, EpgTbl.DESC, EpgTbl.START, EpgTbl.END };
-							cursor = new MatrixCursor(columnNames);
-							for (EpgEntry entry : result) {
-								cursor.addRow(new Object[] { entry.getId(), entry.getEpgID(), entry.getTitle(), entry.getSubTitle(), entry.getDescription(), entry.getStart().getTime(), entry.getEnd().getTime() });
-							}
-						}
+		loader = new EpgLoader<Cursor>(getActivity().getApplicationContext(), mDateInfo) {
 
-					} catch (AuthenticationException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_invalid_credentials));
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (ConnectTimeoutException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_connection_timeout));
-					} catch (SAXException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_parsing_xml));
-					} catch (ParseException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
-					} catch (ClientProtocolException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
-					} catch (IOException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalStateException e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (IllegalArgumentException e) {
-						showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
-					} catch (Exception e) {
-						e.printStackTrace();
-						showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+			@Override
+			protected void onForceLoad() {
+				super.onForceLoad();
+				setListShown(false);
+			}
+
+			@Override
+			public Cursor loadInBackground() {
+				MatrixCursor cursor = null;
+				Date now = mDateInfo.getEpgDate();
+				String nowFloat = DateUtils.getFloatDate(now);
+				Date tommorrow = DateUtils.addDay(now);
+				String tommorrowFloat = DateUtils.getFloatDate(tommorrow);
+				String url = ServerConsts.URL_CHANNEL_EPG + mCHannel.getEpgID() + "&start=" + nowFloat + "&end=" + tommorrowFloat;
+				try {
+					List<EpgEntry> result = null;
+					EpgEntryHandler handler = new EpgEntryHandler();
+					String xml = ServerRequest.getRSString(url);
+					result = handler.parse(xml);
+					if (result != null && !result.isEmpty()) {
+						String[] columnNames = new String[] { EpgTbl._ID, EpgTbl.EPG_ID, EpgTbl.TITLE, EpgTbl.SUBTITLE, EpgTbl.DESC, EpgTbl.START, EpgTbl.END };
+						cursor = new MatrixCursor(columnNames);
+						for (EpgEntry entry : result) {
+							cursor.addRow(new Object[] { entry.getId(), entry.getEpgID(), entry.getTitle(), entry.getSubTitle(), entry.getDescription(), entry.getStart().getTime(), entry.getEnd().getTime() });
+						}
 					}
-					return cursor;
+
+				} catch (AuthenticationException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_invalid_credentials));
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_unknonwn_host) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (ConnectTimeoutException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_connection_timeout));
+				} catch (SAXException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_parsing_xml));
+				} catch (ParseException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+				} catch (IOException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (IllegalArgumentException e) {
+					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
+				} catch (Exception e) {
+					e.printStackTrace();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
 				}
-			};
-		}
-		
+				return cursor;
+			}
+		};
+
 		return loader;
 	}
 
@@ -442,7 +436,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 	 * @see com.actionbarsherlock.app.SherlockFragment#onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)
 	 */
 	@Override
-	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.channel_epg, menu);
 		menu.findItem(R.id.menuPrev).setEnabled(!DateUtils.isToday(mDateInfo.getEpgDate().getTime()));
@@ -495,7 +489,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 							args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
 							
 							timerdetails.setArguments(args);
-							timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+							timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 							return true;
 						}
 						return false;
@@ -657,7 +651,7 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd = c.getLong(c.getColumnIndex(EpgTbl.END));
-		DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
+		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
 		int epgBefore = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
 		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();

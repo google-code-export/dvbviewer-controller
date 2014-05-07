@@ -61,6 +61,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -73,6 +74,8 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -91,6 +94,9 @@ import ch.boye.httpclientandroidlib.client.utils.URLEncodedUtils;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
 
+import com.espian.showcaseview.ShowcaseView;
+import com.espian.showcaseview.ShowcaseViewBuilder;
+import com.espian.showcaseview.targets.ViewTarget;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
@@ -414,7 +420,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			setListShown(true);
 			break;
 		}
-		getSherlockActivity().invalidateOptionsMenu();
+		getActivity().supportInvalidateOptionsMenu();
 	}
 
 	/*
@@ -453,7 +459,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * .view.Menu, android.view.MenuInflater)
 	 */
 	@Override
-	public void onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.channel_list, menu);
 		for (int i = 0; i < menu.size(); i++) {
@@ -465,7 +471,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		}
 		menu.findItem(R.id.menuChannelList).setVisible(showFavs);
 		menu.findItem(R.id.menuFavourties).setVisible(!showFavs);
-		if (getSherlockActivity() instanceof ChannelListMultiActivity) {
+		if (getActivity() instanceof ChannelListMultiActivity) {
 			menu.findItem(R.id.menu_refresh_now_playing).setVisible(false);
 			menu.findItem(R.id.menuRefreshChannels).setVisible(false);
 		}
@@ -493,7 +499,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * android.view.MenuItem)
 	 */
 	@Override
-	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
 		switch (itemId) {
 		case R.id.menu_refresh_now_playing:
@@ -544,7 +550,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
 				args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
 				timerdetails.setArguments(args);
-				timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+				timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
 			} else {
 				Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
 				timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
@@ -558,21 +564,35 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			}
 			return true;
 		case R.id.menuStream:
-			if (UIUtils.isTablet(getActivity())) {
-				StreamConfig cfg = StreamConfig.newInstance();
-				Bundle arguments = new Bundle();
-				arguments.putInt(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-				cfg.setArguments(arguments);
-				cfg.show(getSherlockActivity().getSupportFragmentManager(), StreamConfig.class.getName());
-			} else {
-				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
-				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-				streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-				streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-				startActivity(streamConfig);
-			}
+			int wantedPosition = selectedPosition;
+			int firstPosition = getListView().getFirstVisiblePosition() - getListView().getHeaderViewsCount(); // This is the same as child #0
+			int wantedChild = wantedPosition - firstPosition;
+			View listItem = getListView().getChildAt(wantedChild);
+			View icon = listItem.findViewById(R.id.icon);
+			
+			ShowcaseView.ConfigOptions co = new ShowcaseView.ConfigOptions();
+            //can only dismiss by button click
+            co.hideOnClickOutside = false;
+            ViewTarget target = new ViewTarget(icon);
+            ShowcaseView showCase = ShowcaseView.insertShowcaseView(target, getActivity(),
+                    "Title", "Subtitle",co);
+            showCase.setBackgroundColor(getResources().getColor(R.color.black_transparent));
+			showCase.show();
+//			if (UIUtils.isTablet(getActivity())) {
+//				StreamConfig cfg = StreamConfig.newInstance();
+//				Bundle arguments = new Bundle();
+//				arguments.putInt(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
+//				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+//				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+//				cfg.setArguments(arguments);
+//				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
+//			} else {
+//				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
+//				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
+//				streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+//				streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+//				startActivity(streamConfig);
+//			}
 			return true;
 		case R.id.menuSwitch:
 			String switchRequest = ServerConsts.URL_SWITCH_COMMAND+chan.getPosition();
@@ -648,6 +668,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	private class ViewHolder {
 		CheckableLinearLayout	v;
 		ImageView				icon;
+		View 					iconContainer;
 		TextView				position;
 		TextView				channelName;
 		TextView				epgTime;
@@ -718,6 +739,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			}
 			holder.position.setText(!showFavs ? position.toString() : favPosition.toString());
 			holder.contextMenu.setTag(c.getPosition());
+			holder.iconContainer.setTag(c.getPosition());
 			holder.v.setChecked(getListView().isItemChecked(c.getPosition()));
 			
 			if (!TextUtils.isEmpty(logoUrl)) {
@@ -743,6 +765,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			ViewHolder holder = new ViewHolder();
 			View view = vi.inflate(R.layout.list_row_channel, null);
 			holder.v = (CheckableLinearLayout) view;
+			holder.iconContainer = view.findViewById(R.id.iconContainer);
 			holder.icon = (ImageView) view.findViewById(R.id.icon);
 			holder.position = (TextView) view.findViewById(R.id.position);
 			holder.channelName = (TextView) view.findViewById(R.id.title);
@@ -751,6 +774,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			holder.epgTitle = (TextView) view.findViewById(R.id.epgTitle);
 			holder.contextMenu = (ImageView) view.findViewById(R.id.contextMenu);
 			holder.contextMenu.setOnClickListener(ChannelList.this);
+			holder.iconContainer.setOnClickListener(ChannelList.this);
 			view.setTag(holder);
 			return view;
 		}
@@ -792,7 +816,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (!UIUtils.isTablet(getSherlockActivity())) {
+		if (!UIUtils.isTablet(getActivity())) {
 			clearSelection();
 		}
 	}
@@ -853,6 +877,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			selectedPosition = (Integer) v.getTag();
 			getListView().showContextMenu();
 			break;
+		case R.id.iconContainer:
+			selectedPosition = (Integer) v.getTag();
+//			getListView().showContextMenu();
+			break;
 
 		default:
 			break;
@@ -893,7 +921,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		String epgTitle = !c.isNull(c.getColumnIndex(EpgTbl.TITLE)) ? c.getString(c.getColumnIndex(EpgTbl.TITLE)) : name;
 		long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 		long epgEnd =  c.getLong(c.getColumnIndex(EpgTbl.END));
-		DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
+		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
 		int epgBefore = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 5);
 		int epgAfter = prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_AFTER, 5);
 		Date start = epgStart > 0 ? new Date(epgStart) : new Date();

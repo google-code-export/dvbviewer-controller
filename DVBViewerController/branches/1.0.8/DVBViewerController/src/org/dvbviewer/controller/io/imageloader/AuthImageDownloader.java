@@ -18,8 +18,10 @@ package org.dvbviewer.controller.io.imageloader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 
 import javax.net.ssl.HostnameVerifier;
@@ -28,10 +30,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.dvbviewer.controller.io.SSLUtil;
+import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.content.Context;
 import android.util.Log;
+import ch.boye.httpclientandroidlib.HttpEntity;
 import ch.boye.httpclientandroidlib.androidextra.Base64;
 
 import com.nostra13.universalimageloader.core.assist.FlushedInputStream;
@@ -71,29 +75,14 @@ public class AuthImageDownloader extends BaseImageDownloader {
 	 */
 	@Override
 	protected InputStream getStreamFromNetwork(String imageUri, Object extra) throws IOException {
-
-		URL url = null;
+		FlushedInputStream result = null;
 		try {
-			url = new URL(imageUri);
-		} catch (MalformedURLException e) {
-			Log.e(TAG, e.getMessage(), e);
+			result = new FlushedInputStream(ServerRequest.getInputStream(imageUri));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		HttpURLConnection http = null;
-
-		if (url.getProtocol().toLowerCase().equals("https")) {
-			trustAllHosts();
-			HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
-			https.setHostnameVerifier(DO_NOT_VERIFY);
-			https.setRequestProperty("Authorization", "Basic " + encodeCredentials());
-			http = https;
-			http.connect();
-		} else {
-			http = (HttpURLConnection) url.openConnection();
-		}
-		// URLConnection conn = imageUri.toURL().openConnection();
-		http.setConnectTimeout(connectTimeout);
-		http.setReadTimeout(readTimeout);
-		return new FlushedInputStream(new BufferedInputStream(http.getInputStream()));
+		return result;
 	}
 
 	// always verify the host - dont check for certificate
@@ -104,6 +93,7 @@ public class AuthImageDownloader extends BaseImageDownloader {
 															return true;
 														}
 													};
+													
 
 	/**
 	 * Encode credentials.

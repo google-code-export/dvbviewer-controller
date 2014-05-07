@@ -79,7 +79,6 @@ public class App extends Application {
 		DVBViewerPreferences prefs = new DVBViewerPreferences(this);
 		Config.IS_FIRST_START = prefs.getBoolean(DVBViewerPreferences.KEY_IS_FIRST_START, true);
 		Config.CHANNELS_SYNCED = prefs.getBoolean(DVBViewerPreferences.KEY_CHANNELS_SYNCED, false);
-		Config.SYNC_EPG = prefs.getBoolean(DVBViewerPreferences.KEY_SYNC_EPG, false);
 
 		/**
 		 * Read DVBViewer preferences
@@ -128,7 +127,7 @@ public class App extends Application {
 		.imageDownloader(new AuthImageDownloader(getApplicationContext()))
 		.defaultDisplayImageOptions(options)
 		.build();
-		
+
 		ImageLoader.getInstance().init(config);
 	}
 

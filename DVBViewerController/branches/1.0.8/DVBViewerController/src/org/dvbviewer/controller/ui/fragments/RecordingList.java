@@ -16,6 +16,9 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -49,12 +52,16 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -69,10 +76,6 @@ import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * The Class RecordingList.
@@ -111,7 +114,8 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 		setEmptyText(getResources().getString(R.string.no_recordings));
 		getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		if (mode != null) {
-			mode = getSherlockActivity().startActionMode(this);
+			ActionBarActivity activity = (ActionBarActivity) getActivity();
+			mode = activity.startSupportActionMode(this);
 		}
 	}
 
@@ -120,7 +124,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public Loader<List<Recording>> onCreateLoader(int arg0, Bundle arg1) {
-		AsyncLoader<List<Recording>> loader = new AsyncLoader<List<Recording>>(getActivity()) {
+		AsyncLoader<List<Recording>> loader = new AsyncLoader<List<Recording>>(getActivity().getApplicationContext()) {
 
 			@Override
 			public List<Recording> loadInBackground() {
@@ -144,13 +148,25 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 					showToast(getStringSafely(R.string.error_parsing_xml));
 				} catch (ParseException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (IOException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (URISyntaxException e) {
 					e.printStackTrace();
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
@@ -161,7 +177,11 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (Exception e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				}
 				return result;
 			}
@@ -254,7 +274,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 			Recording o = getItem(position);
 			if (o != null) {
 				holder.check.setTag(position);
-				holder.layout.setChecked(getListView().isItemChecked(position));
+//				holder.layout.setChecked(getListView().isItemChecked(position));
 				holder.title.setText(o.getTitle());
 				if (TextUtils.isEmpty(o.getSubTitle())) {
 					holder.subTitle.setVisibility(View.GONE);
@@ -298,7 +318,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		getSherlockActivity().getSupportMenuInflater().inflate(R.menu.actionmode_recording, menu);
+		getActivity().getMenuInflater().inflate(R.menu.actionmode_recording, menu);
 		return true;
 	}
 
@@ -335,7 +355,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		clearSelection();
+			clearSelection();
 	}
 
 	/**
@@ -360,7 +380,8 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int count = getCheckedItemCount();
 		if (mode == null && count > 0) {
-			mode = getSherlockActivity().startActionMode(RecordingList.this);
+			ActionBarActivity activty = (ActionBarActivity) getActivity();
+			mode = activty.startSupportActionMode(RecordingList.this);
 		} else if (count <= 0) {
 			if (mode != null) {
 				mode.finish();
@@ -401,7 +422,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_RECORDING);
 				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
 				cfg.setArguments(arguments);
-				cfg.show(getSherlockActivity().getSupportFragmentManager(), StreamConfig.class.getName());
+				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
 			} else {
 				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
 				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, (int) mAdapter.getItem(selectedPosition).getId());
@@ -533,9 +554,7 @@ public class RecordingList extends BaseListFragment implements AsyncCallback, Lo
 	public void onClick(DialogInterface dialog, int which) {
 		switch (which) {
 		case DialogInterface.BUTTON_POSITIVE:
-			Log.i(RecordingList.class.getSimpleName(), "onClick");
 			SparseBooleanArray checkedPositions = getListView().getCheckedItemPositions();
-			Log.i(RecordingList.class.getSimpleName(), "items selected: " + checkedPositions.size());
 			if (checkedPositions != null && checkedPositions.size() > 0) {
 
 				int size = checkedPositions.size();

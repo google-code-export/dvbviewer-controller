@@ -22,6 +22,7 @@ import org.dvbviewer.controller.utils.ActionID;
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
@@ -37,15 +38,13 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import com.actionbarsherlock.app.SherlockFragment;
-
 /**
  * The Class Remote.
  *
  * @author RayBa
  * @date 07.04.2013
  */
-public class Remote extends SherlockFragment implements OnTouchListener, OnClickListener, OnLongClickListener {
+public class Remote extends Fragment implements OnTouchListener, OnClickListener, OnLongClickListener {
 
 	// Controller Buttons
 	private Button			btnMoveUp			= null;
@@ -429,7 +428,7 @@ public class Remote extends SherlockFragment implements OnTouchListener, OnClick
 	 */
 	protected void showToast(String message) {
 		if (getActivity() != null) {
-			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getSherlockActivity(), message);
+			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
 			getActivity().runOnUiThread(errorRunnable);
 		}
 	}

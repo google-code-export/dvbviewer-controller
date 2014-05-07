@@ -36,6 +36,8 @@ import android.app.Activity;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,7 +51,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.actionbarsherlock.app.SherlockDialogFragment;
 
 /**
  * The Class TimerDetails.
@@ -57,7 +58,7 @@ import com.actionbarsherlock.app.SherlockDialogFragment;
  * @author RayBa
  * @date 07.04.2013
  */
-public class TimerDetails extends SherlockDialogFragment implements OnDateSetListener, OnClickListener, OnLongClickListener {
+public class TimerDetails extends DialogFragment implements OnDateSetListener, OnClickListener, OnLongClickListener {
 
 	public static final int			TIMER_CHANGED		= 0;
 	public static final int			RESULT_CHANGED		= 1;
@@ -97,7 +98,7 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		super.onCreate(savedInstanceState);
 		cal = GregorianCalendar.getInstance();
 		Date now = new Date();
-		prefs = new DVBViewerPreferences(getSherlockActivity());
+		prefs = new DVBViewerPreferences(getActivity());
 		if (timer == null && savedInstanceState == null) {
 			timer = new Timer();
 			timer.setId(getArguments().getLong(EXTRA_ID, -1l));
@@ -161,7 +162,8 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		getSherlockActivity().getSupportActionBar().setTitle(R.string.details);
+		ActionBarActivity activity = (ActionBarActivity) getActivity();
+		activity.getSupportActionBar().setSubtitle(R.string.details);
 		if (timer != null) {
 			titleField.setText(timer.getTitle());
 			dateField.setDate(timer.getStart());
@@ -289,15 +291,15 @@ public class TimerDetails extends SherlockDialogFragment implements OnDateSetLis
 		switch (v.getId()) {
 		case R.id.dateField:
 			f = DateDialogFragment.newInstance(getActivity(), (OnDateSetListener) TimerDetails.this, dateField.getDate());
-			f.show(getSherlockActivity().getSupportFragmentManager(), "datepicker");
+			f.show(getActivity().getSupportFragmentManager(), "datepicker");
 			break;
 		case R.id.startField:
 			f = DateDialogFragment.newInstance(getActivity(), startTimeSetListener, startField.getDate());
-			f.show(getSherlockActivity().getSupportFragmentManager(), "startTimePicker");
+			f.show(getActivity().getSupportFragmentManager(), "startTimePicker");
 			break;
 		case R.id.stopField:
 			f = DateDialogFragment.newInstance(getActivity(), stopTimeSetListener, stopField.getDate());
-			f.show(getSherlockActivity().getSupportFragmentManager(), "stopTimePicker");
+			f.show(getActivity().getSupportFragmentManager(), "stopTimePicker");
 			break;
 		case R.id.buttonCancel:
 			if (mOntimeredEditedListener != null) {

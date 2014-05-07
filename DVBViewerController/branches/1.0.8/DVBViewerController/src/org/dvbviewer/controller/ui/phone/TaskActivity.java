@@ -20,8 +20,7 @@ import org.dvbviewer.controller.ui.fragments.TaskList;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-
-import com.actionbarsherlock.view.MenuItem;
+import android.view.MenuItem;
 
 /**
  * The Class TaskActivity.

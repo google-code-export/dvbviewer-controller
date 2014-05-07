@@ -16,13 +16,13 @@
 package org.dvbviewer.controller.ui.base;
 
 
-import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.utils.UIUtils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
@@ -39,8 +39,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockFragment;
-
 /**
  * Static library support version of the framework's {@link android.app.ListFragment}.
  * Used to write apps that run on platforms prior to Android 3.0.  When running
@@ -51,7 +49,7 @@ import com.actionbarsherlock.app.SherlockFragment;
  * @author RayBa
  * @date 07.04.2013
  */
-public class BaseListFragment extends SherlockFragment {
+public class BaseListFragment extends Fragment {
 	static final int								INTERNAL_EMPTY_ID				= android.R.id.empty;
 	static final int								INTERNAL_PROGRESS_CONTAINER_ID	= android.R.id.progress;
 	static final int								INTERNAL_LIST_CONTAINER_ID		= android.R.id.content;
@@ -509,17 +507,17 @@ public class BaseListFragment extends SherlockFragment {
 	 * @date 07.04.2013
 	 */
 	protected void showToast(final String message) {
-		if (getSherlockActivity() != null && !isDetached()) {
+		if (getActivity() != null && !isDetached()) {
 			Runnable errorRunnable = new Runnable() {
 
 				@Override
 				public void run() {
 					if (!TextUtils.isEmpty(message)) {
-						Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_LONG).show();
+						Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
 					}
 				}
 			};
-			getSherlockActivity().runOnUiThread(errorRunnable);
+			getActivity().runOnUiThread(errorRunnable);
 		}
 	}
 	

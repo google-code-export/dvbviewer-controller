@@ -30,8 +30,7 @@ import org.dvbviewer.controller.ui.fragments.EpgPager;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-
-import com.actionbarsherlock.view.MenuItem;
+import android.view.MenuItem;
 
 /**
  * The Class ChannelListMultiActivity.
@@ -124,7 +123,7 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		default:
 			return false;
 		}
-		invalidateOptionsMenu();
+		supportInvalidateOptionsMenu();
 		return true;
 	}
 

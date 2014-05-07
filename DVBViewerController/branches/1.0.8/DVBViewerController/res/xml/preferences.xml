@@ -37,11 +37,4 @@
             android:summary="@string/pref_item_channel_fav_summary"
             android:title="@string/pref_item_channel_fav" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/pref_seperator_stream" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="KEY_STREAM_EXTERNAL_PLAYER"
-            android:summary="@string/pref_item_stream_use_external_player_summary"
-            android:title="@string/pref_item_stream_use_external_player" />
-    </PreferenceCategory>
 </PreferenceScreen>

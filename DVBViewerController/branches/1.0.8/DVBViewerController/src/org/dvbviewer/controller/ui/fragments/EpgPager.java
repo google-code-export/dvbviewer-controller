@@ -17,6 +17,7 @@ package org.dvbviewer.controller.ui.fragments;
 
 import java.util.Date;
 import java.util.List;
+
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.entities.Channel;
@@ -24,6 +25,7 @@ import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.UIUtils;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.database.Cursor;
@@ -37,12 +39,12 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
 
 /**
  * The Class EpgPager.
@@ -50,7 +52,7 @@ import com.actionbarsherlock.view.MenuInflater;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor>{
+public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 
 	List<Channel>		mChannels;
 	int					mPosition = AdapterView.INVALID_POSITION;
@@ -130,7 +132,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 	 */
 	@SuppressLint("NewApi")
 	@Override
-	public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
 		EpgDateInfo info = (EpgDateInfo) getActivity();
 		int itemId = item.getItemId();
@@ -155,7 +157,7 @@ public class EpgPager extends SherlockFragment implements LoaderCallbacks<Cursor
 		default:
 			return false;
 		}
-		getSherlockActivity().invalidateOptionsMenu();
+		getActivity().supportInvalidateOptionsMenu();
 		ChannelEpg mCurrent;
 		mCurrent = (ChannelEpg) mAdapter.instantiateItem(mPager, mPager.getCurrentItem());
 		mCurrent.refresh(true);

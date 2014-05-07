@@ -16,6 +16,7 @@
 package org.dvbviewer.controller.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -312,6 +313,27 @@ public class ServerRequest {
 			break;
 		}
 		return result;
+	}
+	
+	public static InputStream getInputStream(String request) throws Exception {
+		HttpEntity result = null;
+		HttpClient client = getHttpClient();
+		URI uri = null;
+		uri = new URI(request);
+		HttpGet getMethod = new HttpGet(uri);
+		HttpResponse res = executeGet(client, getMethod, true);
+		
+		StatusLine status = res.getStatusLine();
+		switch (status.getStatusCode()) {
+		
+		case HttpStatus.SC_OK:
+			result = res.getEntity();
+			break;
+			
+		default:
+			break;
+		}
+		return result.getContent();
 	}
 
 	/**

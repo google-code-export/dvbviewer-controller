@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated with http://android-holo-colors.com -->
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <style name="EditTextHoloDark" parent="android:Widget.EditText">
         <item name="android:background">@drawable/edit_text_holo_dark</item>
@@ -33,7 +33,7 @@
     </style>
 
     <style name="SpinnerHoloDark" parent="android:Widget.Spinner">
-        <item name="android:popupBackground">@drawable/abs__menu_dropdown_panel_holo_dark</item>
+        <item name="android:popupBackground">@drawable/abc_menu_dropdown_panel_holo_dark</item>
         <item name="android:background">@drawable/spinner_background_holo_dark</item>
         <item name="android:dropDownSelector">@drawable/list_selector_holo_dark</item>
     </style>
@@ -43,7 +43,7 @@
     </style>
 
     <style name="SpinnerDropDown">
-        <item name="android:spinnerMode">dropdown</item>
+        <item name="android:spinnerMode" tools:ignore="NewApi">dropdown</item>
     </style>
 
     <style name="SpinnerDropDownItemHoloDark" parent="android:Widget.DropDownItem.Spinner">

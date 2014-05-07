@@ -20,20 +20,15 @@ import java.util.regex.Pattern;
 import android.text.TextUtils;
 
 /**
- * The Class ServerConsts.
  * * @author RayBa
  * @date 13.04.2012
  */
-public class Config {
-
+public class Config { 
 	/** The is first start. */
 	public static boolean	IS_FIRST_START			= false;
 	
 	/** The rs profile names. */
 	public static String[]	RS_PROFILE_NAMES		= null;
-	
-	/** The sync epg. */
-	public static boolean	SYNC_EPG				= false;
 	
 	/** The channels synced. */
 	public static boolean	CHANNELS_SYNCED			= false;

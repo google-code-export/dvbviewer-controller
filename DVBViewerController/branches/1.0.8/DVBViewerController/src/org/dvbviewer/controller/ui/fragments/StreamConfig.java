@@ -23,7 +23,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
-import org.dvbviewer.controller.ui.phone.VideoPlayerActivity;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.UIUtils;
 
@@ -38,6 +37,7 @@ import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,15 +51,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.actionbarsherlock.app.SherlockDialogFragment;
-
 /**
  * The Class StreamConfig.
  *
  * @author RayBa
  * @date 07.04.2013
  */
-public class StreamConfig extends SherlockDialogFragment implements OnClickListener, DialogInterface.OnClickListener, OnItemSelectedListener {
+public class StreamConfig extends DialogFragment implements OnClickListener, DialogInterface.OnClickListener, OnItemSelectedListener {
 
 	public static final String	TAG_URI					= "_uri";
 	public static final String	EXTRA_FILE_ID			= "_fileID";
@@ -110,7 +108,7 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 		mStreamType = getArguments().getInt(EXTRA_FILE_TYPE, STREAM_TYPE_DIRECT);
 		seekable = mFileType != FILE_TYPE_LIVE && mStreamType != STREAM_TYPE_DIRECT;
 		if (seekable) {
-			DVBViewerPreferences prefs = new DVBViewerPreferences(getSherlockActivity());
+			DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
 			preTime = String.valueOf(prefs.getPrefs().getInt(DVBViewerPreferences.KEY_TIMER_TIME_BEFORE, 0));
 		}
 	}
@@ -341,17 +339,10 @@ public class StreamConfig extends SherlockDialogFragment implements OnClickListe
 		}
 		Log.i(StreamConfig.class.getSimpleName(), "url: " + videoUrl);
 
-		DVBViewerPreferences prefs = new DVBViewerPreferences(getActivity());
-		boolean external = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_STREAM_EXTERNAL_PLAYER, true);
 		Intent videoIntent;
-		if (external) {
-			videoType = "video/mpeg";
-			videoIntent = new Intent(Intent.ACTION_VIEW);
-			videoIntent.setDataAndType(Uri.parse(videoUrl), videoType);
-		} else {
-			videoIntent = new Intent(getActivity(), VideoPlayerActivity.class);
-			videoIntent.setData(Uri.parse(videoUrl));
-		}
+		videoType = "video/mpeg";
+		videoIntent = new Intent(Intent.ACTION_VIEW);
+		videoIntent.setDataAndType(Uri.parse(videoUrl), videoType);
 		return videoIntent;
 	}
 

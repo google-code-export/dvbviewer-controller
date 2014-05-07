@@ -20,8 +20,7 @@ import org.dvbviewer.controller.ui.fragments.StatusList;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-
-import com.actionbarsherlock.view.MenuItem;
+import android.view.MenuItem;
 
 /**
  * Phone Activity for {@link StatusFragment}

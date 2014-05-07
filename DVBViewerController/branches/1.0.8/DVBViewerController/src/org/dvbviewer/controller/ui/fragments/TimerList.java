@@ -16,6 +16,9 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -47,9 +50,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
+import android.support.v7.view.ActionMode.Callback;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -63,11 +72,6 @@ import ch.boye.httpclientandroidlib.auth.AuthenticationException;
 import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.ActionMode.Callback;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * The Class TimerList.
@@ -75,7 +79,7 @@ import com.actionbarsherlock.view.MenuItem;
  * @author RayBa
  * @date 07.04.2013
  */
-public class TimerList extends BaseListFragment implements AsyncCallback, LoaderCallbacks<List<Timer>>, Callback, OnClickListener, OnCheckedChangeListener, android.view.View.OnClickListener  {
+public class TimerList extends BaseListFragment implements AsyncCallback, LoaderCallbacks<List<Timer>>, Callback, OnClickListener, OnCheckedChangeListener, View.OnClickListener {
 
 	TimerAdapter	mAdapter;
 	ActionMode		mode;
@@ -103,7 +107,8 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		setEmptyText(getResources().getString(R.string.no_timer));
 		if (mode != null) {
-			mode = getSherlockActivity().startActionMode(this);
+			ActionBarActivity activty = (ActionBarActivity) getActivity();
+			mode = activty.startSupportActionMode(this);
 		}
 	}
 
@@ -131,9 +136,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 					String xml = ServerRequest.getRSString("/api/timerlist.html?utf8=255");
 					TimerHandler hanler = new TimerHandler();
 					result = hanler.parse(xml);
-					if (result != null) {
-						Collections.sort(result);
-					}
+					Collections.sort(result);
 				} catch (AuthenticationException e) {
 					e.printStackTrace();
 					showToast(getStringSafely(R.string.error_invalid_credentials));
@@ -148,13 +151,25 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 					showToast(getStringSafely(R.string.error_parsing_xml));
 				} catch (ParseException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (IOException e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				} catch (URISyntaxException e) {
 					e.printStackTrace();
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
@@ -165,7 +180,11 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 					showToast(getStringSafely(R.string.error_invalid_url) + "\n\n" + ServerConsts.REC_SERVICE_URL);
 				} catch (Exception e) {
 					e.printStackTrace();
-					showToast(getStringSafely(R.string.error_common) + "\n\n" + e.getMessage());
+					Writer writer = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(writer);
+					e.printStackTrace(printWriter);
+					String s = writer.toString();
+					showToast(getStringSafely(R.string.error_common) + "\n\n" + s);
 				}
 				return result;
 			}
@@ -239,7 +258,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 			ViewHolder holder;
 			if (convertView == null) {
 				LayoutInflater vi = getActivity().getLayoutInflater();
-				convertView = vi.inflate(R.layout.list_row_timer, null);
+				convertView = vi.inflate(R.layout.list_item_timer, null);
 				holder = new ViewHolder();
 				holder.layout = (ClickableRelativeLayout) convertView;
 				holder.recIndicator = (ImageView) convertView.findViewById(R.id.recIndicator);
@@ -248,17 +267,18 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 				holder.channelName = (TextView) convertView.findViewById(R.id.channelName);
 				holder.date = (TextView) convertView.findViewById(R.id.date);
 				holder.check = (CheckBox) convertView.findViewById(R.id.checkIndicator);
-				convertView.setTag(holder);
 				holder.check.setOnCheckedChangeListener(TimerList.this);
-				holder.check.setOnClickListener(TimerList.this);
+				holder.check.setOnClickListener(TimerList.this); 
+				convertView.setTag(holder);
 			} else {
 				holder = (ViewHolder) convertView.getTag();
 			}
 			Timer o = getItem(position);
 			if (o != null) {
+				holder.check.setTag(position);
+//				holder.layout.setChecked(getListView().isItemChecked(position));
 				holder.title.setText(o.getTitle());
 				holder.channelName.setText(o.getChannelName());
-				holder.check.setTag(position);
 				String date = DateUtils.getDateInLocalFormat(o.getStart());
 				if (DateUtils.isToday(o.getStart().getTime())) {
 					date = getResources().getString(R.string.today);
@@ -267,10 +287,10 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 				}
 				holder.layout.setError(o.isFlagSet(Timer.FLAG_EXECUTABLE));
 				holder.layout.setDisabled(o.isFlagSet(Timer.FLAG_DISABLED));
-				holder.layout.setChecked(getListView().isItemChecked(position));
 				String start = DateUtils.getTimeInLocalFormat(o.getStart());
 				String end = DateUtils.getTimeInLocalFormat(o.getEnd());
 				holder.date.setText(date + "  " + start + " - " + end);
+//				imageChacher.getImage(holder.icon, ServerConsts.URL_CHANNEL_LOGO + URLEncoder.encode(o.getChannelName()), null, true);
 				holder.recIndicator.setVisibility(o.isFlagSet(Timer.FLAG_RECORDING) ? View.VISIBLE : View.GONE);
 			}
 
@@ -279,40 +299,40 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
-	 */
-	@Override
-	public void onListItemClick(ListView parent, View view, int position, long id) {
-		if (UIUtils.isTablet(getActivity())) {
-			Timer timer = mAdapter.getItem(position);
-			TimerDetails timerdetails = TimerDetails.newInstance();
-			Bundle args = new Bundle();
-			args.putLong(TimerDetails.EXTRA_ID, timer.getId());
-			args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-			args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-			args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-			args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-			args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-			args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-			args.putBoolean(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
-			timerdetails.setArguments(args);
-			timerdetails.show(getSherlockActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-			onDestroyActionMode(mode);
-		}else {
-			getListView().setItemChecked(position, !getListView().isItemChecked(position));
-			Timer timer = mAdapter.getItem(position);
-			Intent i = new Intent(getActivity(), TimerDetailsActivity.class);
-			i.putExtra(TimerDetails.EXTRA_ID, timer.getId());
-			i.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-			i.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-			i.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-			i.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-			i.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-			i.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-			i.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
-			startActivityForResult(i, TimerDetails.TIMER_CHANGED);
-		}
-	}
+     * @see org.dvbviewer.controller.ui.base.BaseListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
+     */
+    @Override
+    public void onListItemClick(ListView parent, View view, int position, long id) {
+            if (UIUtils.isTablet(getActivity())) {
+                    Timer timer = mAdapter.getItem(position);
+                    TimerDetails timerdetails = TimerDetails.newInstance();
+                    Bundle args = new Bundle();
+                    args.putLong(TimerDetails.EXTRA_ID, timer.getId());
+                    args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    args.putBoolean(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+                    timerdetails.setArguments(args);
+                    timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+                    onDestroyActionMode(mode);
+            }else {
+                    getListView().setItemChecked(position, !getListView().isItemChecked(position));
+                    Timer timer = mAdapter.getItem(position);
+                    Intent i = new Intent(getActivity(), TimerDetailsActivity.class);
+                    i.putExtra(TimerDetails.EXTRA_ID, timer.getId());
+                    i.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+                    i.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+                    i.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+                    i.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+                    i.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+                    i.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+                    i.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+                    startActivityForResult(i, TimerDetails.TIMER_CHANGED);
+            }
+    }
 
 	/* (non-Javadoc)
 	 * @see android.support.v4.app.Fragment#onActivityResult(int, int, android.content.Intent)
@@ -342,7 +362,8 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		getListView().setItemChecked((Integer) buttonView.getTag(), isChecked);
 		int checkedCount = getCheckedItemCount();
 		if (mode == null && checkedCount > 0) {
-			mode = getSherlockActivity().startActionMode(TimerList.this);
+			ActionBarActivity activity = (ActionBarActivity) getActivity();
+			mode = activity.startSupportActionMode(TimerList.this);
 		} else if (checkedCount <= 0) {
 			if (mode != null) {
 				mode.finish();
@@ -359,7 +380,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		getSherlockActivity().getSupportMenuInflater().inflate(R.menu.actionmode_recording, menu);
+		getActivity().getMenuInflater().inflate(R.menu.actionmode_recording, menu);
 		return true;
 	}
 
@@ -473,7 +494,7 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 	 */
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
-		clearSelection();
+			clearSelection();
 	}
 
 	/**
@@ -496,7 +517,6 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 		switch (which) {
 		case DialogInterface.BUTTON_POSITIVE:
 			SparseBooleanArray checkedPositions = getListView().getCheckedItemPositions();
-			Log.i(RecordingList.class.getSimpleName(), "items selected: " + checkedPositions.size());
 			if (checkedPositions != null && checkedPositions.size() > 0) {
 				int size = checkedPositions.size();
 				TimerDeleter deleter = new TimerDeleter(TimerList.this);
@@ -569,10 +589,9 @@ public class TimerList extends BaseListFragment implements AsyncCallback, Loader
 
 	@Override
 	public void onClick(View v) {
-		/**
-		* just for the click sound on touchevent :-)
-		* TODO: handled this in the checkable view
-		*/
+		// TODO Auto-generated method stub
+		
 	}
+
 
 }

@@ -20,13 +20,13 @@ import org.dvbviewer.controller.entities.IEPG;
 import org.dvbviewer.controller.utils.DateUtils;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.actionbarsherlock.app.SherlockFragment;
 
 /**
  * The Class EPGDetails.
@@ -34,7 +34,7 @@ import com.actionbarsherlock.app.SherlockFragment;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EPGDetails extends SherlockFragment  {
+public class EPGDetails extends Fragment  {
 	
 
 	IEPG epg;
@@ -46,7 +46,8 @@ public class EPGDetails extends SherlockFragment  {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getSherlockActivity().getSupportActionBar().setTitle(R.string.details);
+		ActionBarActivity activity = (ActionBarActivity) getActivity();
+		activity.getSupportActionBar().setTitle(R.string.details);
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
 		epg = getActivity().getIntent().getParcelableExtra(IEPG.class.getSimpleName());

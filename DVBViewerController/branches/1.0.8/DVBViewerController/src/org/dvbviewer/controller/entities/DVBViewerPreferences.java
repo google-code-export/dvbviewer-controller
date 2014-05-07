@@ -57,11 +57,7 @@ public class DVBViewerPreferences {
 	public static final String	KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY	= "KEY_CHANNELS_SHOW_NOW_PLAYING_WIFI_ONLY";
 	public static final String	KEY_CHANNELS_USE_FAVS					= "KEY_CHANNELS_USE_FAVS";
 	public static final String	KEY_CHANNELS_SYNCED						= "KEY_CHANNELS_SYNCED";
-	public static final String	KEY_STREAM_EXTERNAL_PLAYER				= "KEY_STREAM_EXTERNAL_PLAYER";
 	public static final String	KEY_STREAM_USE_TIME_BEFORE				= "KEY_STREAM_USE_TIME_BEFORE";
-	public static final String	KEY_SYNC_EPG							= "KEY_SYNC_EPG";
-	public static final String	KEY_DAYS_TO_SYNC						= "KEY_DAYS_TO_SYNC";
-	public static final String	KEY_SYNC_ONLY_FAVS						= "KEY_SYNC_ONLY_FAVS";
 	public static final String	KEY_TIMER_TIME_BEFORE					= "KEY_TIMER_TIME_BEFORE";
 	public static final String	KEY_TIMER_TIME_AFTER					= "KEY_TIMER_TIME_AFTER";
 	public static final String	KEY_TIMER_DEF_AFTER_RECORD				= "KEY_TIMER_DEF_AFTER_RECORD";

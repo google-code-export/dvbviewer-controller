@@ -126,7 +126,7 @@
     <string name="firstStartMessageTitle">Keine Verbindungseinstellungen gefunden</string>
     <string name="firstStartMessage">Es wurden keine Verbindungseinstellungen gefunden.\n\nMöchten Sie zu den Einstellungen wechseln</string>
     <string name="confirmDelete">Ausgewählte Elemente löschen?</string>
-    <string name="noFlashPlayerFound">Es wurde kein Flashfähiger VideoPlayer gefunden.\nSoll der interne Player verwendet werden?</string>
+    <string name="noFlashPlayerFound">Es wurde kein geeigneter VideoPlayer gefunden.\nBitte einen Mpeg/Flashfähigen player installieren! </string>
 
     <!-- Preferences -->
     <string name="preferences">Einstellungen</string>
@@ -187,5 +187,8 @@
     <string name="error_invalid_url">Ungültige URL</string>
     <string name="error_invalid_credentials">Authentifizierung fehlgeschlagen</string>
      <string name="support_this_app">Die App unterstützen</string>
+     
+     <string name="quick_stream_hint_title">Sender streamen</string>
+     <string name="quick_stream_hint_text">Starte einen Stream indem du auf das Senderlogo clickst</string>
 
 </resources>

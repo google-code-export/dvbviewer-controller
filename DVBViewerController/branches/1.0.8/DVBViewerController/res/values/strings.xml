@@ -125,7 +125,7 @@
     <string name="firstStartMessageTitle">No Connection Settings Found</string>
     <string name="firstStartMessage">No conenction settings found.\n\nDo you want to switch to the settings?</string>
     <string name="confirmDelete">Delete selected Items?</string>
-    <string name="noFlashPlayerFound">No Flash-capable video player has been found. \nDo you want to use the internal player?</string>
+    <string name="noFlashPlayerFound">No suitable video player has been found. \nPlease install a Mpeg/Flash-capable player.</string>
 
     <!-- Preferences -->
     <string name="preferences">Settings</string>
@@ -186,5 +186,7 @@
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_invalid_credentials">Authentication failed</string>
     <string name="support_this_app">Support this App</string>
+    <string name="quick_stream_hint_title">Stream Channel</string>
+    <string name="quick_stream_hint_text">Start a stream by clicking on the channel logo</string>
 
 </resources>

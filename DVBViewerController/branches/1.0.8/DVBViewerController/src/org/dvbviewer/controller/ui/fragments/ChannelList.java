@@ -44,6 +44,7 @@ import org.dvbviewer.controller.io.data.VersionHandler;
 import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
+import org.dvbviewer.controller.ui.phone.EpgPagerActivity;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
 import org.dvbviewer.controller.ui.phone.TimerDetailsActivity;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
@@ -57,13 +58,15 @@ import org.xml.sax.SAXException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -95,7 +98,6 @@ import ch.boye.httpclientandroidlib.conn.ConnectTimeoutException;
 import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
 
 import com.espian.showcaseview.ShowcaseView;
-import com.espian.showcaseview.ShowcaseViewBuilder;
 import com.espian.showcaseview.targets.ViewTarget;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -535,64 +537,17 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		Cursor c = mAdapter.getCursor();
 		c.moveToPosition(selectedPosition);
 		Channel chan = cursorToChannel(c);
-		Timer timer;
 		switch (item.getItemId()) {
 		case R.id.menuTimer:
-			timer = cursorToTimer(c);
-			if (UIUtils.isTablet(getActivity())) {
-				TimerDetails timerdetails = TimerDetails.newInstance();
-				Bundle args = new Bundle();
-				args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
-				timerdetails.setArguments(args);
-				timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
-			} else {
-				Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
-				timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
-				timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
-				timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
-				timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
-				timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
-				startActivity(timerIntent);
-			}
+			showTimerDialog(c);
 			return true;
 		case R.id.menuStream:
-			int wantedPosition = selectedPosition;
-			int firstPosition = getListView().getFirstVisiblePosition() - getListView().getHeaderViewsCount(); // This is the same as child #0
-			int wantedChild = wantedPosition - firstPosition;
-			View listItem = getListView().getChildAt(wantedChild);
-			View icon = listItem.findViewById(R.id.icon);
-			
-			ShowcaseView.ConfigOptions co = new ShowcaseView.ConfigOptions();
-            //can only dismiss by button click
-            co.hideOnClickOutside = false;
-            ViewTarget target = new ViewTarget(icon);
-            ShowcaseView showCase = ShowcaseView.insertShowcaseView(target, getActivity(),
-                    "Title", "Subtitle",co);
-            showCase.setBackgroundColor(getResources().getColor(R.color.black_transparent));
-			showCase.show();
-//			if (UIUtils.isTablet(getActivity())) {
-//				StreamConfig cfg = StreamConfig.newInstance();
-//				Bundle arguments = new Bundle();
-//				arguments.putInt(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-//				arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-//				arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-//				cfg.setArguments(arguments);
-//				cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
-//			} else {
-//				Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
-//				streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, chan.getPosition());
-//				streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
-//				streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
-//				startActivity(streamConfig);
-//			}
+			if (prefs.getBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, true)) {
+				prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, false).commit();
+				showQuickstreamHint(chan.getPosition());
+			}else {
+				showStreamConfig(selectedPosition);
+			}	
 			return true;
 		case R.id.menuSwitch:
 			String switchRequest = ServerConsts.URL_SWITCH_COMMAND+chan.getPosition();
@@ -601,37 +556,88 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			exexuterTHread.start();
 			return true;
 		case R.id.menuRecord:
-			timer = cursorToTimer(c);
-			String url = timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
-			String title = timer.getTitle();
-			String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
-			String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
-			String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
-			String endAction = String.valueOf(timer.getTimerAction());
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
-			params.add(new BasicNameValuePair("dor", days));
-			params.add(new BasicNameValuePair("encoding", "255"));
-			params.add(new BasicNameValuePair("enable", "1"));
-			params.add(new BasicNameValuePair("start", start));
-			params.add(new BasicNameValuePair("stop", stop));
-			params.add(new BasicNameValuePair("title", title));
-			params.add(new BasicNameValuePair("endact", endAction));
-			if (timer.getId() >= 0) {
-				params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
-			}
-
-			String query = URLEncodedUtils.format(params, "utf-8");
-			String request = url + query;
-			RecordingServiceGet rsGet = new RecordingServiceGet(request);
-			Thread executionThread = new Thread(rsGet);
-			executionThread.start();
+			recordChannel(c);
 			return true;
 
 		default:
 			break;
 		}
 		return false;
+	}
+
+	private void recordChannel(Cursor c) {
+		Timer timer;
+		timer = cursorToTimer(c);
+		String url = timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT;
+		String title = timer.getTitle();
+		String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
+		String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
+		String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
+		String endAction = String.valueOf(timer.getTimerAction());
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
+		params.add(new BasicNameValuePair("dor", days));
+		params.add(new BasicNameValuePair("encoding", "255"));
+		params.add(new BasicNameValuePair("enable", "1"));
+		params.add(new BasicNameValuePair("start", start));
+		params.add(new BasicNameValuePair("stop", stop));
+		params.add(new BasicNameValuePair("title", title));
+		params.add(new BasicNameValuePair("endact", endAction));
+		if (timer.getId() >= 0) {
+			params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+		}
+
+		String query = URLEncodedUtils.format(params, "utf-8");
+		String request = url + query;
+		RecordingServiceGet rsGet = new RecordingServiceGet(request);
+		Thread executionThread = new Thread(rsGet);
+		executionThread.start();
+	}
+
+	private void showTimerDialog(Cursor c) {
+		Timer timer;
+		timer = cursorToTimer(c);
+		if (UIUtils.isTablet(getActivity())) {
+			TimerDetails timerdetails = TimerDetails.newInstance();
+			Bundle args = new Bundle();
+			args.putString(TimerDetails.EXTRA_TITLE, timer.getTitle());
+			args.putString(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+			args.putLong(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+			args.putLong(TimerDetails.EXTRA_START, timer.getStart().getTime());
+			args.putLong(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+			args.putInt(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+			args.putBoolean(TimerDetails.EXTRA_ACTIVE, true);
+			timerdetails.setArguments(args);
+			timerdetails.show(getActivity().getSupportFragmentManager(), TimerDetails.class.getName());
+		} else {
+			Intent timerIntent = new Intent(getActivity(), TimerDetailsActivity.class);
+			timerIntent.putExtra(TimerDetails.EXTRA_TITLE, timer.getTitle());
+			timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_NAME, timer.getChannelName());
+			timerIntent.putExtra(TimerDetails.EXTRA_CHANNEL_ID, timer.getChannelId());
+			timerIntent.putExtra(TimerDetails.EXTRA_START, timer.getStart().getTime());
+			timerIntent.putExtra(TimerDetails.EXTRA_END, timer.getEnd().getTime());
+			timerIntent.putExtra(TimerDetails.EXTRA_ACTION, timer.getTimerAction());
+			timerIntent.putExtra(TimerDetails.EXTRA_ACTIVE, !timer.isFlagSet(Timer.FLAG_DISABLED));
+			startActivity(timerIntent);
+		}
+	}
+
+	private void showStreamConfig(int position) {
+		if (UIUtils.isTablet(getActivity())) {
+			StreamConfig cfg = StreamConfig.newInstance();
+			Bundle arguments = new Bundle();
+			arguments.putInt(StreamConfig.EXTRA_FILE_ID, position);
+			arguments.putInt(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+			arguments.putInt(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+			cfg.setArguments(arguments);
+			cfg.show(getActivity().getSupportFragmentManager(), StreamConfig.class.getName());
+		} else {
+			Intent streamConfig = new Intent(getActivity(), StreamConfigActivity.class);
+			streamConfig.putExtra(StreamConfig.EXTRA_FILE_ID, position);
+			streamConfig.putExtra(StreamConfig.EXTRA_FILE_TYPE, StreamConfig.FILE_TYPE_LIVE);
+			streamConfig.putExtra(StreamConfig.EXTRA_DIALOG_TITLE_RES, R.string.streamConfig);
+			startActivity(streamConfig);
+		}
 	}
 
 	/**
@@ -789,25 +795,47 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		if (mCHannelSelectedListener != null) {
-			selectedPosition = position;
-			Cursor c = mAdapter.getCursor();
-			c.moveToPosition(position);
-			Channel chan = cursorToChannel(c);
+		selectedPosition = position;
+		if (prefs.getBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, true)) {
+			prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, false).commit();
+			showQuickstreamHint(position);
+		}else {
 			ArrayList<Channel> chans = cursorToChannellist();
-			mCHannelSelectedListener.channelSelected(chans, chan, position);
-			getListView().setItemChecked(position, true);
-		} else {
-			Intent epgPagerIntent = new Intent(getActivity(), org.dvbviewer.controller.ui.phone.EpgPagerActivity.class);
-			// long[] feedIds = new long[data.getCount()];
-
-			ArrayList<Channel> chans = cursorToChannellist();
-
-			epgPagerIntent.putParcelableArrayListExtra(Channel.class.getName(), chans);
-			epgPagerIntent.putExtra("position", position);
-			startActivity(epgPagerIntent);
-			selectedPosition = ListView.INVALID_POSITION;
+			EpgPager.CHANNELS = chans;
+			if (mCHannelSelectedListener != null) {
+				Cursor c = mAdapter.getCursor();
+				c.moveToPosition(position);
+				Channel chan = cursorToChannel(c);
+				mCHannelSelectedListener.channelSelected(chans, chan, position);
+				getListView().setItemChecked(position, true);
+			} else {
+				Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
+				// long[] feedIds = new long[data.getCount()];
+				
+				epgPagerIntent.putExtra("position", position);
+				startActivity(epgPagerIntent);
+				selectedPosition = ListView.INVALID_POSITION;
+			}
 		}
+	}
+
+	private void showQuickstreamHint(int position) {
+		int wantedPosition = position;
+		int firstPosition = getListView().getFirstVisiblePosition() - getListView().getHeaderViewsCount(); // This is the same as child #0
+		int wantedChild = wantedPosition - firstPosition;
+		View listItem = getListView().getChildAt(wantedChild);
+		View icon = listItem.findViewById(R.id.icon);
+		
+		ShowcaseView.ConfigOptions co = new ShowcaseView.ConfigOptions();
+		//can only dismiss by button click
+		co.hideOnClickOutside = false;
+		co.block = true;
+		co.centerText = true;
+		ViewTarget target = new ViewTarget(icon);
+		ShowcaseView showCase = ShowcaseView.insertShowcaseView(target, getActivity(),
+		        getActivity().getString(R.string.quick_stream_hint_title), getActivity().getString(R.string.quick_stream_hint_text), co);
+		showCase.setBackgroundColor(getResources().getColor(R.color.black_transparent));
+		showCase.show();
 	}
 	
 	/* (non-Javadoc)
@@ -878,8 +906,23 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			getListView().showContextMenu();
 			break;
 		case R.id.iconContainer:
-			selectedPosition = (Integer) v.getTag();
-//			getListView().showContextMenu();
+			try {
+				selectedPosition = (Integer) v.getTag();
+				Cursor c = mAdapter.getCursor();
+				c.moveToPosition(selectedPosition);
+				Channel chan = cursorToChannel(c);
+				String videoUrl = StreamConfig.buildLiveUrl(getActivity(), chan.getPosition());
+				Log.i("Stream", videoUrl);
+				Intent videoIntent;
+				String videoType = "video/mpeg";
+				videoIntent = new Intent(Intent.ACTION_VIEW);
+				videoIntent.setDataAndType(Uri.parse(videoUrl), videoType);
+				getActivity().startActivity(videoIntent);
+			} catch (ActivityNotFoundException e) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.yes), null).setNegativeButton(getResources().getString(R.string.no), null).show();
+				e.printStackTrace();
+			}
 			break;
 
 		default:

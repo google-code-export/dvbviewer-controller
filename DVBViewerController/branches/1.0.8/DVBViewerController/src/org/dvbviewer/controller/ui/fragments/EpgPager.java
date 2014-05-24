@@ -52,19 +52,22 @@ import android.widget.AdapterView;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
+public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 
-	List<Channel>		mChannels;
-	int					mPosition = AdapterView.INVALID_POSITION;
-	ChannelEpg			mCurrent;
-	private ViewPager	mPager;
-	PagerAdapter		mAdapter;
-	private OnPageChangeListener mOnPageChangeListener;
-	private Boolean	showFavs;
+	public static List<Channel>		CHANNELS;
+	int								mPosition	= AdapterView.INVALID_POSITION;
+	ChannelEpg						mCurrent;
+	private ViewPager				mPager;
+	PagerAdapter					mAdapter;
+	private OnPageChangeListener	mOnPageChangeListener;
+	private Boolean					showFavs;
 	private DVBViewerPreferences	prefs;
-	
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragment#onAttach(android.app.Activity)
 	 */
 	@Override
 	public void onAttach(Activity activity) {
@@ -74,7 +77,9 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
 	 */
 	@Override
@@ -84,7 +89,9 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		mAdapter = new PagerAdapter(getChildFragmentManager());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
 	 */
 	@Override
@@ -92,7 +99,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		super.onActivityCreated(savedInstanceState);
 		prefs = new DVBViewerPreferences(getActivity());
 		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
-		mChannels = getArguments().getParcelableArrayList(Channel.class.getName());
 		mPosition = getArguments().containsKey("position") ? getArguments().getInt("position", mPosition) : mPosition;
 		mPager.setAdapter(mAdapter);
 		mPager.setCurrentItem(mPosition);
@@ -100,8 +106,11 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		mPager.setOnPageChangeListener(mOnPageChangeListener);
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onViewCreated(android.view.View, android.os.Bundle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.support.v4.app.Fragment#onViewCreated(android.view.View,
+	 * android.os.Bundle)
 	 */
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -109,16 +118,24 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		mPager = (ViewPager) view.findViewById(R.id.pager);
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater,
+	 * android.view.ViewGroup, android.os.Bundle)
 	 */
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.pager, null);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragment#onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragment#onCreateOptionsMenu(android
+	 * .view.Menu, android.view.MenuInflater)
 	 */
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -127,8 +144,12 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		// menu.findItem(R.id.menuPrev).setEnabled(!DateUtils.isToday(epgDate.getTime()));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android.view.MenuItem)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android
+	 * .view.MenuItem)
 	 */
 	@SuppressLint("NewApi")
 	@Override
@@ -171,7 +192,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	 * @date 07.04.2013
 	 */
 	class PagerAdapter extends FragmentPagerAdapter {
-		
 
 		/**
 		 * Instantiates a new pager adapter.
@@ -184,27 +204,30 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 			super(fm);
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see android.support.v4.app.FragmentPagerAdapter#getItem(int)
 		 */
 		@Override
 		public Fragment getItem(int position) {
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
-			channelEpg.setChannel(mChannels.get(position));
+			channelEpg.setChannel(CHANNELS.get(position));
 			return channelEpg;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see android.support.v4.view.PagerAdapter#getCount()
 		 */
 		@Override
 		public int getCount() {
-			return mChannels.size();
+			return CHANNELS.size();
 		}
 
-		
 	}
-	
+
 	/**
 	 * Sets the position.
 	 *
@@ -212,15 +235,19 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public void setPosition(int position){
+	public void setPosition(int position) {
 		mPosition = position;
 		if (mPager != null) {
 			mPager.setCurrentItem(mPosition);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onCreateLoader(int, android.os.Bundle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.LoaderManager.LoaderCallbacks#onCreateLoader(int,
+	 * android.os.Bundle)
 	 */
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
@@ -230,22 +257,30 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor>{
 		return loader;
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.support.v4.content.Loader, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.LoaderManager.LoaderCallbacks#onLoadFinished(android
+	 * .support.v4.content.Loader, java.lang.Object)
 	 */
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor arg1) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.app.LoaderManager.LoaderCallbacks#onLoaderReset(android.support.v4.content.Loader)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.LoaderManager.LoaderCallbacks#onLoaderReset(android
+	 * .support.v4.content.Loader)
 	 */
 	@Override
 	public void onLoaderReset(Loader<Cursor> arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

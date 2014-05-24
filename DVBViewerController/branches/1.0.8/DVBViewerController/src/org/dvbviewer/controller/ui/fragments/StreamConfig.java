@@ -229,6 +229,7 @@ public class StreamConfig extends DialogFragment implements OnClickListener, Dia
 		Intent videoIntent = null;
 		switch (v.getId()) {
 		case R.id.startTranscodedButton:
+			prefs.edit().putBoolean(DVBViewerPreferences.KEY_STREAM_DIRECT, false).commit();
 			mStreamType = STREAM_TYPE_TRANSCODE;
 			videoIntent = getVideoIntent();
 			try {
@@ -241,11 +242,11 @@ public class StreamConfig extends DialogFragment implements OnClickListener, Dia
 			} catch (ActivityNotFoundException e) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 				builder.setMessage(getResources().getString(R.string.noFlashPlayerFound)).setPositiveButton(getResources().getString(R.string.yes), this).setNegativeButton(getResources().getString(R.string.no), this).show();
-
 				e.printStackTrace();
 			}
 			break;
 		case R.id.startDirectButton:
+			prefs.edit().putBoolean(DVBViewerPreferences.KEY_STREAM_DIRECT, true).commit();
 			mStreamType = STREAM_TYPE_DIRECT;
 			videoIntent = getVideoIntent();
 			try {
@@ -402,5 +403,50 @@ public class StreamConfig extends DialogFragment implements OnClickListener, Dia
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
+	public static String buildLiveUrl(Context context, int position){
+		DVBViewerPreferences dvbPrefs = new DVBViewerPreferences(context);
+		return buildLiveUrl(context, dvbPrefs.getStreamPrefs(), position);
+	}
+	
+	private static String buildLiveUrl(Context context, SharedPreferences prefs, int position){
+		boolean direct = prefs.getBoolean(DVBViewerPreferences.KEY_STREAM_DIRECT, true);
+		StringBuffer result = new StringBuffer();
+		if (direct) {
+			result.append("http://"+ServerConsts.REC_SERVICE_HOST + ":" + ServerConsts.REC_SERVICE_LIVE_STREAM_PORT + "/upnp/channelstream/");
+			result.append(position+".ts");
+		}else {
+			result.append(ServerConsts.REC_SERVICE_URL + ServerConsts.URL_FLASHSTREAM);
+			int qualityIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_QUALITY, 7);
+			int aspectIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_ASPECT_RATIO, 0);
+			int ffmpegIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_FFMPEG_PRESET, 5);
+			int widthIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_MAX_WIDTH, 0);
+			int heightIndex = prefs.getInt(DVBViewerPreferences.KEY_STREAM_MAX_HEIGHT, 0);
+			String quality = String.valueOf(qualityIndex);
+			String aspect = context.getResources().getStringArray(R.array.aspect)[aspectIndex];
+			String ffmpeg = context.getResources().getStringArray(R.array.ffmpegPresets)[ffmpegIndex];
+			String width = context.getResources().getStringArray(R.array.width)[widthIndex];
+			String height = context.getResources().getStringArray(R.array.height)[heightIndex];
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("Preset" ,quality));
+			params.add(new BasicNameValuePair("aspect", aspect));
+			params.add(new BasicNameValuePair("ffPreset", ffmpeg));
+			/**
+			 * Check if height is set from user, otherwise the the default values are used
+			 */
+			if (widthIndex > 0) {
+				params.add(new BasicNameValuePair("maxwidth", width));
+			}
+			if (heightIndex > 0) {
+				params.add(new BasicNameValuePair("maxheight", height));
+			}
+			params.add(new BasicNameValuePair("chid", String.valueOf(position)));
+			String query = URLEncodedUtils.format(params, "utf-8");
+			result.append(query);
+		}
+		return result.toString();
+	}
+	
 
 }

@@ -495,6 +495,44 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 						return false;
 					}
 				});
+				menu.findItem(R.id.menuRecord).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+					
+					@Override
+					public boolean onMenuItemClick(MenuItem item) {
+						if (getUserVisibleHint()) {
+							Cursor c = mAdapter.getCursor();
+							c.moveToPosition(selectedPosition);
+							Timer timer = cursorToTimer(c);
+							StringBuffer url = new StringBuffer();
+							url.append(timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
+							String title = timer.getTitle();
+							String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
+							String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
+							String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
+							String endAction = String.valueOf(timer.getTimerAction());
+							List<NameValuePair> params = new ArrayList<NameValuePair>();
+							params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
+							params.add(new BasicNameValuePair("dor", days));
+							params.add(new BasicNameValuePair("encoding", "255"));
+							params.add(new BasicNameValuePair("enable", "1"));
+							params.add(new BasicNameValuePair("start", start));
+							params.add(new BasicNameValuePair("stop", stop));
+							params.add(new BasicNameValuePair("title", title));
+							params.add(new BasicNameValuePair("endact", endAction));
+							if (timer.getId() >= 0) {
+								params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+							}
+							
+							String query = URLEncodedUtils.format(params, "utf-8");
+							String request = url + query;
+							RecordingServiceGet rsGet = new RecordingServiceGet(request);
+							Thread executionThread = new Thread(rsGet);
+							executionThread.start();
+							return true;
+						}
+						return false;
+					}
+				});
 			}
 		}
 	}
@@ -515,32 +553,34 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		if (getUserVisibleHint()) {
 			switch (item.getItemId()) {
 			case R.id.menuRecord:
-				timer = cursorToTimer(c);
-				StringBuffer url = new StringBuffer();
-				url.append(timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
-				String title = timer.getTitle();
-				String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
-				String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
-				String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
-				String endAction = String.valueOf(timer.getTimerAction());
-				List<NameValuePair> params = new ArrayList<NameValuePair>();
-				params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
-				params.add(new BasicNameValuePair("dor", days));
-				params.add(new BasicNameValuePair("encoding", "255"));
-				params.add(new BasicNameValuePair("enable", "1"));
-				params.add(new BasicNameValuePair("start", start));
-				params.add(new BasicNameValuePair("stop", stop));
-				params.add(new BasicNameValuePair("title", title));
-				params.add(new BasicNameValuePair("endact", endAction));
-				if (timer.getId() >= 0) {
-					params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+				if (!UIUtils.isTablet(getActivity())) {
+					timer = cursorToTimer(c);
+					StringBuffer url = new StringBuffer();
+					url.append(timer.getId() < 0l ? ServerConsts.URL_TIMER_CREATE : ServerConsts.URL_TIMER_EDIT);
+					String title = timer.getTitle();
+					String days = String.valueOf(DateUtils.getDaysSinceDelphiNull(timer.getStart()));
+					String start = String.valueOf(DateUtils.getMinutesOfDay(timer.getStart()));
+					String stop = String.valueOf(DateUtils.getMinutesOfDay(timer.getEnd()));
+					String endAction = String.valueOf(timer.getTimerAction());
+					List<NameValuePair> params = new ArrayList<NameValuePair>();
+					params.add(new BasicNameValuePair("ch", String.valueOf(timer.getChannelId())));
+					params.add(new BasicNameValuePair("dor", days));
+					params.add(new BasicNameValuePair("encoding", "255"));
+					params.add(new BasicNameValuePair("enable", "1"));
+					params.add(new BasicNameValuePair("start", start));
+					params.add(new BasicNameValuePair("stop", stop));
+					params.add(new BasicNameValuePair("title", title));
+					params.add(new BasicNameValuePair("endact", endAction));
+					if (timer.getId() >= 0) {
+						params.add(new BasicNameValuePair("id", String.valueOf(timer.getId())));
+					}
+					String query = URLEncodedUtils.format(params, "utf-8");
+					String request = url + query;
+					RecordingServiceGet rsGet = new RecordingServiceGet(request);
+					Thread executionThread = new Thread(rsGet);
+					executionThread.start();
 				}
 				
-				String query = URLEncodedUtils.format(params, "utf-8");
-				String request = url + query;
-				RecordingServiceGet rsGet = new RecordingServiceGet(request);
-				Thread executionThread = new Thread(rsGet);
-				executionThread.start();
 				return true;
 			case R.id.menuTimer:
 				timer = cursorToTimer(c);

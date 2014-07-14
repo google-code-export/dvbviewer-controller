@@ -191,5 +191,8 @@
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_invalid_credentials">Authentication failed</string>
     <string name="support_this_app">Support this App</string>
+    <string name="quick_stream_hint_title">Stream Channel</string>
+    <string name="quick_stream_hint_text">Start a stream by clicking on the channel logo</string>
+    
 
 </resources>

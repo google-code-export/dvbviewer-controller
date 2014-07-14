@@ -89,6 +89,7 @@ public class AuthImageDownloader extends BaseImageDownloader {
 			http.connect();
 		} else {
 			http = (HttpURLConnection) url.openConnection();
+			http.setRequestProperty("Authorization", "Basic " + encodeCredentials());
 		}
 		// URLConnection conn = imageUri.toURL().openConnection();
 		http.setConnectTimeout(connectTimeout);

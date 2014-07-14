@@ -132,9 +132,9 @@ public class EpgPagerActivity extends DrawerActivity implements EpgDateInfo, Loa
 		Cursor c = drawerAdapter.getCursor();
 		c.moveToPosition(position);
 		long groupId = c.getLong(c.getColumnIndex(GroupTbl._ID));
-		mDrawerLayout.closeDrawers();
 		pager.setGroupId(groupId);
 		pager.refresh();
+		mDrawerLayout.closeDrawers();
 	}
 
 	/* (non-Javadoc)

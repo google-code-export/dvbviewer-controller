@@ -16,16 +16,19 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.util.Date;
+import java.util.List;
 
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.data.DbConsts.ChannelTbl;
 import org.dvbviewer.controller.data.DbConsts.FavTbl;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
+import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.utils.DateUtils;
 import org.dvbviewer.controller.utils.UIUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -33,7 +36,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -51,18 +53,18 @@ import android.widget.AdapterView;
  * @author RayBa
  * @date 07.04.2013
  */
-public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
+public class EpgPager extends Fragment implements LoaderCallbacks<List<Channel>> {
 
-	public static final String		KEY_CHANNELS	= EpgPager.class.getSimpleName() + "_KEY_CHANNELS";
+	public static List<Channel>		CHANNELS;
 	public static final String		KEY_POSITION	= EpgPager.class.getSimpleName() + "_KEY_POSITION";
-	public static final String		KEY_GROUP_ID	= EpgPager.class.getSimpleName() + "_KEY_GROUP_ID";
 	int								mPosition		= AdapterView.INVALID_POSITION;
-	long							mGroupId		= AdapterView.INVALID_POSITION;
 	ChannelEpg						mCurrent;
 	private ViewPager				mPager;
 	PagerAdapter					mAdapter;
 	private OnPageChangeListener	mOnPageChangeListener;
-	private boolean					showFavs		= false;
+	private Boolean					showFavs;
+	private DVBViewerPreferences	prefs;
+	long							mGroupId		= AdapterView.INVALID_POSITION;
 
 	/*
 	 * (non-Javadoc)
@@ -87,7 +89,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
 		mAdapter = new PagerAdapter(getChildFragmentManager());
 	}
 
@@ -99,15 +100,13 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		mPosition = getArguments().containsKey(KEY_POSITION) ? getArguments().getInt(KEY_POSITION, mPosition) : mPosition;
-		mGroupId = getArguments().containsKey(KEY_GROUP_ID) ? getArguments().getLong(KEY_GROUP_ID, mGroupId) : mGroupId;
-		mAdapter.notifyDataSetChanged();
+		prefs = new DVBViewerPreferences(getActivity());
+		showFavs = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
+		mPosition = getArguments().containsKey("position") ? getArguments().getInt("position", mPosition) : mPosition;
 		mPager.setAdapter(mAdapter);
 		mPager.setCurrentItem(mPosition);
 		mPager.setPageMargin((int) UIUtils.dipToPixel(getActivity(), 25));
 		mPager.setOnPageChangeListener(mOnPageChangeListener);
-		mPager.setVisibility(View.VISIBLE);
-		getLoaderManager().initLoader(0, savedInstanceState, this);
 	}
 
 	/*
@@ -145,6 +144,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.channel_epg, menu);
+		// menu.findItem(R.id.menuPrev).setEnabled(!DateUtils.isToday(epgDate.getTime()));
 	}
 
 	/*
@@ -154,6 +154,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 * com.actionbarsherlock.app.SherlockFragment#onOptionsItemSelected(android
 	 * .view.MenuItem)
 	 */
+	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
@@ -187,6 +188,64 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 		return true;
 	}
 
+	@Override
+	public Loader<List<Channel>> onCreateLoader(int arg0, Bundle arg1) {
+		
+		
+		Loader<List<Channel>> chanLoader = new AsyncLoader<List<Channel>>(getActivity()) {
+
+			@Override
+			public List<Channel> loadInBackground() {
+				StringBuffer selection = new StringBuffer(showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : ChannelTbl.FLAGS + " & " + Channel.FLAG_ADDITIONAL_AUDIO + "== 0");
+				if (mGroupId > 0) {
+					selection.append(" and ");
+					if (showFavs) {
+						selection.append(FavTbl.FAV_GROUP_ID + " = " + mGroupId);
+					} else {
+						selection.append(ChannelTbl.GROUP_ID + " = " + mGroupId);
+					}
+				}
+				String orderBy = null;
+				orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
+				Cursor cursor = getActivity().getContentResolver().query(ChannelTbl.CONTENT_URI, null, selection.toString(), null, orderBy);
+				List<Channel> chans = ChannelList.cursorToChannellist(cursor);
+				cursor.close();
+				return chans;
+			}
+		};
+		return chanLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<List<Channel>> loader, List<Channel> chans) {
+		EpgPager.CHANNELS = chans;
+		mAdapter = new PagerAdapter(getChildFragmentManager());
+		mPager.setAdapter(mAdapter);
+		mAdapter.notifyDataSetChanged();
+		mPager.setCurrentItem(mPosition, false);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<List<Channel>> arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void setGroupId(long groupId) {
+		this.mGroupId = groupId;
+	}
+
+	public void refresh() {
+//		mPager.setAdapter(null);
+		EpgPager.CHANNELS = null;
+		mAdapter.notifyDataSetChanged();
+//		mAdapter = new PagerAdapter(getChildFragmentManager());
+//		mPager.setAdapter(mAdapter);
+		mPosition = 0;
+		getLoaderManager().destroyLoader(0);
+		getLoaderManager().restartLoader(0, getArguments(), this);
+	}
+
 	/**
 	 * The Class PagerAdapter.
 	 *
@@ -194,8 +253,6 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	 * @date 07.04.2013
 	 */
 	class PagerAdapter extends FragmentStatePagerAdapter {
-		
-		private Cursor cursor;
 
 		/**
 		 * Instantiates a new pager adapter.
@@ -216,15 +273,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 		@Override
 		public Fragment getItem(int position) {
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
-			cursor.moveToPosition(position);
-			Channel chan = new Channel();
-			chan.setId(cursor.getLong(cursor.getColumnIndex(ChannelTbl._ID)));
-			chan.setName(cursor.getString(cursor.getColumnIndex(ChannelTbl.NAME)));
-			chan.setEpgID(cursor.getLong(cursor.getColumnIndex(ChannelTbl.EPG_ID)));
-			chan.setPosition(cursor.getInt(cursor.getColumnIndex(ChannelTbl.POSITION)));
-			chan.setFavPosition(cursor.getInt(cursor.getColumnIndex(ChannelTbl.FAV_POSITION)));
-			chan.setLogoUrl(cursor.getString(cursor.getColumnIndex(ChannelTbl.LOGO_URL)));
-			channelEpg.setChannel(chan);
+			channelEpg.setChannel(CHANNELS.get(position));
 			return channelEpg;
 		}
 
@@ -235,20 +284,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 		 */
 		@Override
 		public int getCount() {
-			if (cursor != null) {
-				return cursor.getCount();
-			} else {
-				return 0;
-			}
-		}
-
-		public void setCursor(Cursor cursor) {
-			this.cursor = cursor;
-		}
-		
-		@Override
-		public int getItemPosition(Object object) {
-			return POSITION_NONE;
+			return CHANNELS != null ? CHANNELS.size() : 0;
 		}
 
 	}
@@ -263,63 +299,9 @@ public class EpgPager extends Fragment implements LoaderCallbacks<Cursor> {
 	public void setPosition(int position) {
 		mPosition = position;
 		if (mPager != null) {
-			mPager.setCurrentItem(mPosition, false);
+			mPager.setCurrentItem(mPosition);
 		}
 	}
 
-	public int getPosition() {
-		int result = 0;
-		if (mPager != null) {
-			result = mPager.getCurrentItem();
-		}
-		return result;
-	}
-
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		Loader<Cursor> loader = null;
-		StringBuffer selection = new StringBuffer(showFavs ? ChannelTbl.FLAGS + " & " + Channel.FLAG_FAV + "!= 0" : ChannelTbl.FLAGS + " & " + Channel.FLAG_ADDITIONAL_AUDIO + "== 0");
-		if (mGroupId > 0) {
-			selection.append(" and ");
-			if (showFavs) {
-				selection.append(FavTbl.FAV_GROUP_ID + " = " + mGroupId);
-			} else {
-				selection.append(ChannelTbl.GROUP_ID + " = " + mGroupId);
-			}
-		}
-		String orderBy = null;
-		orderBy = showFavs ? ChannelTbl.FAV_POSITION : ChannelTbl.POSITION;
-		loader = new CursorLoader(getActivity().getApplicationContext(), ChannelTbl.CONTENT_URI, null, selection.toString(), null, orderBy);
-		return loader;
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		mAdapter = new PagerAdapter(getChildFragmentManager());
-		mAdapter.setCursor(cursor);
-		mPager.setAdapter(mAdapter);
-		mAdapter.notifyDataSetChanged();
-		mPager.setCurrentItem(mPosition, false);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void setGroupId(long groupId) {
-		this.mGroupId = groupId;
-	}
-	
-	public void refresh(){
-		mPager.setAdapter(null);
-		mAdapter.notifyDataSetChanged();
-		mAdapter = new PagerAdapter(getChildFragmentManager());
-		mPager.setAdapter(mAdapter);
-		mPosition = 0;
-		getLoaderManager().destroyLoader(0);
-		getLoaderManager().restartLoader(0, getArguments(), this);
-	}
 
 }

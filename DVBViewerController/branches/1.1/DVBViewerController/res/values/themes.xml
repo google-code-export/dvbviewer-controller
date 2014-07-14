@@ -7,7 +7,6 @@
         <item name="actionModeStyle">@style/ActionModeStyle</item>
         <item name="android:actionBarStyle" tools:ignore="NewApi">@style/ActionBarStyle</item>
         <item name="actionBarStyle">@style/ActionBarStyle</item>
-        <item name="android:windowAnimationStyle">@style/WindowAnimationStyle</item>
         <item name="android:windowBackground">@drawable/background_holo_dark</item>
         <item name="android:preferenceCategoryStyle">@style/PreferenceCategory</item>
         <item name="android:editTextStyle">@style/EditTextHoloDark</item> 

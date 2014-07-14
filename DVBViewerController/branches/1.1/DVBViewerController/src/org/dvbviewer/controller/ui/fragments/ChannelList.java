@@ -32,7 +32,6 @@ import org.dvbviewer.controller.entities.Timer;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
 import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
-import org.dvbviewer.controller.service.SyncService;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.EpgPagerActivity;
 import org.dvbviewer.controller.ui.phone.StreamConfigActivity;
@@ -63,6 +62,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.espian.showcaseview.ShowcaseView;
+import com.espian.showcaseview.targets.ViewTarget;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
@@ -84,6 +85,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	boolean						showFavs				= false;
 	public static final int		LOADER_CHANNELLIST		= 101;
 	OnChannelSelectedListener	mCHannelSelectedListener;
+	DVBViewerPreferences		prefs;
 	View						selectView;
 	Context						mContext;
 	private long				mGroupId				= -1;
@@ -98,7 +100,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mContext = getActivity().getApplicationContext();
-
+		prefs = new DVBViewerPreferences(getActivity());
 		if (savedInstanceState == null && getArguments() != null) {
 			if (getArguments().containsKey(ChannelList.KEY_HAS_OPTIONMENU)) {
 				hasOptionsMenu = getArguments().getBoolean(KEY_HAS_OPTIONMENU);
@@ -372,22 +374,26 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		if (mCHannelSelectedListener != null) {
-			selectedPosition = position;
-			Cursor c = mAdapter.getCursor();
-			c.moveToPosition(position);
+		selectedPosition = position;
+		if (prefs.getBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, true)) {
+			prefs.getPrefs().edit().putBoolean(DVBViewerPreferences.KEY_SHOW_QUICK_STREAM_HINT, false).commit();
+			showQuickstreamHint(position);
+		}else {
 			ArrayList<Channel> chans = cursorToChannellist();
-			mCHannelSelectedListener.channelSelected(chans, position);
-			getListView().setItemChecked(position, true);
-		} else {
-			Cursor c = mAdapter.getCursor();
-			c.moveToPosition(position);
-			Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
-			epgPagerIntent.putExtra(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
-			epgPagerIntent.putExtra(EpgPager.KEY_POSITION, position);
-			epgPagerIntent.putExtra(EpgPager.KEY_GROUP_ID, mGroupId);
-			startActivity(epgPagerIntent);
-			selectedPosition = ListView.INVALID_POSITION;
+			EpgPager.CHANNELS = chans;
+			if (mCHannelSelectedListener != null) {
+				Cursor c = mAdapter.getCursor();
+				c.moveToPosition(position);
+				mCHannelSelectedListener.channelSelected(chans, position);
+				getListView().setItemChecked(position, true);
+			} else {
+				Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
+				// long[] feedIds = new long[data.getCount()];
+				
+				epgPagerIntent.putExtra("position", position);
+				startActivity(epgPagerIntent);
+				selectedPosition = ListView.INVALID_POSITION;
+			}
 		}
 	}
 
@@ -400,7 +406,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * @date 07.04.2013
 	 */
 	private ArrayList<Channel> cursorToChannellist() {
-		Cursor c = (Cursor) mAdapter.getCursor();
+		return ChannelList.cursorToChannellist(mAdapter.getCursor());
+	}
+	
+	
+	public static ArrayList<Channel> cursorToChannellist(Cursor c) {
 		ArrayList<Channel> chans = new ArrayList<Channel>();
 		c.moveToPosition(-1);
 		while (c.moveToNext()) {
@@ -459,7 +469,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 * @author RayBa
 	 * @date 13.05.2012
 	 */
-	private Channel cursorToChannel(Cursor c) {
+	public static Channel cursorToChannel(Cursor c) {
 		Channel channel = new Channel();
 		channel.setChannelID(c.getLong(c.getColumnIndex(ChannelTbl.CHANNEL_ID)));
 		channel.setEpgID(c.getLong(c.getColumnIndex(ChannelTbl.EPG_ID)));
@@ -651,6 +661,25 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			break;
 		}
 		return false;
+	}
+	
+	private void showQuickstreamHint(int position) {
+		int wantedPosition = position;
+		int firstPosition = getListView().getFirstVisiblePosition() - getListView().getHeaderViewsCount(); // This is the same as child #0
+		int wantedChild = wantedPosition - firstPosition;
+		View listItem = getListView().getChildAt(wantedChild);
+		View icon = listItem.findViewById(R.id.icon);
+		
+		ShowcaseView.ConfigOptions co = new ShowcaseView.ConfigOptions();
+		//can only dismiss by button click
+		co.hideOnClickOutside = false;
+		co.block = true;
+		co.centerText = true;
+		ViewTarget target = new ViewTarget(icon);
+		ShowcaseView showCase = ShowcaseView.insertShowcaseView(target, getActivity(),
+		        getActivity().getString(R.string.quick_stream_hint_title), getActivity().getString(R.string.quick_stream_hint_text), co);
+		showCase.setBackgroundColor(getResources().getColor(R.color.black_transparent));
+		showCase.show();
 	}
 
 }

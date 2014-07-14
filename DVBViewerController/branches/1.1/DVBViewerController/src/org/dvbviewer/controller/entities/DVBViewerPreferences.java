@@ -71,6 +71,7 @@ public class DVBViewerPreferences {
 	public static final String	KEY_EXPIRE_Message						= "KEY_EXPIRE_Message";
 	public static final String	KEY_PROFILE_ACTIVE						= "KEY_PROFILE_ACTIVE";
 	public static final String	KEY_PROFILE_NAMES						= "KEY_PROFILE_NAMES";
+	public static final String	KEY_SHOW_QUICK_STREAM_HINT				= "KEY_SHOW_QUICK_STREAM_HINT";
 
 	/**
 	 * Streaming Preferences Keys

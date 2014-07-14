@@ -33,7 +33,7 @@ public class ChannelFragment extends Fragment{
 		EpgPager epgPager = new EpgPager();
 		Bundle arguments = new Bundle();
 		epgPager.setArguments(arguments);
-		epgPager.getArguments().putParcelableArrayList(EpgPager.KEY_CHANNELS, getArguments().getParcelableArrayList(EpgPager.KEY_CHANNELS));
+//		epgPager.getArguments().putParcelableArrayList(EpgPager.KEY_CHANNELS, getArguments().getParcelableArrayList(EpgPager.KEY_CHANNELS));
 		epgPager.getArguments().putInt(EpgPager.KEY_POSITION, getArguments().getInt(EpgPager.KEY_POSITION));
 		tran.add(R.id.left_container, chanPager);
 		tran.add(R.id.right_container, epgPager);

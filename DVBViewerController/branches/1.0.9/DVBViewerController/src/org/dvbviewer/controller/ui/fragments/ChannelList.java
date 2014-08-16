@@ -513,6 +513,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		case R.id.menuChannelList:
 		case R.id.menuFavourties:
 			showFavs = !showFavs;
+			setTitle();
 			refresh(LOADER_CHANNELLIST);
 			persistChannelConfigConfig();
 			return true;
@@ -844,9 +845,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public void onResume() {
 		super.onResume();
+		setTitle();
 		if (!UIUtils.isTablet(getActivity())) {
 			clearSelection();
 		}
+	}
+
+	private void setTitle() {
+		getActivity().setTitle(showFavs ? R.string.favourites : R.string.channelList);
 	}
 
 	/**

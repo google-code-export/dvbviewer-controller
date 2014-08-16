@@ -17,9 +17,15 @@ package org.dvbviewer.controller.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HttpsURLConnection;
+
+import org.dvbviewer.controller.utils.Base64;
 import org.dvbviewer.controller.utils.ServerConsts;
 
 import android.util.Log;
@@ -168,7 +174,7 @@ public class ServerRequest {
 				registry.register(SSLUtil.getHttpsScheme());
 
 				HttpProtocolParams.setUseExpectContinue(httpParams, true);
-				PoolingClientConnectionManager connManager = new PoolingClientConnectionManager(registry);
+				PoolingClientConnectionManager connManager = new PoolingClientConnectionManager(registry, 10l, TimeUnit.SECONDS);
 				connManager.setDefaultMaxPerRoute(20);
 				connManager.setMaxTotal(40);
 				AuthRequestInterceptor preemptiveAuth = new AuthRequestInterceptor();
@@ -315,25 +321,72 @@ public class ServerRequest {
 		return result;
 	}
 	
-	public static InputStream getInputStream(String request) throws Exception {
-		HttpEntity result = null;
-		HttpClient client = getHttpClient();
-		URI uri = null;
-		uri = new URI(request);
-		HttpGet getMethod = new HttpGet(uri);
-		HttpResponse res = executeGet(client, getMethod, true);
+	public static InputStream getInputStream(String request) throws IOException, URISyntaxException {
+//		HttpEntity result = null;
+//		HttpClient client = getHttpClient();
+//		URI uri = null;
+//		uri = new URI(request);
+//		HttpGet getMethod = new HttpGet(uri);
+//		HttpResponse res;
+//		try {
+//			res = executeGet(client, getMethod, true);
+//			StatusLine status = res.getStatusLine();
+//			switch (status.getStatusCode()) {
+//			
+//			case HttpStatus.SC_OK:
+//				result = res.getEntity();
+//				break;
+//				
+//			default:
+//				break;
+//			}
+//			if (result == null) {
+//				throw new IOException("No entity result");
+//			}
+//		} catch (Exception e) {
+//			EntityUtils.consumeQuietly(result);
+//			if (e instanceof IOException) {
+//				IOException ie = (IOException) e;
+//				throw ie;
+//			}else if(e instanceof URISyntaxException){
+//				URISyntaxException ue = (URISyntaxException) e;
+//				throw ue;
+//			}else {
+//				throw new IOException(e.getMessage());
+//			}
+//		}
+//		
+//		return result.getContent();
 		
-		StatusLine status = res.getStatusLine();
-		switch (status.getStatusCode()) {
 		
-		case HttpStatus.SC_OK:
-			result = res.getEntity();
-			break;
-			
-		default:
-			break;
+		InputStream result = null;
+		HttpURLConnection connection = null;
+		try {
+			URL url = new URL(request);
+			if (url.getProtocol().toLowerCase().equals("https")) {
+				HttpsURLConnection
+				.setDefaultSSLSocketFactory(SSLUtil.getSSLContext().getSocketFactory());
+				HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
+				https.setHostnameVerifier(SSLUtil.DO_NOT_VERIFY);
+				connection = https;
+			} else {
+				connection = (HttpURLConnection) url.openConnection();
+			}
+			String encoded = Base64.encodeToString((ServerConsts.REC_SERVICE_USER_NAME+":"+ServerConsts.REC_SERVICE_PASSWORD).getBytes(), Base64.DEFAULT);
+			connection.setRequestProperty("Authorization", "Basic "+encoded);
+			result = connection.getInputStream();
+		} catch (Exception e) {
+			if (e instanceof IOException) {
+				IOException ie = (IOException) e;
+				throw ie;
+			}else if(e instanceof URISyntaxException){
+				URISyntaxException ue = (URISyntaxException) e;
+				throw ue;
+			}else {
+				throw new IOException(e.getMessage());
+			}
 		}
-		return result.getContent();
+		return result;
 	}
 
 	/**

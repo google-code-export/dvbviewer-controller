@@ -84,7 +84,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				chans.setHasOptionsMenu(true);
 				tran.add(multiContainer.getId(), chans);
 				tran.commit();
-				multiContainerIndicator.setText(R.string.channelList);
+				setTitle(R.string.channelList);
 			}
 			if (Config.IS_FIRST_START) {
 				Config.IS_FIRST_START = false;
@@ -160,7 +160,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
 				tran.replace(multiContainer.getId(), new Remote());
 				tran.commit();
-				multiContainerIndicator.setText(R.string.remote);
+				setTitle(R.string.remote);
 			} else {
 				startActivity(new Intent(this, RemoteActivity.class));
 			}
@@ -172,7 +172,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				chans.setHasOptionsMenu(true);
 				tran.replace(multiContainer.getId(), chans);
 				tran.commit();
-				multiContainerIndicator.setText(R.string.channelList);
+				setTitle(R.string.channelList);
 			} else {
 				startActivity(new Intent(this, ChannelListActivity.class));
 			}
@@ -182,7 +182,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
 				tran.replace(multiContainer.getId(), new TimerList());
 				tran.commit();
-				multiContainerIndicator.setText(R.string.timer);
+				setTitle(R.string.timer);
 			} else {
 
 				startActivity(new Intent(this, TimerlistActivity.class));
@@ -193,7 +193,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 				FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
 				tran.replace(multiContainer.getId(), new RecordingList());
 				tran.commit();
-				multiContainerIndicator.setText(R.string.recordings);
+				setTitle(R.string.recordings);
 			} else {
 				startActivity(new Intent(this, RecordinglistActivity.class));
 			}
@@ -222,7 +222,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		expired = savedInstanceState.getBoolean("expired", false);
 		expirationMessage= savedInstanceState.getString("expirationMessage");
 		if (savedInstanceState != null && savedInstanceState.containsKey("indicatorText")) {
-			multiContainerIndicator.setText(savedInstanceState.getString("indicatorText"));
+			setTitle(savedInstanceState.getString("indicatorText"));
 		}
 	}
 	
@@ -258,5 +258,5 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
+	
 }

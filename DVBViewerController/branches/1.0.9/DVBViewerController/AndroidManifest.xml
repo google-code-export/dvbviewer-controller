@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.dvbviewer.controller"
-    android:versionCode="11"
-    android:versionName="1.0.8" >
+    android:versionCode="13"
+    android:versionName="1.0.9" >
 
     <uses-sdk
         android:minSdkVersion="7"
@@ -37,8 +37,7 @@
             android:label="@string/recordings" >
         </activity>
         <activity
-            android:name=".ui.phone.ChannelListActivity"
-            android:label="@string/channelList" >
+            android:name=".ui.phone.ChannelListActivity" >
         </activity>
         <activity
             android:name=".ui.phone.TimerlistActivity"

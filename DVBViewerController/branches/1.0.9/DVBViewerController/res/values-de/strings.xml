@@ -28,8 +28,8 @@
 
     <!-- Channels -->
     <string name="channelList">Senderliste</string>
-    <string name="refreshChannels">Sender Syncronisieren</string>
-    <string name="refresh_now_playing">EPG Auffrischen</string>
+    <string name="refreshChannels">Sender syncronisieren</string>
+    <string name="refresh_now_playing">EPG aktualisieren</string>
     <string name="favourites">Favoriten</string>
     <string name="no_channels">Keine Sender gefunden</string>
     <string name="no_favourites">Keine Favoriten gefunden</string>

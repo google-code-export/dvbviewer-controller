@@ -33,7 +33,6 @@ import org.dvbviewer.controller.io.ServerRequest;
 import org.dvbviewer.controller.io.ServerRequest.DVBViewerCommand;
 import org.dvbviewer.controller.io.ServerRequest.RecordingServiceGet;
 import org.dvbviewer.controller.io.data.EpgEntryHandler;
-import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.base.EpgLoader;
 import org.dvbviewer.controller.ui.phone.IEpgDetailsActivity;
@@ -142,11 +141,12 @@ public class ChannelEpg extends BaseListFragment implements LoaderCallbacks<Curs
 		setListShown(false);
 		getListView().setOnItemClickListener(this);
 		registerForContextMenu(getListView());
+		channelLogo.setImageBitmap(null);
 		if (mCHannel != null) {
 			mImageCacher.cancelDisplayTask(channelLogo);
 			setChannel(mCHannel);
 			String url = ServerConsts.REC_SERVICE_URL+ "/" + mCHannel.getLogoUrl();
-			mImageCacher.displayImage(url, channelLogo, new AnimationLoadingListener());
+			mImageCacher.displayImage(url, channelLogo);
 			position.setText(mCHannel.getPosition().toString());
 			channelName.setText(mCHannel.getName());
 		}

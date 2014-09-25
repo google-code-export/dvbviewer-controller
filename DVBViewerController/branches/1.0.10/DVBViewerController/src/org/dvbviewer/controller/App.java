@@ -31,12 +31,13 @@ import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
 
-import android.app.Application;
-import android.text.TextUtils;
-
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+
+import android.app.Application;
+import android.text.TextUtils;
 
 /**
  * The Class App.
@@ -123,6 +124,7 @@ public class App extends Application {
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
 		.cacheInMemory(true)
 		.cacheOnDisc(true)
+		.displayer(new FadeInBitmapDisplayer(500, true, true, false))
 		.build();
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
 		.imageDownloader(new AuthImageDownloader(getApplicationContext()))

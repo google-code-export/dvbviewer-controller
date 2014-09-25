@@ -41,7 +41,6 @@ import org.dvbviewer.controller.io.data.EpgEntryHandler;
 import org.dvbviewer.controller.io.data.FavouriteHandler;
 import org.dvbviewer.controller.io.data.StatusHandler;
 import org.dvbviewer.controller.io.data.VersionHandler;
-import org.dvbviewer.controller.io.imageloader.AnimationLoadingListener;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseListFragment;
 import org.dvbviewer.controller.ui.phone.EpgPagerActivity;
@@ -719,6 +718,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		public void bindView(View view, Context context, Cursor c) {
 			ViewHolder holder = (ViewHolder) view.getTag();
 			imageChacher.cancelDisplayTask(holder.icon);
+			holder.icon.setImageBitmap(null);
 			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
 			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
 			String epgTitle = c.getString(c.getColumnIndex(EpgTbl.TITLE));
@@ -753,7 +753,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
 				url.append("/");
 				url.append(logoUrl);
-				imageChacher.displayImage(url.toString(), holder.icon, new AnimationLoadingListener());
+				imageChacher.displayImage(url.toString(), holder.icon);
 			}else{
 				holder.icon.setImageBitmap(null);
 			}

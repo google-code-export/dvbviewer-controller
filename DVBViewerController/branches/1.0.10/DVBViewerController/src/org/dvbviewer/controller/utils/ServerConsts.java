@@ -16,6 +16,7 @@ public class ServerConsts {
 	public static String	REC_SERVICE_MEDIA_STREAM_PORT	= "8090";
 	public static String	REC_SERVICE_USER_NAME			= "";
 	public static String	REC_SERVICE_MAC_ADDRESS			= "";
+	public static int		REC_SERVICE_WOL_PORT			= 9;
 	public static String	REC_SERVICE_PASSWORD			= "";
 	public static String	DVBVIEWER_PROTOCOL				= "http://";
 	public static String	DVBVIEWER_HOST					= "";

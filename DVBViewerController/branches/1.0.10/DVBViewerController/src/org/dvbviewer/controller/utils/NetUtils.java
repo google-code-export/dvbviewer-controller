@@ -89,7 +89,9 @@ public class NetUtils {
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public static void sendWakeOnLan(String ipAddress, String macAddress) {
+	public static void sendWakeOnLan(String macAddress, int port) {
+		Log.d(NetUtils.class.getSimpleName(), "sendWakeOnLan");
+		Log.d(NetUtils.class.getSimpleName(), "macAddress:"+macAddress);
 	    try {
 	        byte[] macBytes = getMacBytes(macAddress);
 	        byte[] bytes = new byte[6 + 16 * macBytes.length];
@@ -99,7 +101,7 @@ public class NetUtils {
 	        for (int i = 6; i < bytes.length; i += macBytes.length) {
 	            System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
 	        }
-	        InetAddress address = InetAddress.getByName(ipAddress);
+	        InetAddress address = InetAddress.getByName("255.255.255.255");
 	        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, PORT);
 	        DatagramSocket socket = new DatagramSocket();
 	        socket.send(packet);

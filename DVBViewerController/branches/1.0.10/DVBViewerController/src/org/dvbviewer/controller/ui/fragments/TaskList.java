@@ -138,7 +138,7 @@ public class TaskList extends BaseListFragment implements OnClickListener {
 				
 				@Override
 				public void run() {
-					NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
+					NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_MAC_ADDRESS, ServerConsts.REC_SERVICE_WOL_PORT);
 				}
 			};
 			

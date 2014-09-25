@@ -31,12 +31,12 @@ import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
 import org.dvbviewer.controller.utils.URLUtil;
 
+import android.app.Application;
+import android.text.TextUtils;
+
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-
-import android.app.Application;
-import android.text.TextUtils;
 
 /**
  * The Class App.
@@ -100,6 +100,7 @@ public class App extends Application {
 		ServerConsts.REC_SERVICE_LIVE_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_LIVE_STREAM_PORT, ServerConsts.REC_SERVICE_LIVE_STREAM_PORT);
 		ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_MEDIA_STREAM_PORT, ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT);
 		ServerConsts.REC_SERVICE_MAC_ADDRESS = prefs.getString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS);
+		ServerConsts.REC_SERVICE_WOL_PORT = prefs.getInt(DVBViewerPreferences.KEY_RS_WOL_PORT, 9);
 		super.onCreate();
 		
 		/**
@@ -109,7 +110,7 @@ public class App extends Application {
 			
 			@Override
 			public void run() {
-				NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
+				NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_MAC_ADDRESS, ServerConsts.REC_SERVICE_WOL_PORT);
 			}
 		};
 		

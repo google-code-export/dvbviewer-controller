@@ -39,6 +39,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -222,6 +223,7 @@ public class EpgPager extends Fragment implements LoaderCallbacks<List<Channel>>
 		mAdapter = new PagerAdapter(getChildFragmentManager());
 		mPager.setAdapter(mAdapter);
 		mAdapter.notifyDataSetChanged();
+		Log.i(EpgPager.class.getSimpleName(), "Position:"+ mPosition);
 		mPager.setCurrentItem(mPosition, false);
 	}
 
@@ -236,12 +238,15 @@ public class EpgPager extends Fragment implements LoaderCallbacks<List<Channel>>
 	}
 
 	public void refresh() {
-//		mPager.setAdapter(null);
+		refresh(0);
+	}
+	public void refresh(int selectedPosition) {
+		mPager.setAdapter(null);
 		EpgPager.CHANNELS = null;
 		mAdapter.notifyDataSetChanged();
-//		mAdapter = new PagerAdapter(getChildFragmentManager());
-//		mPager.setAdapter(mAdapter);
-		mPosition = 0;
+		mAdapter = new PagerAdapter(getChildFragmentManager());
+		mPager.setAdapter(mAdapter);
+		mPosition = selectedPosition;
 		getLoaderManager().destroyLoader(0);
 		getLoaderManager().restartLoader(0, getArguments(), this);
 	}
@@ -275,6 +280,12 @@ public class EpgPager extends Fragment implements LoaderCallbacks<List<Channel>>
 			ChannelEpg channelEpg = (ChannelEpg) Fragment.instantiate(getActivity(), ChannelEpg.class.getName());
 			channelEpg.setChannel(CHANNELS.get(position));
 			return channelEpg;
+		}
+		
+		@Override
+		public int getItemPosition(Object object) {
+			// TODO Auto-generated method stub
+			return POSITION_NONE;
 		}
 
 		/*

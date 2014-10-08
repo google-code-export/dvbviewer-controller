@@ -82,14 +82,14 @@ public class NetUtils {
 	}
 	
 	/**
-	 * Sends a WOL command and runs in its own thread.
+	 * Sends a WOL command running in its own thread.
 	 *
-	 * @param ipAddress the ip address
-	 * @param macAddress the mac address
+	 * @param macAddress the ip MAC Address
+	 * @param port the port
 	 * @author RayBa
 	 * @date 07.04.2013
 	 */
-	public static void sendWakeOnLan(final String ipAddress, final String macAddress) {
+	public static void sendWakeOnLan(final String macAddress, final int port) {
 		
 		/**
 		 * Thread to send a wake on lan request
@@ -100,22 +100,23 @@ public class NetUtils {
 			public void run() {
 				try {
 					byte[] macBytes = getMacBytes(macAddress);
-					byte[] bytes = new byte[6 + 16 * macBytes.length];
-					for (int i = 0; i < 6; i++) {
-						bytes[i] = (byte) 0xff;
-					}
-					for (int i = 6; i < bytes.length; i += macBytes.length) {
-						System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
-					}
-					InetAddress address = InetAddress.getByName(ipAddress);
-					DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, PORT);
-					DatagramSocket socket = new DatagramSocket();
-					socket.send(packet);
-					socket.close();
-					Log.i(NetUtils.class.getSimpleName(), "sendWakeOnLan to " + ipAddress);
+			        byte[] bytes = new byte[6 + 16 * macBytes.length];
+			        for (int i = 0; i < 6; i++) {
+			            bytes[i] = (byte) 0xff;
+			        }
+			        for (int i = 6; i < bytes.length; i += macBytes.length) {
+			            System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
+			        }
+			        InetAddress address = InetAddress.getByName("255.255.255.255");
+			        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, PORT);
+			        DatagramSocket socket = new DatagramSocket();
+			        socket.send(packet);
+			        socket.close();
+			        Log.d(NetUtils.class.getSimpleName(), "WOL Packet send for "+macAddress);
 				}
 				catch (Exception e) {
 					e.printStackTrace();
+					Log.d(NetUtils.class.getSimpleName(), "WOL Packet send for "+macAddress);
 				}
 			}
 		};

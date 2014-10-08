@@ -26,13 +26,12 @@ import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.base.BaseActivity;
+import org.dvbviewer.controller.ui.fragments.AboutFragment;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
 import org.dvbviewer.controller.ui.fragments.ChannelPager;
 import org.dvbviewer.controller.ui.fragments.Dashboard;
 import org.dvbviewer.controller.ui.fragments.Dashboard.OnDashboardButtonClickListener;
-import org.dvbviewer.controller.ui.fragments.EpgPager;
-import org.dvbviewer.controller.ui.fragments.AboutFragment;
 import org.dvbviewer.controller.ui.fragments.RecordingList;
 import org.dvbviewer.controller.ui.fragments.Remote;
 import org.dvbviewer.controller.ui.fragments.TimerList;
@@ -44,7 +43,6 @@ import org.dvbviewer.controller.ui.phone.StatusActivity;
 import org.dvbviewer.controller.ui.phone.TaskActivity;
 import org.dvbviewer.controller.ui.phone.TimerlistActivity;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
-import org.dvbviewer.controller.ui.tablet.ChannelMultiActivity;
 import org.dvbviewer.controller.utils.Config;
 
 import android.app.AlertDialog;
@@ -104,8 +102,8 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 		}
 
 		mLeftContainer = findViewById(R.id.left_container);
-		mRightContainer = findViewById(R.id.right_container);
-		multiContainerIndicator = (TextView) findViewById(R.id.right_container_indicator);
+		mRightContainer = findViewById(R.id.multi_container);
+		multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);
 
 		if (savedInstanceState == null) {
 			FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
@@ -182,7 +180,7 @@ public class HomeActivity extends BaseActivity implements OnClickListener, OnCha
 	 * #channelSelected(org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
-	public void channelSelected(List<Channel> chans, int position) {
+	public void onChannelSelected(List<Channel> chans, int position) {
 		Intent channelListIntent = new Intent(this, ChannelListMultiActivity.class);
 		channelListIntent.putParcelableArrayListExtra(Channel.class.getName(), (ArrayList<Channel>) chans);
 		channelListIntent.putExtra(ChannelList.KEY_SELECTED_POSITION, position);

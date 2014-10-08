@@ -14,6 +14,7 @@ public class ServerConsts {
 	public static String	REC_SERVICE_URL					= REC_SERVICE_PROTOCOL;
 	public static String	REC_SERVICE_LIVE_STREAM_PORT	= "7522";
 	public static String	REC_SERVICE_MEDIA_STREAM_PORT	= "8090";
+	public static String	REC_SERVICE_WOL_PORT			= "9";
 	public static String	REC_SERVICE_USER_NAME			= "";
 	public static String	REC_SERVICE_MAC_ADDRESS			= "";
 	public static String	REC_SERVICE_PASSWORD			= "";

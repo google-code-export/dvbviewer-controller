@@ -21,7 +21,7 @@ import org.dvbviewer.controller.entities.ChannelGroup;
 import org.dvbviewer.controller.entities.DVBViewerPreferences;
 import org.dvbviewer.controller.ui.base.DrawerActivity;
 import org.dvbviewer.controller.ui.fragments.ChannelPager;
-import org.dvbviewer.controller.ui.fragments.ChannelPager.onGroupTypeCHangedListener;
+import org.dvbviewer.controller.ui.fragments.ChannelPager.GroupTypeChangedListener;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -41,7 +41,7 @@ import android.widget.AdapterView;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelListActivity extends DrawerActivity implements LoaderCallbacks<Cursor>, onGroupTypeCHangedListener, OnPageChangeListener {
+public class ChannelListActivity extends DrawerActivity implements LoaderCallbacks<Cursor>, GroupTypeChangedListener, OnPageChangeListener {
 
 	private boolean					showFavs;
 	private DVBViewerPreferences	prefs;

@@ -5,7 +5,5 @@
 	<classpathentry excluding="org/dvbviewer/controller/ui/fragments/ChannelGrid.java" kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry exported="true" kind="lib" path="C:/Program Files (x86)/adt-bundle-windows-x86-20130917/Workspace/android-support-v7-appcompat/libs/android-support-v4.jar"/>
-	<classpathentry kind="src" path="/ImageCacher"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

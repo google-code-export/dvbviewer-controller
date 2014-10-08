@@ -80,7 +80,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public static final String	KEY_SHOWFAVS			= "SHOWFAVS";
 	public static final String	KEY_SEARCH_QUERY		= "SEARCHQUERY";
 	ChannelAdapter				mAdapter;
-	int							selectedPosition		= -1;
+	int							selectedPosition		= 0;
 	boolean						hasOptionsMenu			= true;
 	boolean						showFavs				= false;
 	public static final int		LOADER_CHANNELLIST		= 101;
@@ -105,14 +105,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			if (getArguments().containsKey(ChannelList.KEY_HAS_OPTIONMENU)) {
 				hasOptionsMenu = getArguments().getBoolean(KEY_HAS_OPTIONMENU);
 			}
-			selectedPosition = getActivity().getIntent().getIntExtra(KEY_SELECTED_POSITION, selectedPosition);
 			if (getArguments().containsKey(ChannelList.KEY_GROUP_ID)) {
 				mGroupId = getArguments().getLong(KEY_GROUP_ID);
+				selectedPosition = getArguments().getInt(KEY_SELECTED_POSITION, selectedPosition);
 			}
 			showFavs = getArguments().getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS);
 		} else {
-			selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION, -1);
 			mGroupId = savedInstanceState.getLong(KEY_GROUP_ID, -1);
+			selectedPosition = savedInstanceState.getInt(KEY_SELECTED_POSITION, -1);
 			showFavs = savedInstanceState.getBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, false);
 		}
 		mAdapter = new ChannelAdapter(mContext);
@@ -186,10 +186,10 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		if (cursor != null && cursor.getCount() > 0) {
 			mAdapter.changeCursor(cursor);
-			if (selectedPosition != ListView.INVALID_POSITION) {
-				getListView().setItemChecked(selectedPosition, true);
-			}
+//			if (selectedPosition != ListView.INVALID_POSITION) {
+//			}
 		}
+		setSelection(selectedPosition);
 		setListShown(true);
 		getActivity().supportInvalidateOptionsMenu();
 	}
@@ -235,7 +235,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	 */
 	public void refresh(int loaderId) {
 		getLoaderManager().restartLoader(LOADER_CHANNELLIST, getArguments(), this);
-
 		setListShown(false);
 	}
 
@@ -289,12 +288,14 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		@Override
 		public void bindView(View view, Context context, Cursor c) {
 			ViewHolder holder = (ViewHolder) view.getTag();
-			loader.cancelDisplayTask(holder.icon);
 			String channelName = c.getString(c.getColumnIndex(ChannelTbl.NAME));
-			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
 			String epgTitle = c.getString(c.getColumnIndex(EpgTbl.TITLE));
 			long epgStart = c.getLong(c.getColumnIndex(EpgTbl.START));
 			long epgEnd = c.getLong(c.getColumnIndex(EpgTbl.END));
+			String logoUrl = c.getString(c.getColumnIndex(ChannelTbl.LOGO_URL));
+			
+			loader.cancelDisplayTask(holder.icon);
+			
 			Integer position = c.getInt(c.getColumnIndex(ChannelTbl.POSITION));
 			Integer favPosition = c.getInt(c.getColumnIndex(ChannelTbl.FAV_POSITION));
 			holder.channelName.setText(channelName);
@@ -322,7 +323,6 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 				StringBuffer url = new StringBuffer(ServerConsts.REC_SERVICE_URL);
 				url.append("/");
 				url.append(logoUrl);
-				
 				loader.displayImage(url.toString(), holder.icon, new AnimationLoadingListener());
 				
 			} else {
@@ -384,8 +384,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 			if (mCHannelSelectedListener != null) {
 				Cursor c = mAdapter.getCursor();
 				c.moveToPosition(position);
-				mCHannelSelectedListener.channelSelected(chans, position);
-				getListView().setItemChecked(position, true);
+				mCHannelSelectedListener.onChannelSelected(chans, position);
 			} else {
 				Intent epgPagerIntent = new Intent(getActivity(), EpgPagerActivity.class);
 				// long[] feedIds = new long[data.getCount()];
@@ -442,9 +441,11 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putInt(KEY_SELECTED_POSITION, selectedPosition);
 		outState.putLong(KEY_GROUP_ID, mGroupId);
+		outState.putInt(KEY_SELECTED_POSITION, selectedPosition);
+		outState.putBoolean(DVBViewerPreferences.KEY_CHANNELS_USE_FAVS, showFavs);
 	}
+	
 
 	/*
 	 * (non-Javadoc)
@@ -534,7 +535,7 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		 * @author RayBa
 		 * @date 05.07.2012
 		 */
-		public void channelSelected(List<Channel> chans, int position);
+		public void onChannelSelected(List<Channel> chans, int position);
 
 	}
 
@@ -680,6 +681,13 @@ public class ChannelList extends BaseListFragment implements LoaderCallbacks<Cur
 		        getActivity().getString(R.string.quick_stream_hint_title), getActivity().getString(R.string.quick_stream_hint_text), co);
 		showCase.setBackgroundColor(getResources().getColor(R.color.black_transparent));
 		showCase.show();
+	}
+
+	public long getGroupId() {
+		return mGroupId;
+	}
+	public int getSelectedPosition() {
+		return selectedPosition;
 	}
 
 }

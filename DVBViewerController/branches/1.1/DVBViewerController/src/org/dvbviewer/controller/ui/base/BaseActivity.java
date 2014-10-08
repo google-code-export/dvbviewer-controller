@@ -28,6 +28,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -221,4 +223,32 @@ public abstract class BaseActivity extends ActionBarActivity {
 		trans.addToBackStack(f.getClass().getName());
 		trans.commit();
 	}
+	
+	
+	@Override
+	public void setTitle(CharSequence title) {
+		View multiContainer = findViewById(R.id.multi_container);
+		TextView multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);
+		if (multiContainer != null) {
+			getSupportActionBar().setTitle(R.string.app_name);
+			multiContainerIndicator.setText(title);
+		}else {
+			getSupportActionBar().setTitle(title);
+		}
+	}
+	
+	
+	@Override
+	public void setTitle(int titleId) {
+		View multiContainer = findViewById(R.id.multi_container);
+		TextView multiContainerIndicator = (TextView) findViewById(R.id.multi_container_indicator);
+		if (multiContainer != null) {
+			getSupportActionBar().setTitle(R.string.app_name);
+			multiContainerIndicator.setText(titleId);
+		}else {
+			getSupportActionBar().setTitle(titleId);
+		}
+	}
+	
+	
 }

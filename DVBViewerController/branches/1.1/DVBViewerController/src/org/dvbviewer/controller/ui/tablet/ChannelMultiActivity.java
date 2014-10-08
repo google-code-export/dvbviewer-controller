@@ -152,7 +152,7 @@ public class ChannelMultiActivity extends BaseSinglePaneActivity implements EpgD
 	 * @see org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener#channelSelected(java.util.List, org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
-	public void channelSelected(List<Channel> chans, int position) {
+	public void onChannelSelected(List<Channel> chans, int position) {
 //		mEpgPager.setPosition(position);
 	}
 

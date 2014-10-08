@@ -34,6 +34,7 @@ import org.dvbviewer.controller.utils.URLUtil;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 
 import android.app.Application;
 import android.text.TextUtils;
@@ -58,7 +59,7 @@ public class App extends Application {
 		/**
 		 * Acra initialisation
 		 */
-		boolean initAcra = getResources().getBoolean(R.bool.init_acra);
+		boolean initAcra = false;
 		String acraUrl = getResources().getString(R.string.url_acra_error);
 		if (initAcra && !TextUtils.isEmpty(acraUrl)) {
 			ACRA.init(this);
@@ -101,15 +102,17 @@ public class App extends Application {
 		ServerConsts.REC_SERVICE_LIVE_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_LIVE_STREAM_PORT, ServerConsts.REC_SERVICE_LIVE_STREAM_PORT);
 		ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_MEDIA_STREAM_PORT, ServerConsts.REC_SERVICE_MEDIA_STREAM_PORT);
 		ServerConsts.REC_SERVICE_MAC_ADDRESS = prefs.getString(DVBViewerPreferences.KEY_RS_MAC_ADDRESS);
+		ServerConsts.REC_SERVICE_WOL_PORT = prefs.getString(DVBViewerPreferences.KEY_RS_WOL_PORT, "9");
 		super.onCreate();
 
 		boolean sendWakeOnLan = prefs.getBoolean(DVBViewerPreferences.KEY_RS_WOL_ON_START, true);
 		if (sendWakeOnLan && !TextUtils.isEmpty(ServerConsts.REC_SERVICE_MAC_ADDRESS)) {
-			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_HOST, ServerConsts.REC_SERVICE_MAC_ADDRESS);
+			NetUtils.sendWakeOnLan(ServerConsts.REC_SERVICE_MAC_ADDRESS, Integer.valueOf(ServerConsts.REC_SERVICE_WOL_PORT));
 		}
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
 		.cacheInMemory(true)
 		.cacheOnDisc(true)
+		.displayer(new FadeInBitmapDisplayer(500, true, false, false))
 		.build();
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
 		.imageDownloader(new AuthImageDownloader(getApplicationContext()))

@@ -16,6 +16,9 @@
 package org.dvbviewer.controller.ui.fragments;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -40,7 +43,6 @@ import org.dvbviewer.controller.io.data.VersionHandler;
 import org.dvbviewer.controller.ui.base.AsyncLoader;
 import org.dvbviewer.controller.ui.base.BaseActivity.ErrorToastRunnable;
 import org.dvbviewer.controller.ui.tablet.ChannelListMultiActivity;
-import org.dvbviewer.controller.ui.widget.DepthPageTransformer;
 import org.dvbviewer.controller.utils.Config;
 import org.dvbviewer.controller.utils.NetUtils;
 import org.dvbviewer.controller.utils.ServerConsts;
@@ -65,12 +67,14 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import ch.boye.httpclientandroidlib.ParseException;
 import ch.boye.httpclientandroidlib.auth.AuthenticationException;
@@ -85,7 +89,7 @@ import com.viewpagerindicator.TitlePageIndicator;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, OnPageChangeListener{
+public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, OnPageChangeListener {
 
 	private static final String			KEY_ADAPTER_POSITION	= "KEY_ADAPTER_POSITION";
 
@@ -100,8 +104,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	private TitlePageIndicator			mPagerIndicator;
 
 	private PagerAdapter				mAdapter;
-
-	private OnPageChangeListener		mOnPageChangeListener;
 
 	private boolean						showFavs;
 	private boolean						showGroups;
@@ -120,7 +122,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	private boolean						showNowPlaying;
 
 	private boolean						showNowPlayingWifi;
-	private onGroupTypeCHangedListener	mOnGroupTypeCHangedListener;
+	private GroupTypeChangedListener	mGroupTypeCHangedListener;
+	private GroupChangedListener		mGroupCHangedListener;
 
 	/*
 	 * (non-Javadoc)
@@ -131,11 +134,14 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		if (activity instanceof OnPageChangeListener) {
-			mOnPageChangeListener = (OnPageChangeListener) activity;
+//		if (activity instanceof OnPageChangeListener) {
+//			mOnPageChangeListener = (OnPageChangeListener) activity;
+//		}
+		if (activity instanceof GroupTypeChangedListener) {
+			mGroupTypeCHangedListener = (GroupTypeChangedListener) activity;
 		}
-		if (activity instanceof onGroupTypeCHangedListener) {
-			mOnGroupTypeCHangedListener = (onGroupTypeCHangedListener) activity;
+		if (activity instanceof GroupChangedListener) {
+			mGroupCHangedListener = (GroupChangedListener) activity;
 		}
 	}
 
@@ -148,11 +154,11 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-//		setRetainInstance(true);
+		// setRetainInstance(true);
 		mAdapter = new PagerAdapter(getChildFragmentManager(), mGroupCursor);
 		ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 		mNetworkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
+		
 		prefs = new DVBViewerPreferences(getActivity());
 		showGroups = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_GROUPS, false);
 		showExtraGroup = prefs.getPrefs().getBoolean(DVBViewerPreferences.KEY_CHANNELS_SHOW_ALL_AS_GROUP, false);
@@ -169,11 +175,11 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		getActivity().setTitle(showFavs ? R.string.favourites : R.string.channelList);
 		mPager.setAdapter(mAdapter);
-		mPager.setOnPageChangeListener(this);
 		mPager.setPageMargin((int) UIUtils.dipToPixel(getActivity(), 25));
 		mPagerIndicator.setViewPager(mPager);
-		mPagerIndicator.setOnPageChangeListener(mOnPageChangeListener);
+		mPagerIndicator.setOnPageChangeListener(this);
 
 		int loaderId = LOAD_CHANNELS;
 		if (savedInstanceState != null) {
@@ -269,9 +275,10 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 			showFavs = !showFavs;
 			mPosition = 0;
 			persistChannelConfigConfig();
-			if (mOnGroupTypeCHangedListener != null) {
-				mOnGroupTypeCHangedListener.onTypeChanged(showFavs ? ChannelGroup.TYPE_FAV : ChannelGroup.TYPE_CHAN);
+			if (mGroupTypeCHangedListener != null) {
+				mGroupTypeCHangedListener.onTypeChanged(showFavs ? ChannelGroup.TYPE_FAV : ChannelGroup.TYPE_CHAN);
 			}
+			getActivity().setTitle(showFavs ? R.string.favourites : R.string.channelList);
 			refresh(LOAD_CHANNELS);
 			getActivity().supportInvalidateOptionsMenu();
 			return true;
@@ -303,7 +310,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	class PagerAdapter extends FragmentStatePagerAdapter {
 
 		private Cursor		mCursor;
-		private Fragment	mCurrentFragment;
+		private ChannelList	mCurrentCHannelList;
 
 		/**
 		 * Instantiates a new pager adapter.
@@ -347,12 +354,18 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 		public int getItemPosition(Object object) {
 			return POSITION_NONE;
 		}
-
-		@Override
-		public void restoreState(Parcelable arg0, ClassLoader arg1) {
-			// TODO Auto-generated method stub
-			// super.restoreState(arg0, arg1);
+		
+		public long getGroupId(int position){
+			mCursor.moveToPosition(position);
+			long groupId = mCursor.getLong(mCursor.getColumnIndex(GroupTbl._ID));
+			return groupId;
 		}
+
+//		@Override
+//		public void restoreState(Parcelable arg0, ClassLoader arg1) {
+//			// TODO Auto-generated method stub
+//			// super.restoreState(arg0, arg1);
+//		}
 
 		@Override
 		public void destroyItem(ViewGroup container, int position, Object object) {
@@ -407,16 +420,11 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 			notifyDataSetChanged();
 		}
 
-		@Override
-		public void setPrimaryItem(ViewGroup container, int position, Object object) {
-			if (mCurrentFragment != object) {
-				mCurrentFragment = (Fragment) object;
-			}
-			super.setPrimaryItem(container, position, object);
-		}
-
-		public Fragment getCurrentFragment() {
-			return mCurrentFragment;
+		
+		public ChannelList getCurrentFragment(int position) {
+			
+			return (ChannelList) instantiateItem(null, position);
+			
 		}
 
 	}
@@ -434,7 +442,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 			mPager.setCurrentItem(mPosition, false);
 		}
 	}
-	
+
 	/**
 	 * Sets the position.
 	 *
@@ -443,7 +451,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	 * @date 07.04.2013
 	 */
 	public int getPosition() {
-		int result = 0;
+		int result = AbsListView.INVALID_POSITION;
 		if (mPager != null) {
 			result = mPager.getCurrentItem();
 		}
@@ -674,7 +682,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 			mAdapter.setCursor(mGroupCursor);
 			mAdapter.notifyDataSetChanged();
 			mPager.setCurrentItem(mPosition, false);
-			mPager.setPageTransformer(true, new DepthPageTransformer());
+			// mPager.setPageTransformer(true, new DepthPageTransformer());
 			getActivity().supportInvalidateOptionsMenu();
 			showProgress(false);
 			break;
@@ -702,7 +710,7 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 		super.onSaveInstanceState(outState);
 		outState.putInt(KEY_ADAPTER_POSITION, mPager.getCurrentItem());
 	}
-	
+
 	/**
 	 * Show toast.
 	 *
@@ -711,12 +719,16 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 	 * @date 07.04.2013
 	 */
 	protected void showToast(String message) {
-		if (getActivity() != null && !isDetached() &&isAdded() && !TextUtils.isEmpty(message)) {
+		if (getActivity() != null && !isDetached() && isAdded() && !TextUtils.isEmpty(message)) {
 			ErrorToastRunnable errorRunnable = new ErrorToastRunnable(getActivity(), message);
 			getActivity().runOnUiThread(errorRunnable);
 		}
 	}
-	
+
+	public ChannelList getCurrentFragment() {
+		return mAdapter.getCurrentFragment(mPager.getCurrentItem());
+	}
+
 	/**
 	 * Refresh.
 	 *
@@ -744,8 +756,8 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 		}
 
 	}
-	
-	public String getStringSafely(int resId){
+
+	public String getStringSafely(int resId) {
 		String result = "";
 		if (!isDetached() && isAdded() && isVisible()) {
 			try {
@@ -757,27 +769,39 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 		return result;
 	}
 
-	public static interface onGroupTypeCHangedListener {
+	public static interface GroupTypeChangedListener {
 
 		public void onTypeChanged(int type);
+
+	}
+
+	public static interface GroupChangedListener {
+
+		public void onGroupChanged(long groupId, int position);
 
 	}
 
 	@Override
 	public void onPageScrollStateChanged(int arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onPageScrolled(int arg0, float arg1, int arg2) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onPageSelected(int position) {
+		Log.i(ChannelPager.class.getSimpleName(), "onPageSelected");
+		ChannelList list = (ChannelList) mAdapter.instantiateItem(null, position);
+		Log.i(ChannelPager.class.getSimpleName(), "currentPosition"+list.selectedPosition);
 		mPosition = position;
+		if (mGroupCHangedListener != null && list != null) {
+			mGroupCHangedListener.onGroupChanged(mAdapter.getGroupId(position), list.selectedPosition);
+		}
 	}
 
 }

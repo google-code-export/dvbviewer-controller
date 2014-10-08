@@ -17,6 +17,7 @@ package org.dvbviewer.controller.ui.tablet;
 
 import java.util.Date;
 import java.util.List;
+
 import org.dvbviewer.controller.R;
 import org.dvbviewer.controller.entities.Channel;
 import org.dvbviewer.controller.ui.base.BaseActivity;
@@ -25,10 +26,13 @@ import org.dvbviewer.controller.ui.fragments.ChannelEpg;
 import org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo;
 import org.dvbviewer.controller.ui.fragments.ChannelList;
 import org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener;
+import org.dvbviewer.controller.ui.fragments.ChannelPager;
+import org.dvbviewer.controller.ui.fragments.ChannelPager.GroupChangedListener;
 import org.dvbviewer.controller.ui.fragments.EpgPager;
-import android.annotation.SuppressLint;
+
 import android.os.Bundle;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
 import android.view.MenuItem;
 
 /**
@@ -37,14 +41,17 @@ import android.view.MenuItem;
  * @author RayBa
  * @date 07.04.2013
  */
-public class ChannelListMultiActivity extends BaseMultiPaneActivity implements EpgDateInfo, OnChannelSelectedListener, OnPageChangeListener {
-	
-	Date epgDate = new Date();
-	private EpgPager	mEpgPager;
-	private ChannelList	mChannelList;
+public class ChannelListMultiActivity extends BaseMultiPaneActivity implements EpgDateInfo, OnChannelSelectedListener, OnPageChangeListener, GroupChangedListener {
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onCreate(android.os.Bundle)
+	Date					epgDate	= new Date();
+	private EpgPager		mEpgPager;
+	private ChannelPager	mChannelPager;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.base.BaseActivity#onCreate(android.os.Bundle)
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,40 +61,49 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		setContentView(R.layout.fragment_channel_multi);
 		if (savedInstanceState == null) {
 			int position = getIntent().getExtras().getInt(ChannelList.KEY_SELECTED_POSITION);
-			mChannelList = new ChannelList();
-			mChannelList.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
-			mChannelList.setSelectedPosition(position);
+			mChannelPager = new ChannelPager();
+			mChannelPager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
 			mEpgPager = new EpgPager();
 			mEpgPager.setArguments(BaseActivity.intentToFragmentArguments(getIntent()));
 			mEpgPager.setPosition(position);
-			getSupportFragmentManager().beginTransaction().add(R.id.left_container, mChannelList, ChannelList.class.getName()).commit();
+			getSupportFragmentManager().beginTransaction().add(R.id.left_container, mChannelPager, ChannelPager.class.getName()).commit();
 			getSupportFragmentManager().beginTransaction().add(R.id.right_container, mEpgPager, EpgPager.class.getName()).commit();
-		}else {
-			mChannelList = (ChannelList) getSupportFragmentManager().findFragmentByTag(ChannelList.class.getName());
+		} else {
+			mChannelPager = (ChannelPager) getSupportFragmentManager().findFragmentByTag(ChannelPager.class.getName());
 			mEpgPager = (EpgPager) getSupportFragmentManager().findFragmentByTag(EpgPager.class.getName());
 		}
+		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo#setEpgDate(java.util.Date)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo#setEpgDate
+	 * (java.util.Date)
 	 */
 	@Override
 	public void setEpgDate(Date epgDate) {
 		this.epgDate = epgDate;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo#getEpgDate()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.fragments.ChannelEpg.EpgDateInfo#getEpgDate()
 	 */
 	@Override
 	public Date getEpgDate() {
 		return epgDate;
 	}
-	
-	
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.base.BaseActivity#onOptionsItemSelected(com
+	 * .actionbarsherlock.view.MenuItem)
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -97,11 +113,11 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		case R.id.menuFavourties:
 		case R.id.menuChannelList:
 		case R.id.menuRefreshChannels:
-			mChannelList.onOptionsItemSelected(item);
+			mChannelPager.onOptionsItemSelected(item);
 			return true;
 		case R.id.menuRefresh:
 			mEpgPager.onOptionsItemSelected(item);
-			mChannelList.refresh(ChannelList.LOADER_CHANNELLIST);
+			mChannelPager.refresh(ChannelList.LOADER_CHANNELLIST);
 			break;
 		case R.id.menuPrev:
 			mEpgPager.onOptionsItemSelected(item);
@@ -126,19 +142,26 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		return true;
 	}
 
-	
-	/* (non-Javadoc)
- * @see com.actionbarsherlock.app.SherlockFragmentActivity#onSaveInstanceState(android.os.Bundle)
- */
-@Override
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragmentActivity#onSaveInstanceState
+	 * (android.os.Bundle)
+	 */
+	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putLong(ChannelEpg.KEY_EPG_DAY, epgDate.getTime());
-		
+
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.actionbarsherlock.app.SherlockFragmentActivity#onRestoreInstanceState(android.os.Bundle)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.actionbarsherlock.app.SherlockFragmentActivity#onRestoreInstanceState
+	 * (android.os.Bundle)
 	 */
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -146,39 +169,67 @@ public class ChannelListMultiActivity extends BaseMultiPaneActivity implements E
 		epgDate = savedInstanceState != null && savedInstanceState.containsKey(ChannelEpg.KEY_EPG_DAY) ? new Date(savedInstanceState.getLong(ChannelEpg.KEY_EPG_DAY)) : new Date();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener#channelSelected(java.util.List, org.dvbviewer.controller.entities.Channel, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.dvbviewer.controller.ui.fragments.ChannelList.OnChannelSelectedListener
+	 * #channelSelected(java.util.List,
+	 * org.dvbviewer.controller.entities.Channel, int)
 	 */
 	@Override
-	public void channelSelected(List<Channel> chans, int position) {
+	public void onChannelSelected(List<Channel> chans, int position) {
 		mEpgPager.setPosition(position);
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.view.ViewPager.OnPageChangeListener#onPageScrollStateChanged(int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.support.v4.view.ViewPager.OnPageChangeListener#
+	 * onPageScrollStateChanged(int)
 	 */
 	@Override
 	public void onPageScrollStateChanged(int arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.view.ViewPager.OnPageChangeListener#onPageScrolled(int, float, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.view.ViewPager.OnPageChangeListener#onPageScrolled
+	 * (int, float, int)
 	 */
 	@Override
 	public void onPageScrolled(int arg0, float arg1, int arg2) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	/* (non-Javadoc)
-	 * @see android.support.v4.view.ViewPager.OnPageChangeListener#onPageSelected(int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.view.ViewPager.OnPageChangeListener#onPageSelected
+	 * (int)
 	 */
 	@Override
 	public void onPageSelected(int position) {
-		mChannelList.setSelection(position);
-		
+		if (mChannelPager != null && mChannelPager.getCurrentFragment() != null) {
+			((ChannelList) mChannelPager.getCurrentFragment()).setSelection(position);
+			Log.i(ChannelListMultiActivity.class.getSimpleName(), "setSelection");
+		}
+	}
+
+	@Override
+	public void onGroupChanged(long groupId, int position) {
+		Log.i(ChannelListMultiActivity.class.getSimpleName(), "onGroupChanged");
+		if (mChannelPager != null && mChannelPager.getCurrentFragment() != null) {
+			mEpgPager.setGroupId(groupId);
+//			mChannelPager.getCurrentFragment().setSelectedPosition(ListView.INVALID_POSITION);
+			mEpgPager.refresh(position);
+		}
 	}
 
 }

@@ -361,21 +361,6 @@ public class ChannelPager extends Fragment implements LoaderCallbacks<Cursor>, O
 			return groupId;
 		}
 
-//		@Override
-//		public void restoreState(Parcelable arg0, ClassLoader arg1) {
-//			// TODO Auto-generated method stub
-//			// super.restoreState(arg0, arg1);
-//		}
-
-		@Override
-		public void destroyItem(ViewGroup container, int position, Object object) {
-			if (position >= getCount()) {
-				FragmentManager manager = ((Fragment) object).getFragmentManager();
-				FragmentTransaction trans = manager.beginTransaction();
-				trans.remove((Fragment) object);
-				trans.commit();
-			}
-		}
 
 		/*
 		 * (non-Javadoc)
